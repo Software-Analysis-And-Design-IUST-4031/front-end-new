@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Button from '@mui/material/Button'
 import { Link } from 'react-router-dom'
 import '@mantine/core/styles.css';
-import './App.css'
+import './SignUp.css'
 import { EyeCheck, EyeOff } from 'tabler-icons-react';
 import { MantineProvider, Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
 
