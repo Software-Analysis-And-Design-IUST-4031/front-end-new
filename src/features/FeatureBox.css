@@ -1,0 +1,22 @@
+.feature-box {
+    padding: 40px 20px;
+    background-color: #cdd6d3;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin: 20px;
+  }
+  
+  .feature-box h3 {
+    font-size: 2.5rem;
+    color: #000000;
+    margin-bottom: 15px;
+    font-weight: bold;
+    font-family: 'Pacifico', cursive;
+  }
+  
+  .feature-box p {
+    font-size: 1em;
+    color: #555;
+  }
+  

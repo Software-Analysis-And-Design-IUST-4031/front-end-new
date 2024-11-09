@@ -1,0 +1,8 @@
+.Animation {
+    display: flex;
+    justify-content: center;
+    width: 500px;
+    height:  95vh;
+    margin: 0 auto;
+    
+}
