@@ -104,8 +104,8 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                     },
                     visibilityToggle: {
                       color: 'white',
-                      backgroundColor: '#1a31b6',
-                      right: -93
+                      backgroundColor: 'black',
+                      right: -91
                     }
                   }}
                   visibilityToggleButtonProps={({ reveal, size }: {reveal: boolean; size: number}) => reveal ? <EyeOff size={size}/> : <EyeCheck size={size}/>}
@@ -121,9 +121,10 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                 fullWidth
                 sx={{
                   color: 'white',
-                  backgroundColor: ' #1a31b6',
+                  backgroundColor: ' black',
                   '&:hover': {
-                    backgroundColor: '#f39811'
+                    backgroundColor: 'white',
+                    color: 'black'
                   },
                   mt: 0.25,
                   py: 0.7,

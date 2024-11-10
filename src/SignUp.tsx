@@ -233,8 +233,8 @@ const SignUp = () => {
                     },
                     visibilityToggle: {
                       color: 'white',
-                      backgroundColor: '#1a31b6',
-                      right: -5
+                      backgroundColor: 'black',
+                      right: -6
                     }
                   }}
                   visibilityToggleButtonProps={({ reveal, size }: {reveal: boolean; size: number}) => reveal ? <EyeOff size={size}/> : <EyeCheck size={size}/>}
@@ -271,8 +271,8 @@ const SignUp = () => {
                     },
                     visibilityToggle: {
                       color: 'white',
-                      backgroundColor: '#1a31b6',
-                      right: -5
+                      backgroundColor: 'black',
+                      right: -7
                     }
                   }}
                   visibilityToggleButtonProps={({ reveal, size }: {reveal: boolean; size: number}) => reveal ? <EyeOff size={size}/> : <EyeCheck size={size}/>}
@@ -288,9 +288,10 @@ const SignUp = () => {
                 fullWidth
                 sx={{
                   color: 'white',
-                  backgroundColor: ' #1a31b6',
+                  backgroundColor: 'black',
                   '&:hover': {
-                    backgroundColor: '#f39811'
+                    backgroundColor: 'white',
+                    color: 'black'
                   },
                   mt: 0.25,
                   py: 0.7,
