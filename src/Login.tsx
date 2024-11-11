@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import Button from '@mui/material/Button'
 import { Link } from 'react-router-dom'
+import { ToastContainer, toast } from 'react-toastify'
 import '@mantine/core/styles.css';
 import './Login.css'
+import axios from 'axios'
 import { EyeCheck, EyeOff } from 'tabler-icons-react';
 import { MantineProvider, Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
 
@@ -31,6 +33,41 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   }));
 }
 
+const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  if (!userName || !password) {
+    const newErrors = {userName: userName ? '' : 'username is required!',
+    password: password ? '' : 'password is required!'};
+    setErrors(newErrors);
+    return;
+  }
+
+  try {
+    const response = await axios.post('http://127.0.0.1:8000/api/user/login/', {
+        userName,
+        password,
+      } 
+    );
+    toast.success(JSON.stringify(response.data) || 'login successful!', {
+      position: 'bottom-center',
+      style: {backgroundColor: 'white', color: 'green'}
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data || 'Error occured during login!';
+      toast.error(JSON.stringify(errorMessage), {
+        position: 'bottom-center',
+        style: {backgroundColor: 'white', color: 'red'}
+      });
+    } else {
+      toast.error('An unexpected error occured', {
+        position: 'bottom-center',
+        style: {backgroundColor: 'white', color: 'red'}
+      });
+    }
+  }
+};
+
   return (
     <MantineProvider>
       <Box
@@ -52,7 +89,7 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
           boxShadow: '10 4px 8px rbga(0, 0, 0, 10)'
         }}
       >
-        <form className='login-form'>
+        <form className='login-form' onSubmit={handleSubmit}>
         <h1>Login</h1>
           <Grid justify='left'>
             <Grid.Col span={8}>
@@ -152,6 +189,7 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                 SignUp
               </Link>
           </Grid>
+          <ToastContainer />
         </form>
       </Box>
     </MantineProvider>

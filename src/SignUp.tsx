@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import Button from '@mui/material/Button'
 import { Link } from 'react-router-dom'
+import { ToastContainer, toast } from 'react-toastify'
 import '@mantine/core/styles.css';
 import './SignUp.css'
+import axios from 'axios'
 import { EyeCheck, EyeOff } from 'tabler-icons-react';
 import { MantineProvider, Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
 
@@ -76,6 +78,47 @@ const SignUp = () => {
   }
 
   const [isPasswordVisible] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!firstName || !lastName || !userName || !password || !confirmPassword || !email) {
+      const newErrors = {firstName: firstName ? '' : 'first name is required!', lastName: lastName ? '' : 'last name is required!',
+       userName: userName ? '' : 'username is required!', email: email ? '' : 'email address is required!',
+      password: password ? '' : 'password is required!', confirmPassword: confirmPassword ? '' : 'confirm password is required!'};
+      setErrors(newErrors);
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/api/user/register/', {
+          firstName,
+          lastName,
+          userName,
+          password, 
+          confirmPassword,
+          email,
+        } 
+      );
+      toast.success(JSON.stringify(response.data) || 'signup successful!', {
+        position: 'bottom-center',
+        style: {backgroundColor: 'white', color: 'green'}
+      });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data || 'Error occured during signup!';
+        toast.error(JSON.stringify(errorMessage), {
+          position: 'bottom-center',
+          style: {backgroundColor: 'white', color: 'red'}
+        });
+      } else {
+        toast.error('An unexpected error occured', {
+          position: 'bottom-center',
+          style: {backgroundColor: 'white', color: 'red'}
+        });
+      }
+    }
+  };
  
   return (
     <MantineProvider>
@@ -101,7 +144,7 @@ const SignUp = () => {
         }}
       >
         <h1>Sign Up</h1>
-        <form className='form'>
+        <form className='form' onSubmit={handleSubmit}>
           <Grid>
             <Grid.Col span={6}>
             <label>
@@ -322,6 +365,7 @@ const SignUp = () => {
               </Link>
             </Grid.Col>
           </Grid>
+          <ToastContainer />
         </form>
       </Box>
     </MantineProvider>
