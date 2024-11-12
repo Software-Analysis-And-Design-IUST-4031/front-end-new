@@ -1,39 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import Header from './Header/Header';
-import DescriptionSection from './description/description';
-import Footer from './footer/footer';
-import MyLottieAnimation1 from './animation/Animation1';
-import MyLottieAnimation2 from './animation/Animation2';
-import Features from './features/Features';
+//import { useState } from 'react'
+//import reactLogo from './assets/react.svg'
+//import viteLogo from '/vite.svg'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import SignUp from './SignUp'
+import Login from './Login'
 
-const App: React.FC = () => {
-  const [showAnimation, setShowAnimation] = useState<boolean>(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowAnimation(false);
-    }, 4350);
-
-    return () => clearTimeout(timer);
-  }, []);
-
+function App() {
   return (
-    <div>
-      {showAnimation ? (
-        <MyLottieAnimation1 />
-      ) : (
-        <>
-          <Header />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <DescriptionSection />
-            <MyLottieAnimation2 />
-          </div>
-          <Features />
-          <Footer />
-        </>
-      )}
-    </div>
+    <Router>
+      <Routes>
+        <Route path='/' element={<Login />}/>
+        <Route path='/Login' element={<Login />}/>
+        <Route path='/SignUp' element={<SignUp />}/>
+      </Routes>
+    </Router>
   );
-};
+}
 
-export default App;
+export default App
