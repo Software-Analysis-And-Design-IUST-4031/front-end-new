@@ -16,6 +16,7 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState({firstName: '', lastName: '', userName: '', email: '', password: '', confirmPassword: ''});
+  const [toastDisplayed, setTaostDisplayed] = useState(false);
 
   const handleFirstnameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -91,31 +92,40 @@ const SignUp = () => {
     }
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/user/register/', {
-          firstName,
-          lastName,
-          userName,
-          password, 
-          confirmPassword,
-          email,
-        } 
-      );
-      toast.success(JSON.stringify(response.data) || 'signup successful!', {
-        position: 'bottom-center',
-        style: {backgroundColor: 'white', color: 'green'}
-      });
+      if (!toastDisplayed) {
+        const response = await axios.post('http://127.0.0.1:8000/api/user/register/', {
+            firstname: firstName,
+            lastname: lastName,
+            username: userName,
+            password: password, 
+            confirm_password: confirmPassword,
+            email: email,
+          } 
+        );
+        toast.success(JSON.stringify(response.data) || 'signup successful!', {
+          position: 'bottom-center',
+          style: {backgroundColor: 'white', color: 'green',
+          height: '150px', width: '150px'
+          },
+          autoClose: 2000,
+          closeOnClick: true,
+        });
+        setTaostDisplayed(true);
+      }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMessage = error.response?.data || 'Error occured during signup!';
-        toast.error(JSON.stringify(errorMessage), {
-          position: 'bottom-center',
-          style: {backgroundColor: 'white', color: 'red'}
-        });
-      } else {
-        toast.error('An unexpected error occured', {
-          position: 'bottom-center',
-          style: {backgroundColor: 'white', color: 'red'}
-        });
+        if (!toastDisplayed) {
+          toast.error(JSON.stringify(errorMessage), {
+            position: 'bottom-center',
+            style: {backgroundColor: 'white', color: 'red',
+            height: '150px', width: '150px'
+            },
+            autoClose: 2000,
+            closeOnClick: true,
+          });
+          setTaostDisplayed(true);
+        }
       }
     }
   };
@@ -170,7 +180,6 @@ const SignUp = () => {
                     marginLeft: '0px'
                   }
                 }} 
-                required
               />
               </label>
             </Grid.Col>
@@ -197,7 +206,6 @@ const SignUp = () => {
                       textAlign: "left",
                       marginLeft: '0px'
                     }}}
-                  required
                 />
               </label>
             </Grid.Col>
@@ -207,7 +215,7 @@ const SignUp = () => {
               <label>
               <TextInput 
                   label='Username'
-                  type='text'
+                     type='text'
                   name="user_name"
                   value={userName}
                   onChange={handleUsernameChange}
@@ -223,7 +231,6 @@ const SignUp = () => {
                       fontWeight: '550',
                       marginBottom: '5px'
                     }}}
-                  required
                 />
               </label>
             </Grid.Col>
@@ -247,7 +254,6 @@ const SignUp = () => {
                   fontWeight: '550', 
                   marginBottom: '5px'
                 }}}
-              required
             />
           </label>
             </Grid.Col>
@@ -281,7 +287,6 @@ const SignUp = () => {
                     }
                   }}
                   visibilityToggleButtonProps={({ reveal, size }: {reveal: boolean; size: number}) => reveal ? <EyeOff size={size}/> : <EyeCheck size={size}/>}
-                  required
                 />
               </label>
             </Grid.Col>
@@ -319,7 +324,6 @@ const SignUp = () => {
                     }
                   }}
                   visibilityToggleButtonProps={({ reveal, size }: {reveal: boolean; size: number}) => reveal ? <EyeOff size={size}/> : <EyeCheck size={size}/>}
-                  required
                 />
               </label>
             </Grid.Col>
@@ -327,6 +331,7 @@ const SignUp = () => {
           <Grid justify='center'>
             <Grid.Col>
             <Button
+                type='submit'
                 variant='contained'
                 fullWidth
                 sx={{
@@ -365,9 +370,13 @@ const SignUp = () => {
               </Link>
             </Grid.Col>
           </Grid>
-          <ToastContainer />
         </form>
       </Box>
+      <ToastContainer
+        autoClose={2000}
+        closeOnClick
+        pauseOnHover
+    />
     </MantineProvider>
   );
 }

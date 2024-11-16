@@ -12,6 +12,7 @@ const Login = () => {
 const [userName, setUserName] = useState('');
 const [password, setPassword] = useState('');
 const [errors, setErrors] = useState({ userName: '', password: '' }); 
+const [toastDisplayed, setTaostDisplayed] = useState(false);
 
 const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   const value = event.target.value;
@@ -43,28 +44,37 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
   }
 
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/user/login/', {
-        userName,
-        password,
-      } 
-    );
-    toast.success(JSON.stringify(response.data) || 'login successful!', {
-      position: 'bottom-center',
-      style: {backgroundColor: 'white', color: 'green'}
-    });
+    if (!toastDisplayed) {
+      const response = await axios.post('http://127.0.0.1:8000/api/user/login/', {
+          username: userName,
+          password: password,
+        } 
+      );
+      toast.success(JSON.stringify(response.data) || 'login successful!', {
+        position: 'bottom-center',
+        style: {backgroundColor: 'white', color: 'green',
+        height: '150px', width: '150px'
+        },
+        autoClose: 2000,
+        closeOnClick: true,
+      }); 
+      setTaostDisplayed(true);
+    }
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const errorMessage = error.response?.data || 'Error occured during login!';
-      toast.error(JSON.stringify(errorMessage), {
-        position: 'bottom-center',
-        style: {backgroundColor: 'white', color: 'red'}
-      });
-    } else {
-      toast.error('An unexpected error occured', {
-        position: 'bottom-center',
-        style: {backgroundColor: 'white', color: 'red'}
-      });
-    }
+      if (!toastDisplayed) {
+        toast.error(JSON.stringify(errorMessage), {
+          position: 'bottom-center',
+          style: {backgroundColor: 'white', color: 'red',
+          height: '150px', width: '150px'
+          },
+          autoClose: 2000,
+          closeOnClick: true,
+        });
+        setTaostDisplayed(true);
+      }
+    } 
   }
 };
 
@@ -112,7 +122,6 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                       fontWeight: '550',
                       marginBottom: '7px'
                     }}}
-                  required
                 />
               </label>
             </Grid.Col>
@@ -146,7 +155,6 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                     }
                   }}
                   visibilityToggleButtonProps={({ reveal, size }: {reveal: boolean; size: number}) => reveal ? <EyeOff size={size}/> : <EyeCheck size={size}/>}
-                  required
                 />
               </label>
             </Grid.Col>
@@ -154,6 +162,7 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
           <Grid justify='center'>
             <Grid.Col>
             <Button
+                type='submit'
                 variant='contained'
                 fullWidth
                 sx={{
@@ -189,9 +198,12 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                 SignUp
               </Link>
           </Grid>
-          <ToastContainer />
         </form>
       </Box>
+      <ToastContainer
+        closeOnClick
+        pauseOnHover
+      />
     </MantineProvider>
   );
 }
