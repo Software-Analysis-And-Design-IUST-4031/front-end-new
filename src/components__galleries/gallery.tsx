@@ -23,8 +23,8 @@ const Gallary: React.FC<Props> = ({ image_url, descryption, name , num_paints , 
   };
 
 
-  const width : number = 402;
-  const height : number = 420;
+  const width : number = 390;
+  const height : number = 380;
 
 
   return (
@@ -79,7 +79,7 @@ const Gallary: React.FC<Props> = ({ image_url, descryption, name , num_paints , 
                     opacity : 30 ,
                     zIndex: 2, // Ensure text is above the background
                 }}>
-                    {truncateString(descryption, 240)}
+                    {truncateString(descryption, 170)}
                 </Typography>
             </Box>
         ) : (

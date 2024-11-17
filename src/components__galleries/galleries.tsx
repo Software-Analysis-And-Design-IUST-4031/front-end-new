@@ -83,10 +83,10 @@ const Galleries: React.FC = () => {
   const placeholders = itemsPerPage - currentData.length;
 
   return (
-    <Box padding={0}>
-      <Grid container spacing={2} >
+    <div>
+      <Grid container spacing={4} >
         {currentData.map((item, index) => (
-          <Grid item md={4} key={index} style = {{marginRight : '0px' , marginLeft : '0px'}}>
+          <Grid item md={4} key={index} style = {{marginRight : '0' , marginLeft : '0'}}>
             <Gallary
               name={`Gallery ${index + 1}`}
               image_url={item.image_url}
@@ -102,7 +102,7 @@ const Galleries: React.FC = () => {
         {placeholders > 0 &&
           Array.from({ length: placeholders }).map((_, index) => (
             <Grid item xs={12} sm={6} md={4} key={`placeholder-${index}`}>
-              <Box sx={{ width: 402, height: 420 }}></Box>
+              <Box sx={{ width: 390, height: 370 }}></Box>
             </Grid>
           ))}
       </Grid>
@@ -116,7 +116,7 @@ const Galleries: React.FC = () => {
           color="primary"
         />
       </Box>
-    </Box>
+    </div>
   );
 };
 
