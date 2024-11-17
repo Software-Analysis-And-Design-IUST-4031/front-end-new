@@ -29,7 +29,7 @@ const Gallary: React.FC<Props> = ({ image_url, descryption, name , num_paints , 
 
   return (
 <Card
-      sx={{ width: width, height: height, backgroundColor : 'white', borderRadius: '23px', margin : '0 auto'}}
+      sx={{ width: width, height: height, backgroundColor : 'white', borderRadius: '23px', margin : '0 0px'}}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
 >   
