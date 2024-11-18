@@ -1,39 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import Header from './Header/Header';
-import DescriptionSection from './description/description';
-import Footer from './footer/footer';
-import MyLottieAnimation1 from './animation/Animation1';
-import MyLottieAnimation2 from './animation/Animation2';
-import Features from './features/Features';
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import LandingPage from "./landingpage/landingpage";
+import MainPage from "./mainpage/mainpage";
 
-const App: React.FC = () => {
-  const [showAnimation, setShowAnimation] = useState<boolean>(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowAnimation(false);
-    }, 4350);
-
-    return () => clearTimeout(timer);
-  }, []);
-
+const AppRoutes: React.FC = () => {
   return (
-    <div>
-      {showAnimation ? (
-        <MyLottieAnimation1 />
-      ) : (
-        <>
-          <Header />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <DescriptionSection />
-            <MyLottieAnimation2 />
-          </div>
-          <Features />
-          <Footer />
-        </>
-      )}
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/main" element={<MainPage />} />
+      </Routes>
+    </Router>
   );
 };
 
-export default App;
+export default AppRoutes;
