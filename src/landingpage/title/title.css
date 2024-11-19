@@ -1,6 +1,3 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap');
-
 .container {
   display: flex;
   justify-content: left;
@@ -8,15 +5,24 @@
   align-items: left;
   height: 40vh;
   background-color: #f0f0f4;
-  margin: 100;
 }
 
-.title {
+.title:first-child {
   font-family: 'Dancing Script', cursive; 
   font-size: 3rem;
-  color: #493636;  
+  color: #493636;
   text-align: left;
-  margin-top: 50px;
+  margin-top: 30px;  /* Larger gap for the first line */
   margin-left: 20px;
-  margin-bottom: -40px;
+
+}
+
+.title:nth-child(2) {
+  font-family: 'Dancing Script', cursive; 
+  font-size: 3rem;
+  color: #493636;
+  text-align: left;
+  margin-top: -60px;  
+  margin-left: 20px;
+
 }

@@ -1,18 +1,44 @@
-import React from 'react';
-import SearchBar from './searchbar';
+import React, { useState } from 'react';
+import { InputWithButton } from './searchbar' ;
+import { IconArrowRight } from '@tabler/icons-react';
+import { rem } from '@mantine/core';
 
-const App: React.FC = () => {
-  const handleSearch = (query: string) => {
-    console.log("Searching for:", query);
-    // Implement search logic here (e.g., filter data or make an API call)
+
+export const SearchBar: React.FC = () => {
+  const [searchValue, setSearchValue] = useState('');
+
+  const handleSearch = () => {
+    console.log('Searching for:', searchValue);
+    // Add your search logic here
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <SearchBar placeholder="Search for art..." onSearch={handleSearch} />
-      {/* Add more components below */}
+    <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px' }}>
+      <InputWithButton
+        value={searchValue}
+        onChange={(e) => setSearchValue(e.currentTarget.value)}
+        onKeyPress={(e) => {
+          if (e.key === 'Enter') handleSearch();
+        }}
+        rightSection={
+          <button
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            onClick={handleSearch}
+          >
+            <IconArrowRight style={{ width: rem(18), height: rem(18) }} stroke={1.5} />
+          </button>
+        }
+        placeholder="Search questions"
+      />
     </div>
   );
 };
 
-export default App;
+export default SearchBar;
