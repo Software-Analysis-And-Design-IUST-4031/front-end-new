@@ -5,11 +5,12 @@ import { FaRegImage } from "react-icons/fa6";
 import { IoAccessibilitySharp } from "react-icons/io5";
 
 interface Props {
-  image_url: string;
-  descryption: string;
-  name: string;
+  image_url: string,
+  descryption: string,
+  name: string,
   num_paints : number ,
   num_artists : number ,
+  id_owner : number , 
 }
 
 const Gallary: React.FC<Props> = ({ image_url, descryption, name , num_paints , num_artists}) => {
