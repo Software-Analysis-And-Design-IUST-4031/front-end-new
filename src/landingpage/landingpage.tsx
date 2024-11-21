@@ -5,7 +5,6 @@ import Footer from './footer/footer';
 import MyLottieAnimation1 from './animation/Animation1';
 import MyLottieAnimation2 from './animation/Animation2';
 import Features from './features/Features';
-import Title from './title/title';
 
 const LandingPage: React.FC = () => {
   const [showAnimation, setShowAnimation] = useState<boolean>(true);
@@ -13,7 +12,7 @@ const LandingPage: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowAnimation(false);
-    }, 4350);
+    }, 3600);
 
     return () => clearTimeout(timer);
   }, []);
@@ -25,7 +24,6 @@ const LandingPage: React.FC = () => {
       ) : (
         <>
           <Header />
-          <Title />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <DescriptionSection />
             <MyLottieAnimation2 />

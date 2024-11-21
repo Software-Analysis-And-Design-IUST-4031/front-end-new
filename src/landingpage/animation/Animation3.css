@@ -1,24 +1,20 @@
-/* Container for centering the title */
+
 .title-container {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    font-size: 5rem;
-    font-family: 'Cursive', sans-serif;
-    text-align: center;
     gap: 5px;
     overflow: hidden;
   }
   
-  /* Basic styling for each word */
+  
   .art, .shop {
-    opacity: 0; /* Start with hidden text */
-    transform: scale(0.5); /* Start with smaller text */
-    animation: fadeInScale 3s 3; /* Run animation 3 times */
+    opacity: 0; 
+    transform: scale(0.5); 
+    animation: fadeInScale 3s 3; 
   }
   
-  /* Keyframes for the fade-in and scale animation */
   @keyframes fadeInScale {
     0% {
       opacity: 0;

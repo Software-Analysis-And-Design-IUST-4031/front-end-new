@@ -4,9 +4,9 @@ import './Description.css';
 const DescriptionSection: React.FC = () => {
     return (
         <section className="description-section">
-            <h2>Welcome to the Art Shop</h2>
+            <h2>Welcome to the zaferouni</h2>
             <p>
-            Welcome to our vibrant art shop, where creativity and passion come to life! Our site showcases a diverse collection of original artwork, prints, and handmade crafts from talented artists around the world. Explore various categories, including paintings, photography, and sculptures, each piece carefully curated to inspire and elevate your space.
+            With the expansion of digital technologies and the growing importance of online platforms for buying and selling products, the idea of designing an online store for artworks was developed. In this project, users can showcase their paintings and artworks for sale or search for artworks to purchase. Each artwork on the site is accompanied by a dedicated description that explains its style and features.
             </p>
         </section>
     );
