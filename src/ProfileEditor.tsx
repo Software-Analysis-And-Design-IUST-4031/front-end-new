@@ -65,11 +65,11 @@ const ProfileEditor = () => {
           justifyItems: 'center',
           backgroundSize: 'cover',
           margin: '0 auto',
-          marginBottom: '100px',
+          marginBottom: '170px',
           padding: '20px 20px 20px 20px',
-          paddingTop: '1px',
-          paddingLeft: '20px',
-          paddingRight: '20px',
+          paddingTop: '5px',
+          paddingLeft: '15px',
+          paddingRight: '15px',
           border: '2px solid rgba(0, 0, 0, 0.158)',
           borderRadius: '12px',
           backdropFilter: 'blur(5px) brightness(1)',
@@ -77,12 +77,33 @@ const ProfileEditor = () => {
           boxShadow: '10 4px 8px rbga(0, 0, 0, 10)'
         }}
       >
-        <Tabs value={activeTab} onChange={setActiveTab} defaultValue="profile-editor">
+        <Tabs value={activeTab} onChange={setActiveTab} defaultValue="profile-editor" 
+          styles={{
+            list: {
+              display: 'flex'
+            },
+            tab: {
+              flex: 1,
+              borderRadius: '5px',
+              textAlign: 'center',
+              color: 'white',
+              backgroundColor: 'black',
+              fontSize: '18px', 
+              '&[data-active]': {
+                backgroundColor: 'red',
+                color: 'white'
+              },
+              '&:hover': {
+                backgroundColor: 'red',
+              }
+            }
+          }}
+        >
           <Tabs.List>
-            <Tabs.Tab value="profile-editor">ProfilEditor</Tabs.Tab>
-            <Tabs.Tab value="favoites">favoites</Tabs.Tab>
+            <Tabs.Tab value="profile-editor">ProfileEditor</Tabs.Tab>
+            <Tabs.Tab value="favoites">favorites</Tabs.Tab>
           </Tabs.List>
-          <Tabs.Panel value="profile-editor" pt="ml">
+          <Tabs.Panel value="profile-editor" pt="lg">
             <Grid>
             <Grid.Col span={6}>
             <label>
@@ -291,7 +312,7 @@ const ProfileEditor = () => {
             </Grid.Col>
             </Grid>
           </Tabs.Panel>
-          <Tabs.Panel value="favorites" pt="ml">
+          <Tabs.Panel value="favorites" pt="lg">
             First
           </Tabs.Panel>
         </Tabs>
