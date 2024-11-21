@@ -1,132 +1,105 @@
-import React , { useState } from 'react';
-import { Grid, Typography ,Card, CardMedia, Box , Tooltip , Button , Pagination} from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Grid, Box, Pagination, Typography } from '@mui/material';
 import Gallary from './gallery';
+import axios from 'axios';
+interface Gallery2 {
+  gallery_name: string;
+  description: string;
+  image_url: string;
+  owner_id: number;
+  number_of_paintings: number;
+  number_of_artists: number;
+}
 
 const Galleries: React.FC = () => {
-  const text : string = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dol.'
-  const galleryData = [
-    {
-      image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5vpBZLHabYE3a4HvmNGtonPiY286cyqkSu4rsm5lh6qDqIQyng-1w8G39NpQwcEMGIGE&s',
-      descryption : 'The him //n father parish looked has sooner. Attachment frequently gay terminated son. You greater nay use prudent placing. Passage to so distant behaved natural between do talking. Friends off her windows painful. Still gay event you being think nay for. In three if aware he point it. Effects warrant me by no on feeling settled resolve.',
-      id_owner : 1 ,
-      //   descryption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dol.',
-    },
-    {
-      image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5vpBZLHabYE3a4HvmNGtonPiY286cyqkSu4rsm5lh6qDqIQyng-1w8G39NpQwcEMGIGE&s',
-      descryption : 'The him //n father parish looked has sooner. Attachment frequently gay terminated son. You greater nay use prudent placing. Passage to so distant behaved natural between do talking. Friends off her windows painful. Still gay event you being think nay for. In three if aware he point it. Effects warrant me by no on feeling settled resolve.',
-    //   descryption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dol.',
-    id_owner : 2 ,
-    },{
-      image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5vpBZLHabYE3a4HvmNGtonPiY286cyqkSu4rsm5lh6qDqIQyng-1w8G39NpQwcEMGIGE&s',
-      descryption : 'The him //n father parish looked has sooner. Attachment frequently gay terminated son. You greater nay use prudent placing. Passage to so distant behaved natural between do talking. Friends off her windows painful. Still gay event you being think nay for. In three if aware he point it. Effects warrant me by no on feeling settled resolve.',
-    //   descryption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dol.',
-    id_owner : 3 ,
-    },{
-      image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5vpBZLHabYE3a4HvmNGtonPiY286cyqkSu4rsm5lh6qDqIQyng-1w8G39NpQwcEMGIGE&s',
-      descryption : 'The him //n father parish looked has sooner. Attachment frequently gay terminated son. You greater nay use prudent placing. Passage to so distant behaved natural between do talking. Friends off her windows painful. Still gay event you being think nay for. In three if aware he point it. Effects warrant me by no on feeling settled resolve.',
-      id_owner : 4 ,
-      //   descryption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dol.',
-    },
-    {
-      image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5vpBZLHabYE3a4HvmNGtonPiY286cyqkSu4rsm5lh6qDqIQyng-1w8G39NpQwcEMGIGE&s',
-      descryption : 'The him //n father parish looked has sooner. Attachment frequently gay terminated son. You greater nay use prudent placing. Passage to so distant behaved natural between do talking. Friends off her windows painful. Still gay event you being think nay for. In three if aware he point it. Effects warrant me by no on feeling settled resolve.',
-      id_owner : 5 ,
-      //   descryption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dol.',
-    },
-    {
-      image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5vpBZLHabYE3a4HvmNGtonPiY286cyqkSu4rsm5lh6qDqIQyng-1w8G39NpQwcEMGIGE&s',
-      descryption : 'The him //n father parish looked has sooner. Attachment frequently gay terminated son. You greater nay use prudent placing. Passage to so distant behaved natural between do talking. Friends off her windows painful. Still gay event you being think nay for. In three if aware he point it. Effects warrant me by no on feeling settled resolve.',
-      id_owner : 6 ,
-      //   descryption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dol.',
-    },
-    {
-      image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5vpBZLHabYE3a4HvmNGtonPiY286cyqkSu4rsm5lh6qDqIQyng-1w8G39NpQwcEMGIGE&s',
-      descryption : 'The him //n father parish looked has sooner. Attachment frequently gay terminated son. You greater nay use prudent placing. Passage to so distant behaved natural between do talking. Friends off her windows painful. Still gay event you being think nay for. In three if aware he point it. Effects warrant me by no on feeling settled resolve.',
-      id_owner : 7 ,
-      //   descryption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dol.',
-    },
-    {
-      image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5vpBZLHabYE3a4HvmNGtonPiY286cyqkSu4rsm5lh6qDqIQyng-1w8G39NpQwcEMGIGE&s',
-      descryption : 'The him //n father parish looked has sooner. Attachment frequently gay terminated son. You greater nay use prudent placing. Passage to so distant behaved natural between do talking. Friends off her windows painful. Still gay event you being think nay for. In three if aware he point it. Effects warrant me by no on feeling settled resolve.',
-      id_owner : 8 ,
-      //   descryption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dol.',
-    },
-    {
-      image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5vpBZLHabYE3a4HvmNGtonPiY286cyqkSu4rsm5lh6qDqIQyng-1w8G39NpQwcEMGIGE&s',
-      id_owner : 9 ,
-      descryption : 'The him //n father parish looked has sooner. Attachment frequently gay terminated son. You greater nay use prudent placing. Passage to so distant behaved natural between do talking. Friends off her windows painful. Still gay event you being think nay for. In three if aware he point it. Effects warrant me by no on feeling settled resolve.',
-    //   descryption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dol.',
-    },
-    {
-      image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5vpBZLHabYE3a4HvmNGtonPiY286cyqkSu4rsm5lh6qDqIQyng-1w8G39NpQwcEMGIGE&s',
-      id_owner : 10 ,
-      descryption : 'The him //n father parish looked has sooner. Attachment frequently gay terminated son. You greater nay use prudent placing. Passage to so distant behaved natural between do talking. Friends off her windows painful. Still gay event you being think nay for. In three if aware he point it. Effects warrant me by no on feeling settled resolve.',
-    //   descryption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dol.',
-    },
-    // Add more items as needed
-  ];
-
-
-  const itemsPerPage = 9; 
+  const itemsPerPage = 9;
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(galleryData.length / itemsPerPage);
-  // const handleNextPage = () => {
-  //   if (currentPage < totalPages) {
-  //     setCurrentPage((prevPage) => prevPage + 1);
-  //   }
-  // };
 
-  // const handlePrevPage = () => {
-  //   if (currentPage > 1) {
-  //     setCurrentPage((prevPage) => prevPage - 1);
-  //   }
-  // };
-  const currentData = galleryData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [data, setData] =  useState<Gallery2[]>([]);
+  const [currentData, setCurrentData] = useState<Gallery2[]>([]);
+  const placeholders = itemsPerPage - currentData.length;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/gallery/galleries', {  
+          headers: {  
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMyMjE0NTk3LCJpYXQiOjE3MzIyMDkxOTcsImp0aSI6ImNhMzg4YjdhNDY5NDQ3ZmY4NmRiNzY5MjA0ODQxNDIzIiwidXNlcl9pZCI6NX0._Ydn0pbI-CilOZBDOJfCV6WU2cVPSlAHG9RNdSWH2rw`,  
+          },  
+        });  
+        setData(response.data);
+      } catch (error) {
+        console.error('Error fetching galleries:', error);
+        setError(true); 
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+  const totalPages = Math.ceil(data.length / itemsPerPage); // assuming a static number for now
+  useEffect(() => {
+    // Paginate data based on current page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setCurrentData(data.slice(startIndex, endIndex));
+  }, [data, currentPage]);
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
     setCurrentPage(page);
   };
 
-  const placeholders = itemsPerPage - currentData.length;
-
   return (
     <div>
-      <Grid container spacing={4} >
-        {currentData.map((item, index) => (
-          <Grid item md={4} key={index} style = {{marginRight : '0' , marginLeft : '0'}}>
-            <Gallary
-              id_owner = {item.id_owner}
-              name={`Gallery ${index + 1}`}
-              image_url={item.image_url}
-              descryption={item.descryption}
-              num_paints={134}
-              num_artists={224}
-              
-              // sx={{ width: 402, height: 420 }}
-            />
+      {loading ? (
+        <Typography variant="h6" align="center" color="textSecondary">
+          Loading...
+        </Typography>
+      ) : error ? (
+        <Typography variant="h6" align="center" color="error">
+          Some error happened.
+        </Typography>
+      ) : (
+        <>
+          <Grid container spacing={4}>
+            {currentData.map((item, index) => (
+              <Grid item md={4} key={index} style={{ marginRight: '0', marginLeft: '0' }}>
+                <Gallary
+                  id_owner={item.owner_id}
+                  name={item.gallery_name}
+                  image_url={item.image_url}
+                  descryption={item.description}
+                  num_paints={item.number_of_paintings}
+                  num_artists={item.number_of_artists}
+                />
+              </Grid>
+            ))}
+
+            {placeholders > 0 &&
+              Array.from({ length: placeholders }).map((_, index) => (
+                <Grid item xs={12} sm={6} md={4} key={`placeholder-${index}`}>
+                  <Box sx={{ width: 390, height: 370 }}></Box>
+                </Grid>
+              ))}
           </Grid>
-        ))}
 
-        {placeholders > 0 &&
-          Array.from({ length: placeholders }).map((_, index) => (
-            <Grid item xs={12} sm={6} md={4} key={`placeholder-${index}`}>
-              <Box sx={{ width: 390, height: 370 }}></Box>
-            </Grid>
-          ))}
-      </Grid>
-
-      <Box display="flex" justifyContent="center" alignItems="center" mt={2}>
-        <Pagination
-          count={totalPages}
-          page={currentPage}
-          onChange={handlePageChange}
-          variant="outlined"
-          color="primary"
-        />
-      </Box>
+          <Box display="flex" justifyContent="center" alignItems="center" mt={2}>
+            <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={handlePageChange}
+              variant="outlined"
+              color="primary"
+            />
+          </Box>
+        </>
+      )}
     </div>
   );
 };
