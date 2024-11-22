@@ -15,9 +15,9 @@ const SideBar = () => {
         <Drawer 
           opened={DrawerOpened} 
           onClose={() => setDrawerOpened(false)}
-          title="Profile Editor"
+          title="SideBar"
           position="left"
-          style={{width: '2900px'}}
+          style={{width: '2900px', marginLeft: '0px'}}
           size="20%">
             <ScrollArea style={{
                 height: '100%'

@@ -1,6 +1,6 @@
 import { useState } from "react"
-import { Drawer, ScrollArea, TextInput, Select, Popover, List, ListItem, Button, Radio, PasswordInput, Box, Grid, MantineProvider, Tabs} from '@mantine/core'
-//import { Navigate, useNavigate } from "react-router-dom";
+import { Drawer, ScrollArea, TextInput, Select, Popover, Text, List, ListItem, Button, Radio, PasswordInput, Box, Grid, MantineProvider, Tabs} from '@mantine/core'
+import { Navigate, useNavigate, Link } from "react-router-dom";
 import { EyeCheck, EyeOff, GitFork } from 'tabler-icons-react';
 
 const ProfileEditor = () => {
@@ -19,6 +19,11 @@ const ProfileEditor = () => {
   const [activeTab, setActiveTab] = useState<string | null>('profile-editor');
 
   const [favoritePainter, setFavoritePainter] = useState('');
+  const [favoritePainting, setFavoritePainting] = useState('');
+  const [favoritePaintingstyle, setFavoritePaintingStyle] = useState('');
+  const [favoritePaintingTech, setFavoritePaintingTech] = useState('');
+  const [favoritePaintingOwn, setFavoritePaintingOwn] = useState('');
+  const [biography, setBiography] = useState('');
 
   const handeOptionsSelect = (value: string | null) => {
     setSelectedValue(value);
@@ -75,6 +80,31 @@ const ProfileEditor = () => {
     setFavoritePainter(value);
   }
 
+  const handleFavoritePaintingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setFavoritePainting(value);
+  }
+
+  const handleFavoritePaintingStyleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setFavoritePaintingStyle(value);
+  }
+
+  const handleFavoritePaintingTechChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setFavoritePaintingTech(value);
+  }
+
+  const handleFavoritePaintingOwnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setFavoritePaintingOwn(value);
+  }
+
+  const handleBiographyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setBiography(value);
+  }
+
   return (
     <MantineProvider>
       <Box
@@ -88,7 +118,7 @@ const ProfileEditor = () => {
           margin: '0 auto',
           marginBottom: '170px',
           padding: '20px 20px 20px 20px',
-          paddingTop: '3px',
+          paddingTop: '0px',
           paddingLeft: '15px',
           paddingRight: '15px',
           border: '2px solid rgba(0, 0, 0, 0.158)',
@@ -254,7 +284,7 @@ const ProfileEditor = () => {
                     }}}
                 />
               </label>
-            </Grid.Col>
+              </Grid.Col>
             <Grid.Col span={6}>
                 <label>
                 <TextInput
@@ -393,6 +423,7 @@ const ProfileEditor = () => {
                 style={{
                   color: 'white',
                   backgroundColor: 'black',
+                  marginTop: '10px',
                   '&:hover': {
                     backgroundColor: 'white',
                     color: 'black'
@@ -406,13 +437,28 @@ const ProfileEditor = () => {
               </Button>
             </Grid.Col>
           </Grid>
+          <Grid justify='left' gutter={6}>
+            <Grid.Col span={6}>
+              <Link to="/Login" style={{
+                color: 'blue',
+                marginLeft: '5px',
+                marginTop: '7px',
+                textDecoration: 'underline',
+                display: 'block',
+                textAlign: 'left',
+                left: -1
+              }}>
+                get back to user pannel
+              </Link>
+            </Grid.Col>
+          </Grid>
           </Tabs.Panel>
           <Tabs.Panel value="favorites" pt="lg">
           <Grid>
               <Grid.Col span={6}>
                 <label>
                   <TextInput
-                    label='Who is your favorite painter?'
+                    label="favorite painter?"
                     type='text'
                     name="favorite_painter"
                     value={favoritePainter}
@@ -438,12 +484,12 @@ const ProfileEditor = () => {
                 <Grid.Col span={6}>
               <label>
                 <TextInput 
-                  label='Lastname'
+                  label="favorite painting?"
                   type='text'
-                  name="last_name"
-                  value={lastName}
-                  onChange={handleLastnameChange}
-                  placeholder='enter your new last name'
+                  name="favorite painting"
+                  value={favoritePainting}
+                  onChange={handleFavoritePaintingChange}
+                  placeholder='favorite painting'
                   labelProps={{ className:'label-aligned'}}
                   styles={{
                     input: {
@@ -461,6 +507,110 @@ const ProfileEditor = () => {
               </label>
             </Grid.Col>
             </Grid>
+            <Grid>
+              <Grid.Col span={6}>
+                <label>
+                <TextInput 
+                  label="favorite painting style?"
+                  type='text'
+                  name="favorite painting style"
+                  value={favoritePaintingstyle}
+                  onChange={handleFavoritePaintingStyleChange}
+                  placeholder='favorite painting style'
+                  labelProps={{ className:'label-aligned'}}
+                  styles={{
+                    input: {
+                      width: '230px',
+                      borderRadius: '7px'
+                    },
+                    label: {
+                      fontSize: '15px',
+                      fontWeight: '550',
+                      marginBottom: '5px',
+                      textAlign: "left",
+                      marginLeft: '0px'
+                    }}}
+                />
+                </label>
+              </Grid.Col>
+              <Grid.Col span={6}>
+                <label>
+                <TextInput 
+                  label="favorite painting technique?"
+                  type='text'
+                  name="favorite painting technique"
+                  value={favoritePaintingTech}
+                  onChange={handleFavoritePaintingTechChange}
+                  placeholder='favorite painting technique'
+                  labelProps={{ className:'label-aligned'}}
+                  styles={{
+                    input: {
+                      width: '230px',
+                      borderRadius: '7px'
+                    },
+                    label: {
+                      fontSize: '15px',
+                      fontWeight: '550',
+                      marginBottom: '5px',
+                      textAlign: "left",
+                      marginLeft: '0px'
+                    }}}
+                />
+                </label>
+              </Grid.Col>
+            </Grid>
+            <Grid>
+              <Grid.Col span={6}>
+              <label>
+                <TextInput 
+                  label="favorite painting to own?"
+                  type='text'
+                  name="favorite painting to own"
+                  value={favoritePaintingOwn}
+                  onChange={handleFavoritePaintingOwnChange}
+                  placeholder='The painting you like to own'
+                  labelProps={{ className:'label-aligned'}}
+                  styles={{
+                    input: {
+                      width: '230px',
+                      borderRadius: '7px'
+                    },
+                    label: {
+                      fontSize: '15px',
+                      fontWeight: '550',
+                      marginBottom: '5px',
+                      textAlign: "left",
+                      marginLeft: '0px'
+                    }}}
+                />
+                </label>
+              </Grid.Col>
+              <Grid.Col span={6}>
+              <label>
+                <TextInput 
+                  label="Biography"
+                  type='text'
+                  name="biography"
+                  value={biography}
+                  onChange={handleBiographyChange}
+                  placeholder='biography'
+                  labelProps={{ className:'label-aligned'}}
+                  styles={{
+                    input: {
+                      width: '230px',
+                      borderRadius: '7px'
+                    },
+                    label: {
+                      fontSize: '15px',
+                      fontWeight: '550',
+                      marginBottom: '5px',
+                      textAlign: "left",
+                      marginLeft: '0px'
+                    }}}
+                />
+                </label>
+              </Grid.Col>
+            </Grid>
             <Grid justify='center'>
             <Grid.Col>
             <Button
@@ -470,6 +620,7 @@ const ProfileEditor = () => {
                 style={{
                   color: 'white',
                   backgroundColor: 'black',
+                  marginTop: '10px',
                   '&:hover': {
                     backgroundColor: 'white',
                     color: 'black'
@@ -481,6 +632,21 @@ const ProfileEditor = () => {
               > 
                 submit
               </Button>
+            </Grid.Col>
+          </Grid>
+          <Grid justify='left' gutter={6}>
+            <Grid.Col span={6}>
+              <Link to="/Login" style={{
+                color: 'blue',
+                marginLeft: '5px',
+                marginTop: '7px',
+                textDecoration: 'underline',
+                display: 'block',
+                textAlign: 'left',
+                left: -1
+              }}>
+                get back to user panel
+              </Link>
             </Grid.Col>
           </Grid>
           </Tabs.Panel>
