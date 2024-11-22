@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { TextInput, Select, Button, PasswordInput, Box, Grid, MantineProvider, Tabs} from '@mantine/core'
 import { Navigate, useNavigate, Link } from "react-router-dom";
 import { EyeCheck, EyeOff, GitFork } from 'tabler-icons-react';
@@ -24,6 +24,44 @@ const ProfileEditor = () => {
   const [favoritePaintingTech, setFavoritePaintingTech] = useState('');
   const [favoritePaintingOwn, setFavoritePaintingOwn] = useState('');
   const [biography, setBiography] = useState('');
+
+  const [profileData, setProfileData] = useState({
+    firstname: "",
+    lastname: "",
+    nickname: "",
+    password: "",
+    email: "",
+    phone_number: "",
+    country: "",
+    city: "",
+    date_of_birth: "",
+    is_gallery: "NO",
+  });
+
+  const [favoriteData, setFavoritesData] = useState({
+    favorite_painter: "",
+    favorite_painting: "",
+    favorite_painting_style: "",
+    favorite_painting_technique: "",
+    favorite_painting_to_own: "",
+    biography: "",
+  });
+
+  const handleProfileChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = event.target;
+    setProfileData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  }
+
+  const handleFavoritesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setFavoritesData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  }
 
   const handeOptionsSelect = (value: string | null) => {
     setSelectedValue(value);
@@ -162,8 +200,8 @@ const ProfileEditor = () => {
                 label='Firstname'
                 type='text'
                 name="first_name"
-                value={firstName}
-                onChange={handleFirstnameChange}
+                value={profileData.firstname}
+                onChange={handleProfileChange}
                 placeholder="enter your new first name"
                 labelProps={{ className:'label-aligned'}}
                 styles={{
@@ -188,8 +226,8 @@ const ProfileEditor = () => {
                   label='Lastname'
                   type='text'
                   name="last_name"
-                  value={lastName}
-                  onChange={handleLastnameChange}
+                  value={profileData.lastname}
+                  onChange={handleProfileChange}
                   placeholder='enter your new last name'
                   labelProps={{ className:'label-aligned'}}
                   styles={{
@@ -215,8 +253,8 @@ const ProfileEditor = () => {
                   label='Nickname'
                   type='text'
                   name="nick_name"
-                  value={nickName}
-                  onChange={handleNicknameChange}
+                  value={profileData.nickname}
+                  onChange={handleProfileChange}
                   placeholder='enter your nickname'
                   styles={{
                     input: {
@@ -237,8 +275,8 @@ const ProfileEditor = () => {
                   label="Password"
                   placeholder="enter your new password"
                   defaultValue="secret"
-                  value={password}
-                  onChange={handlePasswordChange}
+                  value={profileData.password}
+                  onChange={handleProfileChange}
                   withAsterisk
                   styles={{
                     input: {
@@ -269,8 +307,8 @@ const ProfileEditor = () => {
                   label='Email' 
                   type='email'
                   name="email"
-                  value={email}
-                  onChange={handleEmailChange}
+                  value={profileData.email}
+                  onChange={handleProfileChange}
                   placeholder='enter your new email address'
                   styles={{
                     input: {
@@ -291,8 +329,8 @@ const ProfileEditor = () => {
                   label='PhoneNumber' 
                   type='tel'
                   name="phonenumber"
-                  value={phoneNumber}
-                  onChange={handlePhoneNumberChange}
+                  value={profileData.phone_number}
+                  onChange={handleProfileChange}
                   placeholder='enter your phone number'
                   styles={{
                     input: {
@@ -315,8 +353,8 @@ const ProfileEditor = () => {
                 label='Country/Nationality'
                 type='text'
                 name="country"
-                value={country}
-                onChange={handleCountryChange}
+                value={profileData.country}
+                onChange={handleProfileChange}
                 placeholder="enter your country"
                 labelProps={{ className:'label-aligned'}}
                 styles={{
@@ -341,8 +379,8 @@ const ProfileEditor = () => {
                 label='City'
                 type='text'
                 name="city"
-                value={city}
-                onChange={handleCityChange}
+                value={profileData.city}
+                onChange={handleProfileChange}
                 placeholder="enter your city"
                 labelProps={{ className:'label-aligned'}}
                 styles={{
@@ -369,8 +407,8 @@ const ProfileEditor = () => {
                   label='Date of Birth'
                   type='date'
                   name="dateofbirth"
-                  value={dateOfBirth}
-                  onChange={handleDateOfBirthChange}
+                  value={profileData.date_of_birth}
+                  onChange={handleProfileChange}
                   placeholder="enter your city"
                   labelProps={{ className:'label-aligned'}}
                   styles={{
@@ -395,8 +433,8 @@ const ProfileEditor = () => {
                   label="Are you a gallery?"
                   placeholder="select YES or NO"
                   data={["YES", "NO"]}
-                  value={selectedValue}
-                  onChange={handeOptionsSelect}
+                  value={profileData.is_gallery}
+                  onChange={(value) => setProfileData({...profileData, is_gallery: value || "NO"})}
                   styles={{
                     input: {
                       width: '230px',
@@ -448,7 +486,7 @@ const ProfileEditor = () => {
                 textAlign: 'left',
                 left: -1
               }}>
-                get back to user pannel
+                get back to user panel
               </Link>
             </Grid.Col>
           </Grid>
@@ -461,8 +499,8 @@ const ProfileEditor = () => {
                     label="favorite painter?"
                     type='text'
                     name="favorite_painter"
-                    value={favoritePainter}
-                    onChange={handleFavoritePainterChange}
+                    value={favoriteData.favorite_painter}
+                    onChange={handleFavoritesChange}
                     placeholder="favorite painter"
                     labelProps={{ className:'label-aligned'}}
                     styles={{
@@ -487,8 +525,8 @@ const ProfileEditor = () => {
                   label="favorite painting?"
                   type='text'
                   name="favorite painting"
-                  value={favoritePainting}
-                  onChange={handleFavoritePaintingChange}
+                  value={favoriteData.favorite_painting}
+                  onChange={handleFavoritesChange}
                   placeholder='favorite painting'
                   labelProps={{ className:'label-aligned'}}
                   styles={{
@@ -514,8 +552,8 @@ const ProfileEditor = () => {
                   label="favorite painting style?"
                   type='text'
                   name="favorite painting style"
-                  value={favoritePaintingstyle}
-                  onChange={handleFavoritePaintingStyleChange}
+                  value={favoriteData.favorite_painting_style}
+                  onChange={handleFavoritesChange}
                   placeholder='favorite painting style'
                   labelProps={{ className:'label-aligned'}}
                   styles={{
@@ -539,8 +577,8 @@ const ProfileEditor = () => {
                   label="favorite painting technique?"
                   type='text'
                   name="favorite painting technique"
-                  value={favoritePaintingTech}
-                  onChange={handleFavoritePaintingTechChange}
+                  value={favoriteData.favorite_painting_technique}
+                  onChange={handleFavoritesChange}
                   placeholder='favorite painting technique'
                   labelProps={{ className:'label-aligned'}}
                   styles={{
@@ -566,8 +604,8 @@ const ProfileEditor = () => {
                   label="favorite painting to own?"
                   type='text'
                   name="favorite painting to own"
-                  value={favoritePaintingOwn}
-                  onChange={handleFavoritePaintingOwnChange}
+                  value={favoriteData.favorite_painting_to_own}
+                  onChange={handleFavoritesChange}
                   placeholder='The painting you like to own'
                   labelProps={{ className:'label-aligned'}}
                   styles={{
@@ -591,8 +629,8 @@ const ProfileEditor = () => {
                   label="Biography"
                   type='text'
                   name="biography"
-                  value={biography}
-                  onChange={handleBiographyChange}
+                  value={favoriteData.biography}
+                  onChange={handleFavoritesChange}
                   placeholder='biography'
                   labelProps={{ className:'label-aligned'}}
                   styles={{
