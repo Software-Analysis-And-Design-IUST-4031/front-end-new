@@ -5,11 +5,12 @@ import { FaRegImage } from "react-icons/fa6";
 import { IoAccessibilitySharp } from "react-icons/io5";
 
 interface Props {
-  image_url: string;
-  descryption: string;
-  name: string;
+  image_url: string,
+  descryption: string,
+  name: string,
   num_paints : number ,
   num_artists : number ,
+  id_owner : number , 
 }
 
 const Gallary: React.FC<Props> = ({ image_url, descryption, name , num_paints , num_artists}) => {
@@ -23,13 +24,13 @@ const Gallary: React.FC<Props> = ({ image_url, descryption, name , num_paints , 
   };
 
 
-  const width : number = 402;
-  const height : number = 420;
+  const width : number = 390;
+  const height : number = 380;
 
 
   return (
 <Card
-      sx={{ width: width, height: height, backgroundColor : 'white', borderRadius: '23px', margin : '0 auto'}}
+      sx={{ width: width, height: height, backgroundColor : 'white', borderRadius: '23px', margin : '0 0px'}}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
 >   
@@ -79,7 +80,7 @@ const Gallary: React.FC<Props> = ({ image_url, descryption, name , num_paints , 
                     opacity : 30 ,
                     zIndex: 2, // Ensure text is above the background
                 }}>
-                    {truncateString(descryption, 240)}
+                    {truncateString(descryption, 170)}
                 </Typography>
             </Box>
         ) : (

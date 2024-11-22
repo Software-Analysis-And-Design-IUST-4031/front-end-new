@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import Button from '@mui/material/Button'
 import { Link } from 'react-router-dom'
+import { ToastContainer, toast } from 'react-toastify'
 import '@mantine/core/styles.css';
 import './SignUp.css'
+import axios from 'axios'
 import { EyeCheck, EyeOff } from 'tabler-icons-react';
 import { MantineProvider, Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
 
@@ -14,6 +16,7 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState({firstName: '', lastName: '', userName: '', email: '', password: '', confirmPassword: ''});
+  const [toastDisplayed, setTaostDisplayed] = useState(false);
 
   const handleFirstnameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -76,6 +79,56 @@ const SignUp = () => {
   }
 
   const [isPasswordVisible] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!firstName || !lastName || !userName || !password || !confirmPassword || !email) {
+      const newErrors = {firstName: firstName ? '' : 'first name is required!', lastName: lastName ? '' : 'last name is required!',
+       userName: userName ? '' : 'username is required!', email: email ? '' : 'email address is required!',
+      password: password ? '' : 'password is required!', confirmPassword: confirmPassword ? '' : 'confirm password is required!'};
+      setErrors(newErrors);
+      return;
+    }
+
+    try {
+      if (!toastDisplayed) {
+        const response = await axios.post('http://127.0.0.1:8000/api/user/register/', {
+            firstname: firstName,
+            lastname: lastName,
+            username: userName,
+            password: password, 
+            confirm_password: confirmPassword,
+            email: email,
+          } 
+        );
+        toast.success(JSON.stringify(response.data) || 'signup successful!', {
+          position: 'bottom-center',
+          style: {backgroundColor: 'white', color: 'green',
+          height: '150px', width: '150px'
+          },
+          autoClose: 2000,
+          closeOnClick: true,
+        });
+        setTaostDisplayed(true);
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data || 'Error occured during signup!';
+        if (!toastDisplayed) {
+          toast.error(JSON.stringify(errorMessage), {
+            position: 'bottom-center',
+            style: {backgroundColor: 'white', color: 'red',
+            height: '150px', width: '150px'
+            },
+            autoClose: 2000,
+            closeOnClick: true,
+          });
+          setTaostDisplayed(true);
+        }
+      }
+    }
+  };
  
   return (
     <MantineProvider>
@@ -101,7 +154,7 @@ const SignUp = () => {
         }}
       >
         <h1>Sign Up</h1>
-        <form className='form'>
+        <form className='form' onSubmit={handleSubmit}>
           <Grid>
             <Grid.Col span={6}>
             <label>
@@ -127,7 +180,6 @@ const SignUp = () => {
                     marginLeft: '0px'
                   }
                 }} 
-                required
               />
               </label>
             </Grid.Col>
@@ -154,7 +206,6 @@ const SignUp = () => {
                       textAlign: "left",
                       marginLeft: '0px'
                     }}}
-                  required
                 />
               </label>
             </Grid.Col>
@@ -164,7 +215,7 @@ const SignUp = () => {
               <label>
               <TextInput 
                   label='Username'
-                  type='text'
+                     type='text'
                   name="user_name"
                   value={userName}
                   onChange={handleUsernameChange}
@@ -180,7 +231,6 @@ const SignUp = () => {
                       fontWeight: '550',
                       marginBottom: '5px'
                     }}}
-                  required
                 />
               </label>
             </Grid.Col>
@@ -204,7 +254,6 @@ const SignUp = () => {
                   fontWeight: '550', 
                   marginBottom: '5px'
                 }}}
-              required
             />
           </label>
             </Grid.Col>
@@ -233,12 +282,11 @@ const SignUp = () => {
                     },
                     visibilityToggle: {
                       color: 'white',
-                      backgroundColor: '#1a31b6',
-                      right: -5
+                      backgroundColor: 'black',
+                      right: -6
                     }
                   }}
                   visibilityToggleButtonProps={({ reveal, size }: {reveal: boolean; size: number}) => reveal ? <EyeOff size={size}/> : <EyeCheck size={size}/>}
-                  required
                 />
               </label>
             </Grid.Col>
@@ -271,12 +319,11 @@ const SignUp = () => {
                     },
                     visibilityToggle: {
                       color: 'white',
-                      backgroundColor: '#1a31b6',
-                      right: -5
+                      backgroundColor: 'black',
+                      right: -7
                     }
                   }}
                   visibilityToggleButtonProps={({ reveal, size }: {reveal: boolean; size: number}) => reveal ? <EyeOff size={size}/> : <EyeCheck size={size}/>}
-                  required
                 />
               </label>
             </Grid.Col>
@@ -284,13 +331,15 @@ const SignUp = () => {
           <Grid justify='center'>
             <Grid.Col>
             <Button
+                type='submit'
                 variant='contained'
                 fullWidth
                 sx={{
                   color: 'white',
-                  backgroundColor: ' #1a31b6',
+                  backgroundColor: 'black',
                   '&:hover': {
-                    backgroundColor: '#f39811'
+                    backgroundColor: 'white',
+                    color: 'black'
                   },
                   mt: 0.25,
                   py: 0.7,
@@ -323,6 +372,11 @@ const SignUp = () => {
           </Grid>
         </form>
       </Box>
+      <ToastContainer
+        autoClose={2000}
+        closeOnClick
+        pauseOnHover
+    />
     </MantineProvider>
   );
 }

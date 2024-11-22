@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState, useMemo, createContext, useContext } from 'react';
 import { createTheme, ThemeProvider, CssBaseline, PaletteMode } from '@mui/material';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -12,6 +13,31 @@ import Footer from './footer/footer';
 export interface CustomTheme {
   bg: string;
   text: string;
+=======
+//import { useState } from 'react'
+//import reactLogo from './assets/react.svg'
+//import viteLogo from '/vite.svg'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import SignUp from './SignUp'
+import Login from './Login'
+import Galleries from './components__galleries/galleries';
+import SideBar from './SideBar';
+import ProfileEditor from './ProfileEditor';
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path='/' element={<ProfileEditor />}/>
+        <Route path='/Login' element={<Login />}/>
+        <Route path='/SignUp' element={<SignUp />}/>
+        <Route path='/galleries' element={<Galleries />}/>
+        <Route path='/SideBar' element={<SideBar />}/>
+        <Route path='/ProfileEditor' element={<ProfileEditor />}/>
+      </Routes>
+    </Router>
+  );
+>>>>>>> 5c70f7526572174679cb47efd9eceb8e5fc23e73
 }
 
 export const ColorModeContext = createContext({ 
