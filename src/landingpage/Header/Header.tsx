@@ -13,7 +13,7 @@ const Header: React.FC = () => {
 
     return (
         <header className="header">
-            <h1 className="header-title">Art Shop</h1>
+            <h1 className="header-title">zaferouni</h1>
             <div className="header-buttons">
                 <Button label="Sign Up" onClick={handleSignUp} styleType="primary" />
                 <Button label="Sign In" onClick={handleSignIn} styleType="primary" />
