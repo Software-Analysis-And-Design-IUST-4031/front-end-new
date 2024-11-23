@@ -1,6 +1,5 @@
 import React, { useState, useMemo, createContext, useContext } from 'react';
 import { createTheme, ThemeProvider, CssBaseline, PaletteMode } from '@mui/material';
-import { NextUIProvider } from "@nextui-org/react";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import UserpanelApp from './UserpanelApp';
 import AppNavbar from './Navbar/Navbar';
@@ -71,7 +70,6 @@ const App: React.FC = () => {
   );
 
   return (
-    <NextUIProvider>
       <ColorModeContext.Provider value={colorMode}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
@@ -91,7 +89,6 @@ const App: React.FC = () => {
           </Router>
         </ThemeProvider>
       </ColorModeContext.Provider>
-    </NextUIProvider>
   );
 };
 
