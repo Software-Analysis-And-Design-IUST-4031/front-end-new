@@ -25,6 +25,7 @@ import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
 import TurnedInNotOutlinedIcon from '@mui/icons-material/TurnedInNotOutlined';
 import { useColorMode } from '../App';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import SideBar from '../ProfileSideBar/SideBar';
 
 interface Post {
   id: string;
@@ -120,11 +121,15 @@ const UploadButton = styled(IconButton)<CustomThemeProps>(({ theme, customBg, cu
 const ProfilePage: React.FC = () => {
   const theme = useTheme();
   const { mode } = useColorMode();
+  const [customTheme, setCustomTheme] = useState<CustomTheme>({
+    bg: mode === 'light' ? '#F7F8FA' : '#1E1E1E',
+    text: mode === 'light' ? '#333333' : '#FFFFFF'
+  });
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [themeSelectorOpen, setThemeSelectorOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   
-  // Use localStorage for user data
+  // ********************localStorage*************************
   const [userData, setUserData] = useLocalStorage<User>('userData', {
     id: '1',
     fullName: 'John Doe',
@@ -140,22 +145,6 @@ const ProfilePage: React.FC = () => {
       pinterest: 'https://pinterest.com/johndoe'
     }
   });
-
-  const [customTheme, setCustomTheme] = useState<CustomTheme>(() => {
-    try {
-      const savedTheme = localStorage.getItem('customTheme');
-      if (savedTheme) {
-        return JSON.parse(savedTheme);
-      }
-    } catch (error) {
-      console.error('Error reading theme from localStorage:', error);
-    }
-    return {
-      bg: mode === 'light' ? '#F7F8FA' : '#1E1E1E',
-      text: mode === 'light' ? '#333333' : '#FFFFFF'
-    };
-  });
-  
 
   const [uploadedPosts, setUploadedPosts] = useLocalStorage<Post[]>('uploadedPosts', [
     {
@@ -326,13 +315,6 @@ const ProfilePage: React.FC = () => {
     console.log('Message clicked');
   };
 
-  const handleAvatarChange = (imageUrl: string) => {
-    setUserData(prev => ({
-      ...prev,
-      avatarUrl: imageUrl
-    }));
-  };
-
   const handleProfileUpdate = (updatedFields: Partial<User>) => {
     setUserData(prev => ({
       ...prev,
@@ -341,14 +323,9 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleThemeChange = (newTheme: CustomTheme) => {
-    try {
-      localStorage.setItem('customTheme', JSON.stringify(newTheme));
-      setCustomTheme(newTheme);
-      setThemeSelectorOpen(false);
-    } catch (error) {
-      console.error('Error changing theme:', error);
-      alert('Failed to update theme. Please try again.');
-    }
+    setCustomTheme(newTheme);
+    localStorage.setItem('customTheme', JSON.stringify(newTheme));
+    setThemeSelectorOpen(false);  // Close the theme selector
   };
 
   const handleSortClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -361,6 +338,28 @@ const ProfilePage: React.FC = () => {
     }
     setSortAnchorEl(null);
   };
+
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem('customTheme');
+      if (savedTheme) {
+        setCustomTheme(JSON.parse(savedTheme));
+      }
+    } catch (error) {
+      console.error('Error reading theme from localStorage:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!localStorage.getItem('customTheme')) {
+      const newTheme = {
+        bg: mode === 'light' ? '#F7F8FA' : '#1E1E1E',
+        text: mode === 'light' ? '#333333' : '#FFFFFF'
+      };
+      localStorage.setItem('customTheme', JSON.stringify(newTheme));
+      setCustomTheme(newTheme);
+    }
+  }, [mode]);
 
   const filteredAndSortedPosts = useMemo(() => {
     const posts = activeTab === 0 ? [...uploadedPosts] : [...savedPosts];
@@ -380,217 +379,190 @@ const ProfilePage: React.FC = () => {
     }
   }, [activeTab, uploadedPosts, savedPosts, sortBy]);
 
-  useEffect(() => {
-    try {
-      const savedTheme = localStorage.getItem('customTheme');
-      if (!savedTheme) {
-        const newTheme = {
-          bg: mode === 'light' ? '#F7F8FA' : '#1E1E1E',
-          text: mode === 'light' ? '#333333' : '#FFFFFF'
-        };
-        localStorage.setItem('customTheme', JSON.stringify(newTheme));
-        setCustomTheme(newTheme);
-      }
-    } catch (error) {
-      console.error('Error handling theme in useEffect:', error);
-    }
-  }, [mode]);
-
   return (
-    <StyledContainer customBg={customTheme.bg}>
-      <IconButton
-        onClick={() => setThemeSelectorOpen(true)}
-        sx={{
-          position: 'fixed',
-          top: 20,
-          right: 80,
-          bgcolor: mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-          color: customTheme.text
-        }}
-      >
-        <PaletteIcon />
-      </IconButton>
+    <>
+      <SideBar onThemeClick={() => setThemeSelectorOpen(true)} />
+      <StyledContainer customBg={customTheme.bg}>
+        <Container maxWidth="lg">
+          <Box>
+            <StyledCardContent customBg={customTheme.bg} customText={customTheme.text}>
+              <ProfileHeader 
+                user={userData}
+                onFollow={handleFollow}
+                onMessage={handleMessage}
+                onProfileUpdate={handleProfileUpdate}
+                customTheme={customTheme}
+              />
 
-      <Container maxWidth="lg">
-        <Box>
-          <StyledCardContent customBg={customTheme.bg} customText={customTheme.text}>
-            <ProfileHeader 
-              user={userData}
-              onFollow={handleFollow}
-              onMessage={handleMessage}
-              onAvatarChange={handleAvatarChange}
-              onProfileUpdate={handleProfileUpdate}
-              customTheme={customTheme}
-            />
+              <Divider sx={{ margin: theme.spacing(3, 0) }} />
 
-            <Divider sx={{ margin: theme.spacing(3, 0) }} />
-
-            <Box sx={{ mt: 3 }}>
-              <Box sx={{ 
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                mb: 3,
-                minHeight: 48,
-              }}>
-                <Box sx={{ position: 'absolute', left: 0, zIndex: 2 }}>
-                  <IconButton 
-                    onClick={handleSortClick}
-                    sx={{ 
-                      color: customTheme.text,
-                      backgroundColor: 'transparent',
-                      padding: 1.5,
-                      '&:hover': {
-                        backgroundColor: `${theme.palette.action.hover}80`,
-                      },
-                      '& .MuiSvgIcon-root': {
-                        fontSize: '1.4rem',
-                      },
-                    }}
-                  >
-                    <SortIcon />
-                  </IconButton>
-
-                  <Menu
-                    anchorEl={sortAnchorEl}
-                    open={Boolean(sortAnchorEl)}
-                    onClose={() => handleSortClose()}
-                    transformOrigin={{ horizontal: 'left', vertical: 'top' }}
-                    anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-                    PaperProps={{
-                      elevation: 2,
-                      sx: {
-                        backgroundColor: customTheme.bg,
+              <Box sx={{ mt: 3 }}>
+                <Box sx={{ 
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  mb: 3,
+                  minHeight: 48,
+                }}>
+                  <Box sx={{ position: 'absolute', left: 0, zIndex: 2 }}>
+                    <IconButton 
+                      onClick={handleSortClick}
+                      sx={{ 
                         color: customTheme.text,
-                        borderRadius: 1,
-                        border: `1px solid ${theme.palette.divider}`,
-                        minWidth: 180,
-                        '& .MuiMenuItem-root': {
-                          fontSize: '0.9rem',
-                          paddingTop: 1,
-                          paddingBottom: 1,
-                          '&:hover': {
-                            backgroundColor: `${theme.palette.action.hover}80`,
-                          },
-                          '&.Mui-selected': {
-                            backgroundColor: `${theme.palette.primary.main}20`,
+                        backgroundColor: 'transparent',
+                        padding: 1.5,
+                        '&:hover': {
+                          backgroundColor: `${theme.palette.action.hover}80`,
+                        },
+                        '& .MuiSvgIcon-root': {
+                          fontSize: '1.4rem',
+                        },
+                      }}
+                    >
+                      <SortIcon />
+                    </IconButton>
+
+                    <Menu
+                      anchorEl={sortAnchorEl}
+                      open={Boolean(sortAnchorEl)}
+                      onClose={() => handleSortClose()}
+                      transformOrigin={{ horizontal: 'left', vertical: 'top' }}
+                      anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+                      PaperProps={{
+                        elevation: 2,
+                        sx: {
+                          backgroundColor: customTheme.bg,
+                          color: customTheme.text,
+                          borderRadius: 1,
+                          border: `1px solid ${theme.palette.divider}`,
+                          minWidth: 180,
+                          '& .MuiMenuItem-root': {
+                            fontSize: '0.9rem',
+                            paddingTop: 1,
+                            paddingBottom: 1,
+                            '&:hover': {
+                              backgroundColor: `${theme.palette.action.hover}80`,
+                            },
+                            '&.Mui-selected': {
+                              backgroundColor: `${theme.palette.primary.main}20`,
+                            },
                           },
                         },
+                      }}
+                    >
+                      <MenuItem 
+                        onClick={() => handleSortClose('newest')}
+                        selected={sortBy === 'newest'}
+                      >
+                        Newest First
+                      </MenuItem>
+                      <MenuItem 
+                        onClick={() => handleSortClose('oldest')}
+                        selected={sortBy === 'oldest'}
+                      >
+                        Oldest First
+                      </MenuItem>
+                      <MenuItem 
+                        onClick={() => handleSortClose('popular')}
+                        selected={sortBy === 'popular'}
+                      >
+                        Most Popular
+                      </MenuItem>
+                    </Menu>
+                  </Box>
+
+                  <Tabs 
+                    value={activeTab} 
+                    onChange={(_, newValue) => setActiveTab(newValue)}
+                    centered
+                    sx={{
+                      flex: 1,
+                      '& .MuiTabs-indicator': {
+                        height: 2,
+                        borderRadius: '2px 2px 0 0',
+                        backgroundColor: theme.palette.primary.main,
                       },
                     }}
                   >
-                    <MenuItem 
-                      onClick={() => handleSortClose('newest')}
-                      selected={sortBy === 'newest'}
-                    >
-                      Newest First
-                    </MenuItem>
-                    <MenuItem 
-                      onClick={() => handleSortClose('oldest')}
-                      selected={sortBy === 'oldest'}
-                    >
-                      Oldest First
-                    </MenuItem>
-                    <MenuItem 
-                      onClick={() => handleSortClose('popular')}
-                      selected={sortBy === 'popular'}
-                    >
-                      Most Popular
-                    </MenuItem>
-                  </Menu>
+                    <Tab 
+                      icon={<GridViewOutlinedIcon />} 
+                      iconPosition="start" 
+                      label={`Posts (${uploadedPosts.length})`}
+                      sx={{ 
+                        textTransform: 'none',
+                        fontWeight: 500,
+                        color: customTheme.text,
+                        '&.Mui-selected': {
+                          color: theme.palette.primary.main,
+                        },
+                        '& .MuiSvgIcon-root': {
+                          fontSize: '1.5rem',
+                          marginRight: 1,
+                          color: 'inherit',
+                        },
+                      }} 
+                    />
+                    <Tab 
+                      icon={<TurnedInNotOutlinedIcon />} 
+                      iconPosition="start" 
+                      label={`Saved (${savedPosts.length})`}
+                      sx={{ 
+                        textTransform: 'none',
+                        fontWeight: 500,
+                        color: customTheme.text,
+                        '&.Mui-selected': {
+                          color: theme.palette.primary.main,
+                        },
+                        '& .MuiSvgIcon-root': {
+                          fontSize: '1.5rem',
+                          marginRight: 1,
+                          color: 'inherit',
+                        },
+                      }} 
+                    />
+                  </Tabs>
                 </Box>
 
-                <Tabs 
-                  value={activeTab} 
-                  onChange={(_, newValue) => setActiveTab(newValue)}
-                  centered
-                  sx={{
-                    flex: 1,
-                    '& .MuiTabs-indicator': {
-                      height: 2,
-                      borderRadius: '2px 2px 0 0',
-                      backgroundColor: theme.palette.primary.main,
-                    },
-                  }}
-                >
-                  <Tab 
-                    icon={<GridViewOutlinedIcon />} 
-                    iconPosition="start" 
-                    label={`Posts (${uploadedPosts.length})`}
-                    sx={{ 
-                      textTransform: 'none',
-                      fontWeight: 500,
-                      color: customTheme.text,
-                      '&.Mui-selected': {
-                        color: theme.palette.primary.main,
-                      },
-                      '& .MuiSvgIcon-root': {
-                        fontSize: '1.5rem',
-                        marginRight: 1,
-                        color: 'inherit',
-                      },
-                    }} 
-                  />
-                  <Tab 
-                    icon={<TurnedInNotOutlinedIcon />} 
-                    iconPosition="start" 
-                    label={`Saved (${savedPosts.length})`}
-                    sx={{ 
-                      textTransform: 'none',
-                      fontWeight: 500,
-                      color: customTheme.text,
-                      '&.Mui-selected': {
-                        color: theme.palette.primary.main,
-                      },
-                      '& .MuiSvgIcon-root': {
-                        fontSize: '1.5rem',
-                        marginRight: 1,
-                        color: 'inherit',
-                      },
-                    }} 
-                  />
-                </Tabs>
+                <Fade in={true} timeout={500}>
+                  <Box>
+                    <PostGrid 
+                      posts={filteredAndSortedPosts}
+                      onLike={handleLike}
+                      onSave={handleSave}
+                      onShare={handleShare}
+                      onDelete={handleDeletePost}
+                    />
+                  </Box>
+                </Fade>
               </Box>
+            </StyledCardContent>
+          </Box>
 
-              <Fade in={true} timeout={500}>
-                <Box>
-                  <PostGrid 
-                    posts={filteredAndSortedPosts}
-                    onLike={handleLike}
-                    onSave={handleSave}
-                    onShare={handleShare}
-                    onDelete={handleDeletePost}
-                  />
-                </Box>
-              </Fade>
-            </Box>
-          </StyledCardContent>
-        </Box>
+          <UploadButton
+            onClick={() => setUploadDialogOpen(true)}
+            customBg={customTheme.bg}
+            customText={customTheme.text}
+          >
+            <Fade in={true} timeout={600}>
+              <AddIcon />
+            </Fade>
+          </UploadButton>
 
-        <UploadButton
-          onClick={() => setUploadDialogOpen(true)}
-          customBg={customTheme.bg}
-          customText={customTheme.text}
-        >
-          <Fade in={true} timeout={600}>
-            <AddIcon />
-          </Fade>
-        </UploadButton>
+          <UploadDialog
+            open={uploadDialogOpen}
+            onClose={() => setUploadDialogOpen(false)}
+            onUpload={handleUpload}
+          />
 
-        <UploadDialog
-          open={uploadDialogOpen}
-          onClose={() => setUploadDialogOpen(false)}
-          onUpload={handleUpload}
-        />
-
-        <ThemeSelector
-          open={themeSelectorOpen}
-          onClose={() => setThemeSelectorOpen(false)}
-          onSelect={handleThemeChange}
-          currentTheme={customTheme}
-        />
-      </Container>
-    </StyledContainer>
+          <ThemeSelector
+            open={themeSelectorOpen}
+            onClose={() => setThemeSelectorOpen(false)}
+            onSelect={handleThemeChange}
+            currentTheme={customTheme}
+          />
+        </Container>
+      </StyledContainer>
+    </>
   );
 };
 
