@@ -4,6 +4,13 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import UserpanelApp from './UserpanelApp';
 import AppNavbar from './Navbar/Navbar';
 import GalleriesContainer from './components_galleries/GalleriesContainer';
+//import SignUp from './SignUp'
+//import Login from './Login'
+//import Galleries from './components__galleries/galleries';
+//import SideBar from './SideBar';
+//import ProfileEditor from './ProfileEditor';
+//import LandingPage from './landingpage/landingpage';
+//import MainPage from './mainpage/mainpage';
 
 // import GeminiChat from './components/GeminiChat';
 
