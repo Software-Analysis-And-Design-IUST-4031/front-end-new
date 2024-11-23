@@ -1,0 +1,36 @@
+.painting-card {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 250px;
+    text-align: center;
+    transition: opacity 0.3s ease;
+}
+
+.painting-card:hover {
+    opacity: 0.6;
+}
+
+.painting-photo {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    object-fit: cover;
+    max-height: 250px;
+}
+
+.painting-card h3 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-top: 15px;
+    font-family: 'Pacifico', cursive;
+}
+
+.painting-card p {
+    font-size: 1rem;
+    color: #555;
+    margin-top: 10px;
+    line-height: 1.5;
+    padding: 0 10px;
+}
