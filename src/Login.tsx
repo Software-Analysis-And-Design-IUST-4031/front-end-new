@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import Button from '@mui/material/Button'
 import { Link } from 'react-router-dom'
+import { ToastContainer, toast } from 'react-toastify'
 import '@mantine/core/styles.css';
 import './Login.css'
+import axios from 'axios'
 import { EyeCheck, EyeOff } from 'tabler-icons-react';
 import { MantineProvider, Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
 
@@ -10,6 +12,7 @@ const Login = () => {
 const [userName, setUserName] = useState('');
 const [password, setPassword] = useState('');
 const [errors, setErrors] = useState({ userName: '', password: '' }); 
+const [toastDisplayed, setTaostDisplayed] = useState(false);
 
 const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   const value = event.target.value;
@@ -30,6 +33,50 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     password: value.trim() === '' ? 'password is required!' : '',
   }));
 }
+
+const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  if (!userName || !password) {
+    const newErrors = {userName: userName ? '' : 'username is required!',
+    password: password ? '' : 'password is required!'};
+    setErrors(newErrors);
+    return;
+  }
+
+  try {
+    if (!toastDisplayed) {
+      const response = await axios.post('http://127.0.0.1:8000/api/user/login/', {
+          username: userName,
+          password: password,
+        } 
+      );
+      toast.success(JSON.stringify(response.data) || 'login successful!', {
+        position: 'bottom-center',
+        style: {backgroundColor: 'white', color: 'green',
+        height: '150px', width: '150px'
+        },
+        autoClose: 2000,
+        closeOnClick: true,
+      }); 
+      setTaostDisplayed(true);
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data || 'Error occured during login!';
+      if (!toastDisplayed) {
+        toast.error(JSON.stringify(errorMessage), {
+          position: 'bottom-center',
+          style: {backgroundColor: 'white', color: 'red',
+          height: '150px', width: '150px'
+          },
+          autoClose: 2000,
+          closeOnClick: true,
+        });
+        setTaostDisplayed(true);
+      }
+    } 
+  }
+};
 
   return (
     <MantineProvider>
@@ -52,7 +99,7 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
           boxShadow: '10 4px 8px rbga(0, 0, 0, 10)'
         }}
       >
-        <form className='login-form'>
+        <form className='login-form' onSubmit={handleSubmit}>
         <h1>Login</h1>
           <Grid justify='left'>
             <Grid.Col span={8}>
@@ -75,7 +122,6 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                       fontWeight: '550',
                       marginBottom: '7px'
                     }}}
-                  required
                 />
               </label>
             </Grid.Col>
@@ -104,12 +150,11 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                     },
                     visibilityToggle: {
                       color: 'white',
-                      backgroundColor: '#1a31b6',
-                      right: -93
+                      backgroundColor: 'black',
+                      right: -91
                     }
                   }}
                   visibilityToggleButtonProps={({ reveal, size }: {reveal: boolean; size: number}) => reveal ? <EyeOff size={size}/> : <EyeCheck size={size}/>}
-                  required
                 />
               </label>
             </Grid.Col>
@@ -117,13 +162,15 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
           <Grid justify='center'>
             <Grid.Col>
             <Button
+                type='submit'
                 variant='contained'
                 fullWidth
                 sx={{
                   color: 'white',
-                  backgroundColor: ' #1a31b6',
+                  backgroundColor: ' black',
                   '&:hover': {
-                    backgroundColor: '#f39811'
+                    backgroundColor: 'white',
+                    color: 'black'
                   },
                   mt: 0.25,
                   py: 0.7,
@@ -153,6 +200,10 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
           </Grid>
         </form>
       </Box>
+      <ToastContainer
+        closeOnClick
+        pauseOnHover
+      />
     </MantineProvider>
   );
 }
