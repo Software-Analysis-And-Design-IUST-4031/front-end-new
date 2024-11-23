@@ -99,17 +99,6 @@ const Logo = styled('img')({
   verticalAlign: 'top', 
 });
 
-const NavContainer = styled(Box)(({ theme }) => ({
-  width: '100%',
-  backgroundColor: theme.palette.mode === 'dark' ? '#121212' : '#FFFFFF',
-  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  marginTop: '-20px',
-  padding: 0,
-}));
-
 export default function AppNavbar() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -130,14 +119,21 @@ export default function AppNavbar() {
     };
   });
 
-  const currentPath = location.pathname === '/' ? '/galleries' : location.pathname;
+  const currentPath = location.pathname === '/' ? '/profile' : location.pathname;
   
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     navigate(newValue);
   };
 
   return (
-    <NavContainer>
+    <Box sx={{ 
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      mt: '-20px',
+      p: 0,
+    }}>
       <LogoContainer onClick={() => navigate('/')}>
         <Logo 
           src={mode === 'dark' ? whiteLogo : blackLogo} 
@@ -146,7 +142,7 @@ export default function AppNavbar() {
       </LogoContainer>
 
       <Box sx={{ 
-        maxWidth: '1200px',
+        maxWidth: 'md',
         width: '100%',
         backgroundColor: 'transparent',
         borderRadius: 2,
@@ -170,6 +166,6 @@ export default function AppNavbar() {
           <StyledTab label="Profile" value="/profile" />
         </StyledTabs>
       </Box>
-    </NavContainer>
+    </Box>
   );
 }

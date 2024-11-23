@@ -2,11 +2,7 @@ import { useState } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize the Gemini API
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-if (!apiKey) {
-  throw new Error('VITE_GEMINI_API_KEY is not defined in environment variables');
-}
-const genAI = new GoogleGenerativeAI(apiKey);
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 const GeminiChat = () => {
   const [input, setInput] = useState('');
@@ -25,7 +21,8 @@ const GeminiChat = () => {
       // Generate content
       const result = await model.generateContent(input);
       const response = await result.response;
-      setResponse(response.text);
+      const text = response.text();
+      setResponse(text);
     } catch (error) {
       console.error('Error:', error);
       setResponse('An error occurred while fetching the response.');

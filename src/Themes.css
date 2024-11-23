@@ -1,56 +1,113 @@
-/* Light Theme */
-.light-theme {
-  --background-color: #ffffff;
-  --text-color: #000000;
-  --primary-color: #1976d2;
-  --secondary-color: #dc004e;
-  --surface-color: #f5f5f5;
-  --error-color: #f44336;
-  --success-color: #4caf50;
-  --border-color: #e0e0e0;
-}
+:root {
+    /* Mindaro - Tropical Indigo */
+    --mindaro: #e3f988;
+    --TropicalIndigo: #AB82FF;
+  
+    /* Castleton Green - Fairy Tale*/
+    --CastletonGreen: #00563F;
+    --FairyTale: #EFC2D1;
+  
+    /* Uranian Blue - Salmon*/
+    --UranianBlue: #AFDBF5;
+    --Salmon: #FA8072;
+  
+    /* Savoy Blue - Saffron */
+    --SavoyBlue: #4B61D1;
+    --Saffron: #F4C430;
 
-/* Dark Theme */
-.dark-theme {
-  --background-color: #121212;
-  --text-color: #ffffff;
-  --primary-color: #90caf9;
-  --secondary-color: #f48fb1;
-  --surface-color: #1e1e1e;
-  --error-color: #ef5350;
-  --success-color: #81c784;
-  --border-color: #424242;
-}
+    /* Alabaster - Moss Green */
+    --Alabaster: #F2F0E6;
+    --MossGreen: #7E8C54;
 
-/* Common styles */
-body {
-  margin: 0;
-  padding: 0;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  transition: all 0.3s ease;
-}
+    /* Chestnut - Sunset*/
+    --Chestnut: #954525;
+    --Sunset: #FAD6A5;
 
-/* Theme transition effects */
-* {
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
+    /* Feldgrau - TeaGreen */
+    --Feldgrau: #4D5D53;
+    --TeaGreen: #D0F0C0;
 
-/* Custom scrollbar for better theme integration */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+    /* Beige - Verdigris */
+    --Beige: #F5F5DC;
+    --Verdigris: #43B3AE;
 
-::-webkit-scrollbar-track {
-  background: var(--surface-color);
-}
+    /* Charcoal - Melon */
+    --Charcoal: #36454F;
+    --Melon: #FEBAAD;
 
-::-webkit-scrollbar-thumb {
-  background: var(--primary-color);
-  border-radius: 4px;
-}
+    /* Timberwolf - Copper */
+    --Temberwolf: #DBD7D2;
+    --Copper: #B87333;
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--secondary-color);
-}
+
+    /* Wenge - Dun */
+    --Wenge: #645452;
+    --Dun: #DFCFB7;
+
+
+    /* Midnight Green - Celadon */
+    --MidnightGreen: #004953;
+    --Celadon: #ACE1Af;
+
+
+    /* Rose Quartz - Seashell */
+    --MidnightGreen: #AA98A9;
+    --Seashell: #FFF5EE;
+
+
+    /* Champagne Pink - Burnt Sienna */
+    --MidnightGreen: #FAE3DA;
+    --BurntSienna: #E97451;
+
+
+    /* Amaranth Purple - Dutch White */
+    --AmaranthPurple: #004953;
+    --DutchWhite: #EFDFBB;
+
+    
+    /* Persian Colors */
+  }
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f8fa;
+    color: #333;
+  }
+  
+  button, input, textarea, select {
+    font-family: inherit;
+  }
+  
+  .MuiPaper-root {
+    background-color: #ffffff;
+    color: #333;
+  }
+  
+  .MuiIconButton-root {
+    color: #333;
+  }
+  
+  .MuiTypography-body2 {
+    color: #6a737d;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }

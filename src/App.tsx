@@ -1,44 +1,12 @@
-<<<<<<< HEAD
 import React, { useState, useMemo, createContext, useContext } from 'react';
 import { createTheme, ThemeProvider, CssBaseline, PaletteMode } from '@mui/material';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { NextUIProvider } from "@nextui-org/react";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import UserpanelApp from './UserpanelApp';
 import AppNavbar from './Navbar/Navbar';
-import Galleries from './components_galleries/galleries';
-import SignUp from './SignUp';
-import Login from './Login';
-import Features from './features/Features';
-import Footer from './footer/footer';
+import GalleriesContainer from './components_galleries/GalleriesContainer';
 
-export interface CustomTheme {
-  bg: string;
-  text: string;
-=======
-//import { useState } from 'react'
-//import reactLogo from './assets/react.svg'
-//import viteLogo from '/vite.svg'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import SignUp from './SignUp'
-import Login from './Login'
-import Galleries from './components__galleries/galleries';
-import SideBar from './SideBar';
-import ProfileEditor from './ProfileEditor';
-
-function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path='/' element={<ProfileEditor />}/>
-        <Route path='/Login' element={<Login />}/>
-        <Route path='/SignUp' element={<SignUp />}/>
-        <Route path='/galleries' element={<Galleries />}/>
-        <Route path='/SideBar' element={<SideBar />}/>
-        <Route path='/ProfileEditor' element={<ProfileEditor />}/>
-      </Routes>
-    </Router>
-  );
->>>>>>> 5c70f7526572174679cb47efd9eceb8e5fc23e73
-}
+// import GeminiChat from './components/GeminiChat';
 
 export const ColorModeContext = createContext({ 
   toggleColorMode: () => {},
@@ -72,62 +40,28 @@ const App: React.FC = () => {
       createTheme({
         palette: {
           mode,
-          background: {
-            default: mode === 'light' ? '#FFFFFF' : '#121212',
-            paper: mode === 'light' ? '#FFFFFF' : '#1E1E1E',
+          primary: {
+            main: '#1976d2',
           },
-          text: {
-            primary: mode === 'light' ? '#000000' : '#FFFFFF',
-            secondary: mode === 'light' ? '#44546F' : '#E4E6EB',
+          secondary: {
+            main: '#ff4081',
+          },
+          background: {
+            default: mode === 'light' ? '#ffffff' : '#121212',
+            paper: mode === 'light' ? '#ffffff' : '#1e1e1e',
           },
         },
-        shape: {
-          borderRadius: 8,
+        typography: {
+          fontFamily: 'Roboto, sans-serif',
+          button: {
+            textTransform: 'none',
+          },
         },
         components: {
-          MuiCssBaseline: {
-            styleOverrides: {
-              body: {
-                backgroundColor: mode === 'light' ? '#FFFFFF' : '#121212',
-              },
-            },
-          },
-          MuiTabs: {
+          MuiCard: {
             styleOverrides: {
               root: {
-                borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
-              },
-              indicator: {
-                height: 3,
-                borderRadius: '3px 3px 0 0',
-                backgroundColor: mode === 'light' ? '#000000' : '#FFFFFF',
-              },
-            },
-          },
-          MuiTab: {
-            styleOverrides: {
-              root: {
-                textTransform: 'none',
-                fontWeight: 500,
-                fontSize: '0.95rem',
-                minHeight: 48,
-                color: mode === 'light' ? '#44546F' : '#E4E6EB',
-                '&.Mui-selected': {
-                  color: mode === 'light' ? '#000000' : '#FFFFFF',
-                  fontWeight: 600,
-                },
-                '&:hover': {
-                  color: mode === 'light' ? '#000000' : '#FFFFFF',
-                  opacity: 1,
-                },
-              },
-            },
-          },
-          MuiPaper: {
-            styleOverrides: {
-              root: {
-                backgroundColor: mode === 'light' ? '#FFFFFF' : '#1E1E1E',
-                backgroundImage: 'none',
+                backgroundColor: mode === 'light' ? '#fff' : '#1e1e1e',
               },
             },
           },
@@ -137,37 +71,27 @@ const App: React.FC = () => {
   );
 
   return (
-    <ColorModeContext.Provider value={colorMode}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Router>
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            minHeight: '100vh',
-            backgroundColor: theme.palette.background.default,
-            color: theme.palette.text.primary,
-          }}>
-            <AppNavbar />
-            <main style={{ 
-              flex: 1,
-              backgroundColor: theme.palette.background.default,
-            }}>
-              <Routes>
-                <Route path="/home" element={<Features />} />
-                <Route path="/blog" element={<Features />} />
-                <Route path="/galleries" element={<Galleries />} />
-                <Route path="/profile" element={<UserpanelApp />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/" element={<Navigate to="/galleries" replace />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-        </Router>
-      </ThemeProvider>
-    </ColorModeContext.Provider>
+    <NextUIProvider>
+      <ColorModeContext.Provider value={colorMode}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Router>
+            <div className="min-h-screen bg-[#FAFBFC] relative">
+              <AppNavbar />
+              <main className="container mx-auto px-4 pt-8">
+                <Routes>
+                  <Route path="/profile" element={<UserpanelApp />} />
+                  <Route path="/" element={<UserpanelApp />} />
+                  <Route path="/home" element={<div>Home Page</div>} />
+                  <Route path="/blog" element={<div>Blog Page</div>} />
+                  <Route path="/galleries" element={<GalleriesContainer />} />
+                </Routes>
+              </main>
+            </div>
+          </Router>
+        </ThemeProvider>
+      </ColorModeContext.Provider>
+    </NextUIProvider>
   );
 };
 

@@ -50,7 +50,6 @@ interface ProfileHeaderProps {
   user: UserProfile;
   onFollow?: () => void;
   onMessage?: () => void;
-  onAvatarChange: (imageUrl: string) => void;
   onProfileUpdate: (updates: Partial<UserProfile>) => void;
   variant?: 'default' | 'compact';
   customTheme?: {
@@ -77,88 +76,49 @@ const StyledAvatar = styled(Avatar)(({ theme }) => ({
   boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
   marginTop: '-8px',
   backgroundColor: '#d1d1d1',
-  animation: `${fadeIn} 0.6s ease-out`,
-  cursor: 'pointer',
-  '&:hover': {
-    transform: 'scale(1.05) rotate(5deg)',
-    transition: 'all 0.3s ease',
-    '&::after': {
-      content: '"Change Photo"',
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      color: 'white',
-      fontSize: '14px',
-      fontWeight: 500,
-      textAlign: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      padding: '8px 12px',
-      borderRadius: '4px',
-      opacity: 1,
-    }
-  },
-  '&::after': {
-    content: '"Change Photo"',
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    color: 'white',
-    fontSize: '14px',
-    fontWeight: 500,
-    textAlign: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: '8px 12px',
-    borderRadius: '4px',
-    opacity: 0,
-    transition: 'opacity 0.3s ease',
-  }
+  animation: `${fadeIn} 0.6s ease-out`
 }));
 
-interface ActionButtonProps {
-  children: React.ReactNode;
-  customText?: string;
-  onClick?: () => void;
-  startIcon?: React.ReactNode;
-}
-
-const CustomButton = styled('button')<ActionButtonProps>(({ customText }) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '8px',
-  padding: '10px 24px',
-  background: 'transparent',
-  color: customText || 'inherit',
-  border: `2px solid ${customText || 'currentColor'}`,
-  borderRadius: '12px',
-  fontSize: '0.875rem',
-  fontWeight: 600,
-  cursor: 'pointer',
-  transition: 'all 0.2s ease-in-out',
-  fontFamily: 'inherit',
-  minWidth: '130px',
-  
-  '&:hover': {
-    background: `${customText ? `${customText}15` : 'rgba(0,0,0,0.1)'}`,
-    transform: 'translateY(-2px)',
-  },
-
-  '&:active': {
-    transform: 'scale(0.98)',
-  }
-}));
-
-const ActionButton: React.FC<ActionButtonProps> = ({ 
+const ActionButton: React.FC<{ 
+  children: React.ReactNode; 
+  customText?: string; 
+  onClick?: () => void; 
+  startIcon?: React.ReactNode 
+}> = ({ 
   children, 
   customText, 
   onClick,
   startIcon
 }) => {
   return (
-    <CustomButton
-      customText={customText}
+    <Button
+      variant="outlined"
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        padding: '10px 24px',
+        background: 'transparent',
+        color: customText || 'inherit',
+        border: `2px solid ${customText || 'currentColor'}`,
+        borderRadius: '12px',
+        fontSize: '0.875rem',
+        fontWeight: 600,
+        cursor: 'pointer',
+        transition: 'all 0.2s ease-in-out',
+        fontFamily: 'inherit',
+        minWidth: '130px',
+        
+        '&:hover': {
+          background: `${customText ? `${customText}15` : 'rgba(0,0,0,0.1)'}`,
+          transform: 'translateY(-2px)',
+        },
+
+        '&:active': {
+          transform: 'scale(0.98)',
+        }
+      }}
       onClick={onClick}
     >
       {startIcon && (
@@ -167,7 +127,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
         </span>
       )}
       <span className="button-text">{children}</span>
-    </CustomButton>
+    </Button>
   );
 };
 
@@ -232,18 +192,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   user, 
   onFollow, 
   onMessage,
-  onAvatarChange,
   onProfileUpdate,
   variant = 'default',
   customTheme
 }) => {
   const [isFollowing, setIsFollowing] = React.useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [cropDialogOpen, setCropDialogOpen] = useState(false);
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
 
@@ -263,47 +216,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     let processedFields = { ...editedUser };
     
     if (editedUser.username) {
-      // Remove any @ symbols and ensure a single @ at the start
+
       const cleanUsername = editedUser.username.replace(/@/g, '');
-      processedFields.username = `@${cleanUsername}`; // Always add a single @ at the start
+      processedFields.username = `@${cleanUsername}`;
     }
     
     onProfileUpdate(processedFields);
     setEditDialogOpen(false);
-    setEditedUser(user); // Reset edited user state
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (reader.result) {
-          setImageSrc(reader.result.toString());
-          setCropDialogOpen(true);
-        }
-      };
-      reader.readAsDataURL(event.target.files[0]);
-    }
-  };
-
-  const onCropComplete = (croppedArea: any, croppedAreaPixels: any) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  };
-
-  const handleSave = () => {
-    if (!imageSrc || !croppedAreaPixels) {
-      console.error('Missing image data');
-      return;
-    }
-
-    try {
-      const croppedImage = getCroppedImg(imageSrc, croppedAreaPixels);
-      onAvatarChange(croppedImage);
-      setCropDialogOpen(false);
-      setImageSrc(null);
-    } catch (error) {
-      console.error('Failed to crop image:', error);
-    }
+    setEditedUser(user);
   };
 
   return (
@@ -313,17 +233,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           <Box>
             <StyledAvatar 
               src={user.avatarUrl}
-              onClick={() => fileInputRef.current?.click()}
             >
               {!user.avatarUrl && user.fullName[0].toUpperCase()}
             </StyledAvatar>
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={handleFileChange}
-            />
           </Box>
           <Box flex={1}>
             <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
@@ -337,16 +249,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                   }}>
                     {user.fullName}
                   </Typography>
-                  <IconButton 
-                    onClick={handleEditClick}
-                    sx={{ 
-                      color: customTheme?.text || 'inherit',
-                      opacity: 0.7,
-                      '&:hover': { opacity: 1 }
-                    }}
-                  >
-                    <EditIcon />
-                  </IconButton>
                 </Box>
                 <Typography variant="subtitle1" sx={{ 
                   mb: 2, 
@@ -453,15 +355,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               onChange={(e) => setEditedUser(prev => ({ ...prev, fullName: e.target.value }))}
             />
             <TextField
-              label="Username"
               fullWidth
+              label="Nickname"
+              required
               value={editedUser.username}
               onChange={(e) => {
-                const value = e.target.value;
-                // Remove all @ symbols and add a single @ at the start
-                const cleanValue = value.replace(/@/g, '');
-                setEditedUser(prev => ({ 
-                  ...prev, 
+                const cleanValue = e.target.value.trim();
+                setEditedUser(prev => ({
+                  ...prev,
                   username: cleanValue // Don't add @ here, it will be added when saving
                 }));
               }}
@@ -485,54 +386,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         <DialogActions>
           <Button onClick={handleEditClose}>Cancel</Button>
           <Button onClick={handleEditSave} variant="contained" color="primary">Save</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
-        open={cropDialogOpen}
-        onClose={() => setCropDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Crop Profile Photo</DialogTitle>
-        <DialogContent>
-          <Box sx={{ position: 'relative', height: 400, mb: 2 }}>
-            {imageSrc && (
-              <Cropper
-                image={imageSrc}
-                crop={crop}
-                zoom={zoom}
-                aspect={1}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={onCropComplete}
-                cropShape="round"
-                showGrid={false}
-              />
-            )}
-          </Box>
-          <Box sx={{ px: 2 }}>
-            <Typography gutterBottom>Zoom</Typography>
-            <Slider
-              value={zoom}
-              min={1}
-              max={3}
-              step={0.1}
-              onChange={(e, value) => setZoom(value as number)}
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCropDialogOpen(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleSave}
-            variant="contained" 
-            color="primary"
-          >
-            Save
-          </Button>
         </DialogActions>
       </Dialog>
     </Box>
