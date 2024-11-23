@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Grid, Box, Pagination, Typography } from '@mui/material';
 import Gallary from './gallery';
 import axios from 'axios';
+
 interface Gallery2 {
   gallery_name: string;
   description: string;
@@ -14,11 +15,9 @@ interface Gallery2 {
 const Galleries: React.FC = () => {
   const itemsPerPage = 9;
   const [currentPage, setCurrentPage] = useState(1);
-
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [data, setData] =  useState<Gallery2[]>([]);
+  const [data, setData] = useState<Gallery2[]>([]);
   const [currentData, setCurrentData] = useState<Gallery2[]>([]);
   const placeholders = itemsPerPage - currentData.length;
 
@@ -26,16 +25,22 @@ const Galleries: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(false);
+
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/gallery/galleries', {  
-          headers: {  
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMyMjE0NTk3LCJpYXQiOjE3MzIyMDkxOTcsImp0aSI6ImNhMzg4YjdhNDY5NDQ3ZmY4NmRiNzY5MjA0ODQxNDIzIiwidXNlcl9pZCI6NX0._Ydn0pbI-CilOZBDOJfCV6WU2cVPSlAHG9RNdSWH2rw`,  
-          },  
-        });  
+        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+        if (!token) {
+          throw new Error('Access token not found. Please log in.');
+        }
+
+        const response = await axios.get('http://127.0.0.1:8000/api/gallery/galleries', {
+          headers: {
+            Authorization: `Bearer ${token}`, // Use the token in headers
+          },
+        });
         setData(response.data);
       } catch (error) {
         console.error('Error fetching galleries:', error);
-        setError(true); 
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -43,7 +48,8 @@ const Galleries: React.FC = () => {
 
     fetchData();
   }, []);
-  const totalPages = Math.ceil(data.length / itemsPerPage); // assuming a static number for now
+
+  const totalPages = Math.ceil(data.length / itemsPerPage); // Calculate total pages
   useEffect(() => {
     // Paginate data based on current page
     const startIndex = (currentPage - 1) * itemsPerPage;
