@@ -7,12 +7,16 @@ import Login from './Login'
 import Galleries from './components__galleries/galleries';
 import SideBar from './SideBar';
 import ProfileEditor from './ProfileEditor';
+import LandingPage from './landingpage/landingpage';
+import MainPage from './mainpage/mainpage';
 
 const AppRoutes: React.FC = () => {
   return (
     <Router>
       <Routes>
         <Route path='/' element={<ProfileEditor />}/>
+        <Route path='/Landingpage' element={<LandingPage />}/>
+        <Route path='/mainpage' element={<MainPage />}/>
         <Route path='/Login' element={<Login />}/>
         <Route path='/SignUp' element={<SignUp />}/>
         <Route path='/galleries' element={<Galleries />}/>
