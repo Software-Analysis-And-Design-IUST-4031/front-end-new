@@ -1,18 +1,18 @@
 import { useState } from 'react'
 import Button from '@mui/material/Button'
 import { Link } from 'react-router-dom'
-import { ToastContainer, toast } from 'react-toastify'
 import '@mantine/core/styles.css';
 import './Login.css'
 import axios from 'axios'
 import { EyeCheck, EyeOff } from 'tabler-icons-react';
 import { MantineProvider, Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
+import { useNavigate } from 'react-router-dom'
 
 const Login = () => {
 const [userName, setUserName] = useState('');
 const [password, setPassword] = useState('');
 const [errors, setErrors] = useState({ userName: '', password: '' }); 
-const [toastDisplayed, setTaostDisplayed] = useState(false);
+const [isSubmiting, setIsSubmiting] = useState(false);
 
 const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   const value = event.target.value;
@@ -36,6 +36,7 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 
 const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
   event.preventDefault();
+  const navigate = useNavigate();
   if (!userName || !password) {
     const newErrors = {userName: userName ? '' : 'username is required!',
     password: password ? '' : 'password is required!'};
@@ -43,37 +44,22 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     return;
   }
 
+  setIsSubmiting(true);
   try {
-    if (!toastDisplayed) {
-      const response = await axios.post('http://127.0.0.1:8000/api/user/login/', {
-          username: userName,
-          password: password,
-        } 
-      );
-      toast.success(JSON.stringify(response.data) || 'login successful!', {
-        position: 'bottom-center',
-        style: {backgroundColor: 'white', color: 'green',
-        height: '150px', width: '150px'
-        },
-        autoClose: 2000,
-        closeOnClick: true,
-      }); 
-      setTaostDisplayed(true);
-    }
+    const response = await axios.post('http://127.0.0.1:8000/api/user/login/', {
+        username: userName,
+        password: password,
+      } 
+    );
+
+    const message = JSON.stringify(response.data) || 'login successful!';
+    console.log(message);
+    setTimeout(() => {navigate("/home")}, 3000);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const errorMessage = error.response?.data || 'Error occured during login!';
-      if (!toastDisplayed) {
-        toast.error(JSON.stringify(errorMessage), {
-          position: 'bottom-center',
-          style: {backgroundColor: 'white', color: 'red',
-          height: '150px', width: '150px'
-          },
-          autoClose: 2000,
-          closeOnClick: true,
-        });
-        setTaostDisplayed(true);
-      }
+      console.error(errorMessage);
+      setTimeout(() => {setIsSubmiting(false)}, 3000);
     } 
   }
 };
@@ -164,6 +150,7 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
             <Button
                 type='submit'
                 variant='contained'
+                disabled={isSubmiting}
                 fullWidth
                 sx={{
                   color: 'white',
@@ -200,10 +187,6 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
           </Grid>
         </form>
       </Box>
-      <ToastContainer
-        closeOnClick
-        pauseOnHover
-      />
     </MantineProvider>
   );
 }

@@ -7,6 +7,7 @@ import './SignUp.css'
 import axios from 'axios'
 import { EyeCheck, EyeOff } from 'tabler-icons-react';
 import { MantineProvider, Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
+import { useNavigate } from 'react-router-dom'
 
 const SignUp = () => {
   const [firstName, setFirstName] = useState('');
@@ -372,11 +373,6 @@ const SignUp = () => {
           </Grid>
         </form>
       </Box>
-      <ToastContainer
-        autoClose={2000}
-        closeOnClick
-        pauseOnHover
-    />
     </MantineProvider>
   );
 }
