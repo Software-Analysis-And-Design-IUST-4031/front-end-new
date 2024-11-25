@@ -1,0 +1,18 @@
+.animation-con {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    max-width: 50%; 
+    background-color: #ffffff;  
+    padding: 10px; 
+    margin-top : 200px ;
+    margin-bottom: 200px;
+  }
+  
+  .animation-con img {
+    max-width: 325px; 
+    height: auto;      
+    border-radius: 15px; 
+  }
+  
