@@ -17,9 +17,13 @@ const Gallary: React.FC<Props> = ({ image_url, descryption, name , num_paints , 
   const [hover, setHover] = useState(false);
 
   const truncateString = (input: string , num : number): string => {
+    if (input === null) {  
+        return '';  
+    } 
     if (input.length > num) {
       return input.substring(0, num) + '...';
     }
+    
     return input;
   };
 

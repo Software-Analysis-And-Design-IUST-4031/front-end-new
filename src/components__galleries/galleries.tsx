@@ -6,7 +6,7 @@ import axios from 'axios';
 interface Gallery2 {
   gallery_name: string;
   description: string;
-  image_url: string;
+  cover_image: string;
   owner_id: number;
   number_of_paintings: number;
   number_of_artists: number;
@@ -27,17 +27,21 @@ const Galleries: React.FC = () => {
       setError(false);
 
       try {
-        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-        if (!token) {
-          throw new Error('Access token not found. Please log in.');
-        }
+        // const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+        // if (!token) {
+        //   throw new Error('Access token not found. Please log in.');
+        // }
 
-        const response = await axios.get('http://127.0.0.1:8000/api/gallery/galleries', {
-          headers: {
-            Authorization: `Bearer ${token}`, // Use the token in headers
-          },
-        });
+        // const response = await axios.get('http://127.0.0.1:8000/api/galleries', {
+        //   headers: {
+        //     Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMyNTI2OTE5LCJpYXQiOjE3MzI1MjE1MTksImp0aSI6ImY2ZWQ1ZDRjOWY4MzQwZjNhOTY5NmUyZmUzMjcxYmM4IiwidXNlcl9pZCI6NX0.snAhBeQR80cVyw225kPH0OXLmficrvPHsLFw-YLn490`, // Use the token in headers
+        //   },
+        // });
+        // setData(response.data);
+        // console.log(data);
+        const response = await axios.get('http://127.0.0.1:8000/api/galleries/');
         setData(response.data);
+        console.log(data);
       } catch (error) {
         console.error('Error fetching galleries:', error);
         setError(true);
@@ -79,7 +83,7 @@ const Galleries: React.FC = () => {
                 <Gallary
                   id_owner={item.owner_id}
                   name={item.gallery_name}
-                  image_url={item.image_url}
+                  image_url={item.cover_image}
                   descryption={item.description}
                   num_paints={item.number_of_paintings}
                   num_artists={item.number_of_artists}
