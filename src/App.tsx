@@ -85,16 +85,17 @@ const App: React.FC = () => {
             <div className="min-h-screen bg-[#FAFBFC] relative">
               <AppNavbar />
               <main className="container mx-auto px-4 pt-8">
-                <Routes>
-                  <Route path="/profile" element={<UserpanelApp />} />
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/SignUp" element={<SignUp />} />
-                  <Route path="/Login" element={<Login />} />
-                  <Route path="/LandingPage" element={<LandingPage />} />
-                  <Route path="/home" element={<div>Home Page</div>} />
-                  <Route path="/blog" element={<div>Blog Page</div>} />
-                  <Route path="/galleries" element={<GalleriesContainer />} />
-                </Routes>
+              <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/profile" element={<UserpanelApp />} />
+            <Route path="/SignUp" element={<SignUp />} />
+            <Route path="/Login" element={<Login />} />
+            <Route path="/LandingPage" element={<LandingPage />} />
+            <Route path="/home" element={<div>Home Page</div>} />
+            <Route path="/blog" element={<div>Blog Page</div>} />
+            <Route path="/galleries" element={<GalleriesContainer />} />
+          </Routes>
+
               </main>
             </div>
           </Router>

@@ -191,7 +191,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         const token = localStorage.getItem('access_token');
   
         try {
-          const response = await axios.get('http://127.0.0.1:8000/api/user/register/', {
+          const response = await axios.get('http://127.0.0.1:8000/api/user/<int:user_id>/detailEditProfile/', {
             headers : {
               'Authorization': `Bear ${token}`
             }
@@ -216,7 +216,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         const token = localStorage.getItem('access_token');
   
         try {
-          const response = await axios.get('http://127.0.0.1:8000/api/user/register/', {
+          const response = await axios.get('http://127.0.0.1:8000/api/user/<int:user_id>/detailFavorites/', {
             headers : {
               'Authorization': `Bear ${token}`
             }
@@ -334,7 +334,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         profile_pciture: photoUrl,
       }
       try {
-        const response = await axios.put('http://127.0.0.1:8000/api/user/register/', {
+        const response = await axios.put('http://127.0.0.1:8000/api/user/<int:user_id>/updateProfile/', {
           body: persoInfo,
           headers : {
             'Authorization': `Bear ${token}`
@@ -351,7 +351,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
       }
     } else if (tabValue === 1) {
       try {
-        const response = await axios.put('http://127.0.0.1:8000/api/user/register/', {
+        const response = await axios.put('http://127.0.0.1:8000/api/user/<int:user_id>/updateFavorites/', {
           body: artPreferences,
           headers : {
             'Authorization': `Bear ${token}`
