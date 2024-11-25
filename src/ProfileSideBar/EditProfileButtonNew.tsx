@@ -193,12 +193,12 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         try {
           const response = await axios.get('http://127.0.0.1:8000/api/user/register/', {
             headers : {
-              Autoruzation: `Bear ${token}`
+              'Authorization': `Bear ${token}`
             }
           });
   
           setPersonalInfo(response.data);
-          console.log("successful submition!")
+          alert("successful submition!")
         } catch(error) {
           if (axios.isAxiosError(error)) {
             const errorMessage = error.response?.data || 'something went wrong during submition!';
@@ -218,12 +218,12 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         try {
           const response = await axios.get('http://127.0.0.1:8000/api/user/register/', {
             headers : {
-              Autoruzation: `Bear ${token}`
+              'Authorization': `Bear ${token}`
             }
           });
   
           setPersonalInfo(response.data);
-          console.log("successful submition!")
+          alert("successful submition!")
         } catch(error) {
           if (axios.isAxiosError(error)) {
             const errorMessage = error.response?.data || 'something went wrong during submition!';
@@ -337,7 +337,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         const response = await axios.put('http://127.0.0.1:8000/api/user/register/', {
           body: persoInfo,
           headers : {
-            Autoruzation: `Bear ${token}`
+            'Authorization': `Bear ${token}`
           }
         });
 
@@ -354,7 +354,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         const response = await axios.put('http://127.0.0.1:8000/api/user/register/', {
           body: artPreferences,
           headers : {
-            Autoruzation: `Bear ${token}`
+            'Authorization': `Bear ${token}`
           }
         });
 

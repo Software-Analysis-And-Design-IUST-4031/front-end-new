@@ -1,14 +1,16 @@
 import React from 'react';
 import Button from './Button';
 import './Header.css';
+import { useNavigate } from 'react-router-dom'
 
 const Header: React.FC = () => {
+    const navigate = useNavigate();
     const handleSignUp = () => {
-        console.log('Sign up clicked');
+        navigate("/SignUp");
     };
 
     const handleSignIn = () => {
-        console.log('Sign in clicked');
+        navigate("/Login");
     };
 
     return (

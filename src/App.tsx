@@ -87,7 +87,7 @@ const App: React.FC = () => {
               <main className="container mx-auto px-4 pt-8">
                 <Routes>
                   <Route path="/profile" element={<UserpanelApp />} />
-                  <Route path="/" element={<UserpanelApp />} />
+                  <Route path="/" element={<LandingPage />} />
                   <Route path="/SignUp" element={<SignUp />} />
                   <Route path="/Login" element={<Login />} />
                   <Route path="/LandingPage" element={<LandingPage />} />

@@ -9,6 +9,7 @@ import { MantineProvider, Text, Grid, Box, PasswordInput, TextInput } from '@man
 import { useNavigate } from 'react-router-dom'
 
 const SignUp = () => {
+  const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [userName, setUserName] = useState('');
@@ -82,7 +83,6 @@ const SignUp = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const navigate = useNavigate();
 
     if (!firstName || !lastName || !userName || !password || !confirmPassword || !email) {
       const newErrors = {firstName: firstName ? '' : 'first name is required!', lastName: lastName ? '' : 'last name is required!',
