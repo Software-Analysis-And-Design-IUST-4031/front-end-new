@@ -1,10 +1,14 @@
 import React from 'react';
 import Button from './Button';
-import './Header.css';
+import './header.css'
+import { useNavigate } from 'react-router-dom';
+import logo from './black_on_trans.png'; 
 
 const Header: React.FC = () => {
+    const navigate = useNavigate();
+
     const handleSignUp = () => {
-        console.log('Sign up clicked');
+        navigate('/signup');
     };
 
     const handleSignIn = () => {
@@ -13,7 +17,8 @@ const Header: React.FC = () => {
 
     return (
         <header className="header">
-            <h1 className="header-title">zaferouni</h1>
+            <img src={logo} alt="Logo" className="header-logo" />
+            <div className="header-divider" />
             <div className="header-buttons">
                 <Button label="Sign Up" onClick={handleSignUp} styleType="primary" />
                 <Button label="Sign In" onClick={handleSignIn} styleType="primary" />

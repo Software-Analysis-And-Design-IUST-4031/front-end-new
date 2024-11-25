@@ -1,32 +1,43 @@
-/* Header.css */
-body {
-    margin: 0;
-}
+/* Ensure no spacing is added by default */
 
+
+/* Header styles */
 .header {
-    top: 0;
+    position: relative; /* Ensure proper alignment in the layout */
     display: flex;
     align-items: center;
-    padding: 20px;
+    justify-content: space-between;
+    margin-top: -50px;
+    padding : 0px 40px;
+    background-color: #ffffff;
+    
+}
+
+/* Make the logo larger without affecting alignment */
+.header-logo {
+    width: 200px; 
+    height: 200px; 
+    object-fit: contain; 
+}
+
+/* Divider line */
+.header-divider {
+    position: absolute; /* Position relative to the header */
+    
+    right: 15%; 
+    bottom: 15px; 
+    height: 2px; 
+    width: 1100px;
     background-color: #000000;
-    text-align: left;
-    z-index: 1000;
-    border-bottom: 1px solid #333; /* Add a bottom border */
-    border-radius: 0 0 8px 8px; /* Smooth corners at the bottom */
 }
 
-.header-title {
-    margin: 0;
-    flex-grow: 1;
-    font-family: 'Pacifico', cursive;
-    color: white;
-}
-
+/* Buttons styling */
 .header-buttons {
     display: flex;
     gap: 10px;
 }
 
+/* Button styles */
 .button {
     padding: 10px 20px;
     font-size: 16px;
@@ -37,16 +48,19 @@ body {
     font-family: 'Pacifico', cursive;
 }
 
+/* Primary button style */
 .button-primary {
-    background-color: #ffffff;
-    color: rgb(0, 0, 0);
+    background-color: #000000;
+    color: rgb(255, 255, 255);
 }
 
+/* Secondary button style */
 .button-secondary {
     background-color: #6C757D;
     color: white;
 }
 
+/* Button hover effect */
 .button:hover {
     opacity: 0.9;
 }
