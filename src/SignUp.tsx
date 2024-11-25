@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import Button from '@mui/material/Button'
 import { Link } from 'react-router-dom'
-import { ToastContainer, toast } from 'react-toastify'
 import '@mantine/core/styles.css';
 import './SignUp.css'
 import axios from 'axios'
@@ -17,7 +16,7 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState({firstName: '', lastName: '', userName: '', email: '', password: '', confirmPassword: ''});
-  const [toastDisplayed, setTaostDisplayed] = useState(false);
+  const [isSubmiting, setIsSubmiting] = useState(false);
 
   const handleFirstnameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -83,50 +82,36 @@ const SignUp = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const navigate = useNavigate();
 
     if (!firstName || !lastName || !userName || !password || !confirmPassword || !email) {
       const newErrors = {firstName: firstName ? '' : 'first name is required!', lastName: lastName ? '' : 'last name is required!',
-       userName: userName ? '' : 'username is required!', email: email ? '' : 'email address is required!',
-      password: password ? '' : 'password is required!', confirmPassword: confirmPassword ? '' : 'confirm password is required!'};
+        userName: userName ? '' : 'username is required!', email: email ? '' : 'email address is required!',
+        password: password ? '' : 'password is required!', confirmPassword: confirmPassword ? '' : 'confirm password is required!'
+      };
       setErrors(newErrors);
       return;
     }
 
     try {
-      if (!toastDisplayed) {
-        const response = await axios.post('http://127.0.0.1:8000/api/user/register/', {
-            firstname: firstName,
-            lastname: lastName,
-            username: userName,
-            password: password, 
-            confirm_password: confirmPassword,
-            email: email,
-          } 
-        );
-        toast.success(JSON.stringify(response.data) || 'signup successful!', {
-          position: 'bottom-center',
-          style: {backgroundColor: 'white', color: 'green',
-          height: '150px', width: '150px'
-          },
-          autoClose: 2000,
-          closeOnClick: true,
-        });
-        setTaostDisplayed(true);
-      }
+      const response = await axios.post('http://127.0.0.1:8000/api/user/register/', {
+          firstname: firstName,
+          lastname: lastName,
+          username: userName,
+          password: password, 
+          confirm_password: confirmPassword,
+          email: email,
+        } 
+      );
+
+      const message = JSON.stringify(response.data) || 'signup successful!';
+      alert(message);
+      setTimeout(() => {navigate("/Login")}, 3000);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMessage = error.response?.data || 'Error occured during signup!';
-        if (!toastDisplayed) {
-          toast.error(JSON.stringify(errorMessage), {
-            position: 'bottom-center',
-            style: {backgroundColor: 'white', color: 'red',
-            height: '150px', width: '150px'
-            },
-            autoClose: 2000,
-            closeOnClick: true,
-          });
-          setTaostDisplayed(true);
-        }
+        alert(errorMessage);
+        setTimeout(() => {setIsSubmiting(false)}, 3000);
       }
     }
   };
@@ -335,6 +320,7 @@ const SignUp = () => {
                 type='submit'
                 variant='contained'
                 fullWidth
+                disabled={isSubmiting}
                 sx={{
                   color: 'white',
                   backgroundColor: 'black',

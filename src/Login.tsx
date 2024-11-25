@@ -52,13 +52,16 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
       } 
     );
 
+    const access_token = response.data.access;
+    localStorage.setItem('access_token', access_token);
+
     const message = JSON.stringify(response.data) || 'login successful!';
-    console.log(message);
+    alert(message);
     setTimeout(() => {navigate("/home")}, 3000);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const errorMessage = error.response?.data || 'Error occured during login!';
-      console.error(errorMessage);
+      alert(errorMessage);
       setTimeout(() => {setIsSubmiting(false)}, 3000);
     } 
   }

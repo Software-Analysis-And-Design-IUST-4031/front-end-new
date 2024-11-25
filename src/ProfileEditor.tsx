@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   TextField,
   Button,
@@ -24,6 +24,7 @@ import { styled } from '@mui/material';
 import { Visibility, VisibilityOff, PhotoCamera } from '@mui/icons-material';
 import { useColorMode } from './App';
 import Cropper from 'react-easy-crop';
+import axios from 'axios'
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -157,28 +158,30 @@ const ProfileEditor = () => {
   const [tabValue, setTabValue] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isProfileSubmiting, setIsProfileSubmiting] = useState(false);
+  const [isPreferencesfileSubmiting, setIsPreferencesSubmiting] = useState(false);
 
   // Personal Info State
   const [personalInfo, setPersonalInfo] = useState({
-    firstName: '',
-    lastName: '',
-    nickName: '',
+    firstname: '',
+    lastname: '',
+    nickname: '',
     password: '',
     email: '',
-    phoneNumber: '',
+    phone_number: '',
     country: '',
     city: '',
-    dateOfBirth: '',
-    isGallery: 'no'
+    date_of_birth: '',
+    is_gallery: 'no'
   });
 
   // Art Preferences State
   const [artPreferences, setArtPreferences] = useState({
-    favoritePainter: '',
-    favoritePainting: '',
-    favoritePaintingStyle: '',
-    favoritePaintingTech: '',
-    favoritePaintingOwn: '',
+    favorite_painter: '',
+    favorite_painting: '',
+    favorite_painting_style: '',
+    favorite_painting_technique: '',
+    favorite_painting_to_own: '',
     biography: ''
   });
 
@@ -189,6 +192,56 @@ const ProfileEditor = () => {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [tempPhotoUrl, setTempPhotoUrl] = useState<string>('');
+
+  useEffect(() => {
+    if (tabValue === 0) {
+      const fetchProfileData = async () => {
+        const token = localStorage.getItem('access_token');
+  
+        try {
+          const response = await axios.get('http://127.0.0.1:8000/api/user/register/', {
+            headers : {
+              Autoruzation: `Bear ${token}`
+            }
+          });
+  
+          setPersonalInfo(response.data);
+          console.log("successful submition!")
+        } catch(error) {
+          if (axios.isAxiosError(error)) {
+            const errorMessage = error.response?.data || 'something went wrong during submition!';
+            console.error(errorMessage);
+          }
+        }
+      };
+      fetchProfileData();
+    }
+  }, [tabValue]);
+
+  useEffect(() => {
+    if (tabValue === 1) {
+      const fetchPreferencesData = async () => {
+        const token = localStorage.getItem('access_token');
+  
+        try {
+          const response = await axios.get('http://127.0.0.1:8000/api/user/register/', {
+            headers : {
+              Autoruzation: `Bear ${token}`
+            }
+          });
+  
+          setPersonalInfo(response.data);
+          console.log("successful submition!")
+        } catch(error) {
+          if (axios.isAxiosError(error)) {
+            const errorMessage = error.response?.data || 'something went wrong during submition!';
+            console.error(errorMessage);
+          }
+        }
+      };
+      fetchPreferencesData();
+    }
+  }, [tabValue]);
 
   const handlePersonalInfoChange = (field: keyof typeof personalInfo) => (
     event: React.ChangeEvent<HTMLInputElement>
@@ -413,24 +466,24 @@ const ProfileEditor = () => {
             <TextField
               fullWidth
               label="First Name"
-              value={personalInfo.firstName}
-              onChange={handlePersonalInfoChange('firstName')}
+              value={personalInfo.firstname}
+              onChange={handlePersonalInfoChange('firstname')}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               label="Last Name"
-              value={personalInfo.lastName}
-              onChange={handlePersonalInfoChange('lastName')}
+              value={personalInfo.lastname}
+              onChange={handlePersonalInfoChange('lastname')}
             />
           </Grid>
           <Grid item xs={12}>
             <TextField
               fullWidth
               label="Nickname"
-              value={personalInfo.nickName}
-              onChange={handlePersonalInfoChange('nickName')}
+              value={personalInfo.nickname}
+              onChange={handlePersonalInfoChange('nickname')}
             />
           </Grid>
           <Grid item xs={12}>
@@ -467,8 +520,8 @@ const ProfileEditor = () => {
             <TextField
               fullWidth
               label="Phone Number"
-              value={personalInfo.phoneNumber}
-              onChange={handlePersonalInfoChange('phoneNumber')}
+              value={personalInfo.phone_number}
+              onChange={handlePersonalInfoChange('phone_number')}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -492,15 +545,15 @@ const ProfileEditor = () => {
               fullWidth
               label="Date of Birth"
               type="date"
-              value={personalInfo.dateOfBirth}
-              onChange={handlePersonalInfoChange('dateOfBirth')}
+              value={personalInfo.date_of_birth}
+              onChange={handlePersonalInfoChange('date_of_birth')}
               InputLabelProps={{ shrink: true }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <Select
               fullWidth
-              value={personalInfo.isGallery}
+              value={personalInfo.is_gallery}
               onChange={(e) => setPersonalInfo(prev => ({ ...prev, isGallery: e.target.value }))}
               label="Gallery Status"
             >
@@ -517,40 +570,40 @@ const ProfileEditor = () => {
             <TextField
               fullWidth
               label="Favorite Painter"
-              value={artPreferences.favoritePainter}
-              onChange={handleArtPreferencesChange('favoritePainter')}
+              value={artPreferences.favorite_painter}
+              onChange={handleArtPreferencesChange('favorite_painter')}
             />
           </Grid>
           <Grid item xs={12}>
             <TextField
               fullWidth
               label="Favorite Painting"
-              value={artPreferences.favoritePainting}
-              onChange={handleArtPreferencesChange('favoritePainting')}
+              value={artPreferences.favorite_painting}
+              onChange={handleArtPreferencesChange('favorite_painting')}
             />
           </Grid>
           <Grid item xs={12}>
             <TextField
               fullWidth
               label="Favorite Painting Style"
-              value={artPreferences.favoritePaintingStyle}
-              onChange={handleArtPreferencesChange('favoritePaintingStyle')}
+              value={artPreferences.favorite_painting_style}
+              onChange={handleArtPreferencesChange('favorite_painting_style')}
             />
           </Grid>
           <Grid item xs={12}>
             <TextField
               fullWidth
               label="Favorite Painting Technique"
-              value={artPreferences.favoritePaintingTech}
-              onChange={handleArtPreferencesChange('favoritePaintingTech')}
+              value={artPreferences.favorite_painting_technique}
+              onChange={handleArtPreferencesChange('favorite_painting_technique')}
             />
           </Grid>
           <Grid item xs={12}>
             <TextField
               fullWidth
               label="Own Paintings"
-              value={artPreferences.favoritePaintingOwn}
-              onChange={handleArtPreferencesChange('favoritePaintingOwn')}
+              value={artPreferences.favorite_painting_to_own}
+              onChange={handleArtPreferencesChange('favorite_painting_to_own')}
             />
           </Grid>
           <Grid item xs={12}>
@@ -569,6 +622,7 @@ const ProfileEditor = () => {
       <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
         <Button
           variant="contained"
+          disabled={isPreferencesfileSubmiting}
           sx={{
             textTransform: 'none',
             borderRadius: '12px',

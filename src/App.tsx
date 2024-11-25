@@ -4,12 +4,13 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import UserpanelApp from './UserpanelApp';
 import AppNavbar from './Navbar/Navbar';
 import GalleriesContainer from './components_galleries/GalleriesContainer';
-//import SignUp from './SignUp'
-//import Login from './Login'
+import SignUp from './SignUp';
+import Login from './Login';
+import LandingPage from './landingpage/landingpage';
 //import Galleries from './components__galleries/galleries';
 //import SideBar from './SideBar';
 //import ProfileEditor from './ProfileEditor';
-//import LandingPage from './landingpage/landingpage';
+//
 //import MainPage from './mainpage/mainpage';
 
 // import GeminiChat from './components/GeminiChat';
@@ -87,6 +88,9 @@ const App: React.FC = () => {
                 <Routes>
                   <Route path="/profile" element={<UserpanelApp />} />
                   <Route path="/" element={<UserpanelApp />} />
+                  <Route path="/SignUp" element={<SignUp />} />
+                  <Route path="/Login" element={<Login />} />
+                  <Route path="/LandingPage" element={<LandingPage />} />
                   <Route path="/home" element={<div>Home Page</div>} />
                   <Route path="/blog" element={<div>Blog Page</div>} />
                   <Route path="/galleries" element={<GalleriesContainer />} />
