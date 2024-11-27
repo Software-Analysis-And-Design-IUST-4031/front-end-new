@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, SyntheticEvent } from 'react'
 import Button from '@mui/material/Button'
 import { Link } from 'react-router-dom'
 import '@mantine/core/styles.css';
@@ -7,12 +7,24 @@ import axios from 'axios'
 import { EyeCheck, EyeOff } from 'tabler-icons-react';
 import { MantineProvider, Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
 import { useNavigate } from 'react-router-dom'
+import { Snackbar, Alert } from "@mui/material"
+
 
 const Login = () => {
+const navigate = useNavigate();
+const [open, setOpen] = useState(false);
+const [severity, setSeverity] = useState<"success" | "error" | "warning" | "info ">("success");
 const [userName, setUserName] = useState('');
 const [password, setPassword] = useState('');
 const [errors, setErrors] = useState({ userName: '', password: '' }); 
 const [isSubmiting, setIsSubmiting] = useState(false);
+
+const handleAlertClose = (event: SyntheticEvent | Event, reason?: string) => {
+  if (reason === 'cliclaway') {
+    return;
+  }
+  setOpen(false);
+}
 
 const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   const value = event.target.value;
@@ -36,7 +48,6 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 
 const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
   event.preventDefault();
-  const navigate = useNavigate();
   if (!userName || !password) {
     const newErrors = {userName: userName ? '' : 'username is required!',
     password: password ? '' : 'password is required!'};
@@ -52,8 +63,9 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
       } 
     );
 
-    const access_token = response.data.access;
-    localStorage.setItem('access_token', access_token);
+    //const access_token = response.data.access;
+    //localStorage.setItem('access_token', access_token);
+    //alert("hellow");
 
     const message = JSON.stringify(response.data) || 'login successful!';
     alert(message);
@@ -140,7 +152,7 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
                     visibilityToggle: {
                       color: 'white',
                       backgroundColor: 'black',
-                      right: -91
+                      right: -1
                     }
                   }}
                   visibilityToggleButtonProps={({ reveal, size }: {reveal: boolean; size: number}) => reveal ? <EyeOff size={size}/> : <EyeCheck size={size}/>}
@@ -189,6 +201,11 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
               </Link>
           </Grid>
         </form>
+        <Snackbar open={open} autoHideDuration={5000} onClose={handleAlertClose} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
+          <Alert onClose={handleAlertClose} severity="success" sx={{width: '235px', height: '90px', textAlign: 'center'}}>
+            {"login successfully!"}
+          </Alert>
+        </Snackbar>
       </Box>
     </MantineProvider>
   );

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, SyntheticEvent } from 'react'
 import Button from '@mui/material/Button'
 import { Link } from 'react-router-dom'
 import '@mantine/core/styles.css';
@@ -7,9 +7,12 @@ import axios from 'axios'
 import { EyeCheck, EyeOff } from 'tabler-icons-react';
 import { MantineProvider, Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
 import { useNavigate } from 'react-router-dom'
+import { Snackbar, Alert } from "@mui/material"
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [severity, setSeverity] = useState<"success" | "error" | "warning" | "info ">("success");
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [userName, setUserName] = useState('');
@@ -18,6 +21,13 @@ const SignUp = () => {
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState({firstName: '', lastName: '', userName: '', email: '', password: '', confirmPassword: ''});
   const [isSubmiting, setIsSubmiting] = useState(false);
+
+  const handleAlertClose = (event: SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'cliclaway') {
+      return;
+    }
+    setOpen(false);
+  }
 
   const handleFirstnameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -95,6 +105,7 @@ const SignUp = () => {
 
     try {
       const response = await axios.post('http://127.0.0.1:8000/api/user/register/', {
+
           firstname: firstName,
           lastname: lastName,
           username: userName,
@@ -104,13 +115,15 @@ const SignUp = () => {
         } 
       );
 
-      const message = JSON.stringify(response.data) || 'signup successful!';
-      alert(message);
+      //const message = JSON.stringify(response.data) || 'signup successful!';
+      //alert(message);
+      setOpen(true);
       setTimeout(() => {navigate("/Login")}, 3000);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data || 'Error occured during signup!';
-        alert(errorMessage);
+        //const errorMessage = error.response?.data || 'Error occured during signup!';
+        //alert(errorMessage);
+        setOpen(true);
         setTimeout(() => {setIsSubmiting(false)}, 3000);
       }
     }
@@ -269,7 +282,7 @@ const SignUp = () => {
                     visibilityToggle: {
                       color: 'white',
                       backgroundColor: 'black',
-                      right: -6
+                      right: -1
                     }
                   }}
                   visibilityToggleButtonProps={({ reveal, size }: {reveal: boolean; size: number}) => reveal ? <EyeOff size={size}/> : <EyeCheck size={size}/>}
@@ -306,7 +319,7 @@ const SignUp = () => {
                     visibilityToggle: {
                       color: 'white',
                       backgroundColor: 'black',
-                      right: -7
+                      right: -1
                     }
                   }}
                   visibilityToggleButtonProps={({ reveal, size }: {reveal: boolean; size: number}) => reveal ? <EyeOff size={size}/> : <EyeCheck size={size}/>}
@@ -358,6 +371,11 @@ const SignUp = () => {
             </Grid.Col>
           </Grid>
         </form>
+        <Snackbar open={open} autoHideDuration={5000} onClose={handleAlertClose} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
+          <Alert onClose={handleAlertClose} severity="success" sx={{width: '235px', height: '90px', textAlign: 'center'}}>
+            {"signup successfully!"}
+          </Alert>
+        </Snackbar>
       </Box>
     </MantineProvider>
   );
