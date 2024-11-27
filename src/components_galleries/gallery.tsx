@@ -4,12 +4,13 @@ import { IoImageSharp, IoPeopleSharp, IoChatbubbleEllipsesSharp } from "react-ic
 import { PiPaintBrushDuotone } from "react-icons/pi";
 
 interface GalleryProps {
-  image_url: string;
+  cover_image: string;
   description: string;
-  name: string;
-  num_paints: number;
-  num_artists: number;
+  gallery_name: string;
+  number_of_paintings: number;
+  number_of_artists: number;
   index: number;
+  owner_id : number
 }
 
 interface StatBoxProps {
@@ -18,7 +19,7 @@ interface StatBoxProps {
   title: string;
 }
 
-const Gallery: React.FC<GalleryProps> = memo(({ image_url, description, name, num_paints, num_artists, index }) => {
+const Gallery: React.FC<GalleryProps> = memo(({ cover_image, description, gallery_name, number_of_paintings, number_of_artists, owner_id , index}) => {
   const theme = useTheme();
   const mode = theme.palette.mode;
 
@@ -81,8 +82,8 @@ const Gallery: React.FC<GalleryProps> = memo(({ image_url, description, name, nu
       <Box sx={{ position: 'relative', pt: '100%' }}>
         <CardMedia
           component="img"
-          image={image_url}
-          alt={name}
+          image={cover_image}
+          alt={gallery_name}
           loading="lazy"
           className="gallery-image"
           sx={{
@@ -134,7 +135,7 @@ const Gallery: React.FC<GalleryProps> = memo(({ image_url, description, name, nu
               textShadow: mode === 'dark' ? '0 2px 4px rgba(0,0,0,0.5)' : 'none',
             }}
           >
-            {name}
+            {gallery_name}
           </Typography>
           
           <Typography
@@ -160,8 +161,8 @@ const Gallery: React.FC<GalleryProps> = memo(({ image_url, description, name, nu
             gap: 2,
             mt: 2 
           }}>
-            <StatBox icon={<PiPaintBrushDuotone style={{ fontSize: '14px' }} />} value={num_paints} title="Associated Paintings" />
-            <StatBox icon={<IoPeopleSharp style={{ fontSize: '14px' }} />} value={num_artists} title="Associated Artists" />
+            <StatBox icon={<PiPaintBrushDuotone style={{ fontSize: '14px' }} />} value={number_of_paintings} title="Associated Paintings" />
+            <StatBox icon={<IoPeopleSharp style={{ fontSize: '14px' }} />} value={number_of_artists} title="Associated Artists" />
             
             <Tooltip 
               title="Send Message" 

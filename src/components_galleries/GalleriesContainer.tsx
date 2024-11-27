@@ -1,35 +1,43 @@
-import React, { memo, Suspense, lazy } from 'react';
+import React, { memo, Suspense, lazy , useEffect , useState} from 'react';
 import { Box, Grid, Container, IconButton, Typography, useTheme, CircularProgress } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useColorMode } from '../App';
 import '../Themes.css';
+import axios from 'axios';
 
 const Gallery = lazy(() => import('./gallery'));
 
-const galleryData = [
-  {
-    image_url: "https://images.unsplash.com/photo-1533158326339-7f3cf2404354?auto=format&w=800&q=75",
-    description: "A beautiful collection of contemporary art featuring works from emerging artists around the world. This gallery showcases diverse perspectives and innovative techniques in modern art.",
-    name: "Contemporary Collection",
-    num_paints: 45,
-    num_artists: 12
-  },
-  {
-    image_url: "https://images.unsplash.com/photo-1577720580479-7d839d829c73?auto=format&w=800&q=75",
-    description: "Classical masterpieces from the Renaissance period, showcasing the timeless beauty of traditional art techniques and storytelling through visual media.",
-    name: "Renaissance Gallery",
-    num_paints: 32,
-    num_artists: 8
-  },
-  {
-    image_url: "https://images.unsplash.com/photo-1574182245530-967d9b3831af?auto=format&w=800&q=75",
-    description: "Modern abstract expressions that challenge conventional art forms. This collection represents the cutting edge of contemporary artistic innovation.",
-    name: "Modern Abstract",
-    num_paints: 28,
-    num_artists: 15
-  }
-];
+// const galleryData = [
+//   {
+//     cover_image: "https://images.unsplash.com/photo-1533158326339-7f3cf2404354?auto=format&w=800&q=75",
+//     description: "A beautiful collection of contemporary art featuring works from emerging artists around the world. This gallery showcases diverse perspectives and innovative techniques in modern art.",
+//     gallery_name: "Contemporary Collection",
+//     number_of_paintings: 45,
+//     number_of_artists: 12 ,
+//     owner_id  : 1 , 
+//   },
+//   {
+//     cover_image: "https://images.unsplash.com/photo-1577720580479-7d839d829c73?auto=format&w=800&q=75",
+//     description: "Classical masterpieces from the Renaissance period, showcasing the timeless beauty of traditional art techniques and storytelling through visual media.",
+//     gallery_name: "Renaissance Gallery",
+//     number_of_paintings: 32,
+//     number_of_artists: 8 ,
+//     owner_id  : 1 
+//   },
+//   {
+//     cover_image: "https://images.unsplash.com/photo-1574182245530-967d9b3831af?auto=format&w=800&q=75",
+//     description: "Modern abstract expressions that challenge conventional art forms. This collection represents the cutting edge of contemporary artistic innovation.",
+//     gallery_name: "Modern Abstract",
+//     number_of_paintings: 28,
+//     number_of_artists: 15 ,
+//     owner_id  : 1 
+//   }
+// ];
+
+
+
+
 
 // Memoize the theme toggle button to prevent unnecessary re-renders
 const ThemeToggle = memo(({ mode, toggleColorMode }: { mode: string, toggleColorMode: () => void }) => (
@@ -74,6 +82,34 @@ const LoadingFallback = () => (
 const GalleriesContainer: React.FC = () => {
   const theme = useTheme();
   const { toggleColorMode, mode } = useColorMode();
+  const [loading , setLoading] = useState(false);
+  const [error , setError] = useState(false);
+  const [data , setData] = useState([]) ;
+
+
+  useEffect(() =>
+  {
+      const getData = async () =>
+      {
+          setLoading(true);
+          try
+          {
+              const response = await axios.get('http://127.0.0.1:8000/api/galleries/');
+              setData(response.data);
+          }
+          catch (error)
+          {
+              setError(true) ;
+          }
+          finally
+          {
+              setLoading(false);
+          }
+      }
+      getData();
+  } ,
+  [])
+
 
   return (
     <Box
@@ -132,7 +168,7 @@ const GalleriesContainer: React.FC = () => {
           justifyContent="center"
         >
           <Suspense fallback={<LoadingFallback />}>
-            {galleryData.map((gallery, index) => (
+            {data.map((gallery, index) => (
               <Grid 
                 item 
                 key={index}
