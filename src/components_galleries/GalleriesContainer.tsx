@@ -1,5 +1,5 @@
 import React, { memo, Suspense, lazy , useEffect , useState} from 'react';
-import { Box, Grid, Container, IconButton, Typography, useTheme, CircularProgress } from '@mui/material';
+import { Box, Grid, Container, IconButton, Typography, useTheme, CircularProgress , Pagination } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useColorMode } from '../App';
@@ -85,6 +85,15 @@ const GalleriesContainer: React.FC = () => {
   const [loading , setLoading] = useState(false);
   const [error , setError] = useState(false);
   const [data , setData] = useState([]) ;
+  const [currentData , setCurretData] = useState([]);
+  const itemsPerPage = 4 ; 
+  const placeholders = itemsPerPage - currentData.length;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+
+  const handlePageChange = (event , page: number) => {
+    setCurrentPage(page);
+  };
 
 
   useEffect(() =>
@@ -109,6 +118,16 @@ const GalleriesContainer: React.FC = () => {
       getData();
   } ,
   [])
+
+
+  useEffect(() => 
+  {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      setCurretData(data.slice(startIndex , endIndex)) ;
+  } 
+  , 
+  [currentPage , data])
 
 
   return (
@@ -168,7 +187,7 @@ const GalleriesContainer: React.FC = () => {
           justifyContent="center"
         >
           <Suspense fallback={<LoadingFallback />}>
-            {data.map((gallery, index) => (
+            {currentData.map((gallery, index) => (
               <Grid 
                 item 
                 key={index}
@@ -182,6 +201,15 @@ const GalleriesContainer: React.FC = () => {
           </Suspense>
         </Grid>
       </Container>
+      <Box display="flex" justifyContent="center" alignItems="center" mt={2}>
+          <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={handlePageChange}
+              variant="outlined"
+              color="primary"
+          />
+      </Box>
     </Box>
   );
 };
