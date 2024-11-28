@@ -5,6 +5,8 @@ import Footer from './footer/footer';
 import MyLottieAnimation1 from './animation/Animation1';
 import MyLottieAnimation2 from './animation/Animation2';
 import Features from './features/Features';
+import Bestpainters from './bestpainters/bestpainters';
+import Bestpaintings from './bestpaintings/bestpaintings';
 
 const LandingPage: React.FC = () => {
   const [showAnimation, setShowAnimation] = useState<boolean>(true);
@@ -28,7 +30,10 @@ const LandingPage: React.FC = () => {
             <DescriptionSection />
             <MyLottieAnimation2 />
           </div>
+          <Bestpainters />
+          <Bestpaintings/>
           <Features />
+          
           <Footer />
         </>
       )}

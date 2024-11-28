@@ -1,16 +1,11 @@
-/* Ensure no spacing is added by default */
 
-
-/* Header styles */
 .header {
-    position: relative; /* Ensure proper alignment in the layout */
+    position: relative; 
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: -50px;
-    padding : 0px 40px;
+    margin-top: -40px;
     background-color: #ffffff;
-    
 }
 
 /* Make the logo larger without affecting alignment */
@@ -22,45 +17,17 @@
 
 /* Divider line */
 .header-divider {
-    position: absolute; /* Position relative to the header */
-    
-    right: 15%; 
-    bottom: 15px; 
-    height: 2px; 
-    width: 1100px;
+    position: absolute; /* Position relative to the header */              /* Align it to the left side */
+    bottom: 10px;        /* Keep it just below the header */
+    height: 2px;          /* Set the divider's height */
+    width: 100%;          /* Make it span the full width of the header */
     background-color: #000000;
 }
 
-/* Buttons styling */
-.header-buttons {
-    display: flex;
-    gap: 10px;
-}
 
-/* Button styles */
-.button {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    border: none;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-    font-family: 'Pacifico', cursive;
-}
 
-/* Primary button style */
-.button-primary {
-    background-color: #000000;
-    color: rgb(255, 255, 255);
-}
 
-/* Secondary button style */
-.button-secondary {
-    background-color: #6C757D;
-    color: white;
-}
 
-/* Button hover effect */
-.button:hover {
-    opacity: 0.9;
-}
+
+
+
