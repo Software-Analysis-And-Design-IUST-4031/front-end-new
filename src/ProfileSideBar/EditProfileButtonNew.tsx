@@ -21,6 +21,8 @@ import {
   Avatar,
   styled,
   Slider,
+  FormControl,
+  InputLabel
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonIcon from '@mui/icons-material/Person';
@@ -161,6 +163,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     country: userData?.location?.split(', ')[1] || '',
     city: userData?.location?.split(', ')[0] || '',
     dateOfBirth: userData?.dateOfBirth || '',
+    isGallery: userData?.isGallery || localStorage.getItem('isGallery') || 'no'
   });
 
   // Art Preferences State
@@ -195,6 +198,13 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     setPersonalInfo(prev => ({
       ...prev,
       [field]: event.target.value
+    }));
+  };
+
+  const handleGalleryChange = (event: any) => {
+    setPersonalInfo(prev => ({
+      ...prev,
+      isGallery: event.target.value
     }));
   };
 
@@ -235,7 +245,6 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         setPhotoUrl(croppedImage);
         setShowCropDialog(false);
         
-        // Clean up the temporary blob URL
         URL.revokeObjectURL(tempPhotoUrl);
       }
     } catch (error) {
@@ -243,18 +252,18 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     }
   };
 
-  const handleSubmit = () => {
-    const updatedUserData = {
+  const handleSubmit = async () => {
+    const updatedData = {
       ...userData,
-      avatarUrl: photoUrl,
       fullName: `${personalInfo.firstName} ${personalInfo.lastName}`,
       username: `@${personalInfo.username}`,
       email: personalInfo.email,
       phoneNumber: personalInfo.phoneNumber,
       location: `${personalInfo.city}, ${personalInfo.country}`,
       dateOfBirth: personalInfo.dateOfBirth,
+      isGallery: personalInfo.isGallery,
+      avatarUrl: photoUrl,
       bio: artPreferences.biography,
-      description: artPreferences.biography,
       favoritePainter: artPreferences.favoritePainter,
       favoritePainting: artPreferences.favoritePainting,
       favoritePaintingStyle: artPreferences.favoritePaintingStyle,
@@ -262,7 +271,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
       favoritePaintingOwn: artPreferences.favoritePaintingOwn,
     };
 
-    onProfileUpdate(updatedUserData);
+    onProfileUpdate(updatedData);
     handleClose();
   };
 
@@ -561,6 +570,40 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                     variant="outlined"
                     sx={textFieldStyle}
                   />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Are you a Gallery?</InputLabel>
+                    <Select
+                      value={personalInfo.isGallery}
+                      onChange={handleGalleryChange}
+                      label="Are you a Gallery?"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      <MenuItem value="no">No</MenuItem>
+                      <MenuItem value="yes">Yes</MenuItem>
+                    </Select>
+                  </FormControl>
                 </Grid>
               </Grid>
             </TabPanel>

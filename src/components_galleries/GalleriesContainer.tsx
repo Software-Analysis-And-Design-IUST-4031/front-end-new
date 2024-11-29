@@ -39,6 +39,10 @@ const Gallery = lazy(() => import('./gallery'));
 
 
 
+import Galleries from './galleries';
+
+
+
 // Memoize the theme toggle button to prevent unnecessary re-renders
 const ThemeToggle = memo(({ mode, toggleColorMode }: { mode: string, toggleColorMode: () => void }) => (
   <IconButton

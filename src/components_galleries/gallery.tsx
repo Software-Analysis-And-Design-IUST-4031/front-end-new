@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { Card, CardMedia, Typography, Box, Tooltip, useTheme, IconButton, Zoom } from '@mui/material';
 import { IoImageSharp, IoPeopleSharp, IoChatbubbleEllipsesSharp } from "react-icons/io5";
 import { PiPaintBrushDuotone } from "react-icons/pi";
@@ -22,6 +22,11 @@ interface StatBoxProps {
 const Gallery: React.FC<GalleryProps> = memo(({ cover_image, description, gallery_name, number_of_paintings, number_of_artists, owner_id , index}) => {
   const theme = useTheme();
   const mode = theme.palette.mode;
+  const [imageError, setImageError] = useState(false);
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
 
   const StatBox: React.FC<StatBoxProps> = memo(({ icon, value, title }) => (
     <Tooltip title={title} placement="top" TransitionComponent={Zoom} arrow>
@@ -82,9 +87,10 @@ const Gallery: React.FC<GalleryProps> = memo(({ cover_image, description, galler
       <Box sx={{ position: 'relative', pt: '100%' }}>
         <CardMedia
           component="img"
-          image={cover_image}
+          image={imageError ? 'https://via.placeholder.com/800x600?text=Image+Not+Available' : cover_image}
           alt={gallery_name}
           loading="lazy"
+          onError={handleImageError}
           className="gallery-image"
           sx={{
             position: 'absolute',

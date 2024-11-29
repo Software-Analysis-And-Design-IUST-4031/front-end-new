@@ -1,21 +1,19 @@
 import React from 'react';
 import Button from './Button';
 import './Header.css';
-import { useNavigate } from 'react-router-dom'
 
 const Header: React.FC = () => {
-    const navigate = useNavigate();
     const handleSignUp = () => {
-        navigate("/signup");
+        console.log('Sign up clicked');
     };
 
     const handleSignIn = () => {
-        navigate("/login");
+        console.log('Sign in clicked');
     };
 
     return (
         <header className="header">
-            <h1 className="header-title">zaferouni</h1>
+            <h1 className="header-title">Art Shop</h1>
             <div className="header-buttons">
                 <Button label="Sign Up" onClick={handleSignUp} styleType="primary" />
                 <Button label="Sign In" onClick={handleSignIn} styleType="primary" />
