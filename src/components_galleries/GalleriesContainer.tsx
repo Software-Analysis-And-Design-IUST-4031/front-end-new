@@ -4,32 +4,9 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useColorMode } from '../App';
 import '../Themes.css';
+import Galleries from './galleries';
 
 const Gallery = lazy(() => import('./gallery'));
-
-const galleryData = [
-  {
-    image_url: "https://images.unsplash.com/photo-1533158326339-7f3cf2404354?auto=format&w=800&q=75",
-    description: "A beautiful collection of contemporary art featuring works from emerging artists around the world. This gallery showcases diverse perspectives and innovative techniques in modern art.",
-    name: "Contemporary Collection",
-    num_paints: 45,
-    num_artists: 12
-  },
-  {
-    image_url: "https://images.unsplash.com/photo-1577720580479-7d839d829c73?auto=format&w=800&q=75",
-    description: "Classical masterpieces from the Renaissance period, showcasing the timeless beauty of traditional art techniques and storytelling through visual media.",
-    name: "Renaissance Gallery",
-    num_paints: 32,
-    num_artists: 8
-  },
-  {
-    image_url: "https://images.unsplash.com/photo-1574182245530-967d9b3831af?auto=format&w=800&q=75",
-    description: "Modern abstract expressions that challenge conventional art forms. This collection represents the cutting edge of contemporary artistic innovation.",
-    name: "Modern Abstract",
-    num_paints: 28,
-    num_artists: 15
-  }
-];
 
 // Memoize the theme toggle button to prevent unnecessary re-renders
 const ThemeToggle = memo(({ mode, toggleColorMode }: { mode: string, toggleColorMode: () => void }) => (
@@ -132,17 +109,7 @@ const GalleriesContainer: React.FC = () => {
           justifyContent="center"
         >
           <Suspense fallback={<LoadingFallback />}>
-            {galleryData.map((gallery, index) => (
-              <Grid 
-                item 
-                key={index}
-              >
-                <Gallery
-                  {...gallery}
-                  index={index}
-                />
-              </Grid>
-            ))}
+            <Galleries />
           </Suspense>
         </Grid>
       </Container>

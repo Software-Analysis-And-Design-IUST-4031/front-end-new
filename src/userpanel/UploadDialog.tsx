@@ -14,27 +14,49 @@ import {
   Fade,
   LinearProgress,
   InputAdornment,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CloseIcon from '@mui/icons-material/Close';
-import ImageIcon from '@mui/icons-material/Image';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 interface UploadDialogProps {
   open: boolean;
   onClose: () => void;
-  onUpload: (imageUrl: string, caption: string, metadata: { title: string; price: string; createdAt: string }) => void;
+  onUpload: (
+    imageUrl: string, 
+    caption: string, 
+    metadata: { 
+      title: string; 
+      price: string; 
+      createdAt: string;
+      width: string;
+      height: string;
+      style: string;
+      material: string;
+      yearCompleted: string;
+    }
+  ) => void;
 }
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
     borderRadius: theme.shape.borderRadius * 2,
     padding: theme.spacing(2),
-    background: theme.palette.mode === 'dark' 
-      ? 'linear-gradient(to bottom right, #1a1a1a, #2d2d2d)'
-      : 'linear-gradient(to bottom right, #ffffff, #f8f9fa)',
-    color: 'inherit'
+    backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#ffffff',
   },
+  '& .MuiDialogContent-root': {
+    borderRadius: theme.shape.borderRadius * 1.5,
+    padding: theme.spacing(2),
+  },
+  '& .MuiDialogActions-root': {
+    borderBottomLeftRadius: theme.shape.borderRadius * 1.5,
+    borderBottomRightRadius: theme.shape.borderRadius * 1.5,
+    padding: theme.spacing(2),
+  }
 }));
 
 const DialogHeader = styled(Box)(({ theme }) => ({
@@ -55,6 +77,7 @@ const DropZone = styled('div')(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' 
     ? 'rgba(255, 255, 255, 0.05)'
     : 'rgba(0, 0, 0, 0.02)',
+  color: theme.palette.mode === 'dark' ? '#fff' : 'inherit',
   position: 'relative',
   minHeight: '250px',
   display: 'flex',
@@ -129,12 +152,69 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
         : 'rgba(0, 0, 0, 0.05)',
     },
   },
+  '& input[type=number]': {
+    '-moz-appearance': 'textfield',
+    '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button': {
+      '-webkit-appearance': 'none',
+      margin: 0,
+    },
+  },
 }));
+
+const StyledSelect = styled(Select)(({ theme }) => ({
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderRadius: theme.shape.borderRadius * 1.5,
+  },
+  '& .MuiSelect-select': {
+    backgroundColor: theme.palette.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.05)'
+      : 'rgba(0, 0, 0, 0.02)',
+  },
+  '&:hover .MuiOutlinedInput-notchedOutline': {
+    backgroundColor: theme.palette.mode === 'dark'
+      ? 'rgba(255, 255, 255, 0.08)'
+      : 'rgba(0, 0, 0, 0.04)',
+  },
+  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    backgroundColor: theme.palette.mode === 'dark'
+      ? 'rgba(255, 255, 255, 0.1)'
+      : 'rgba(0, 0, 0, 0.05)',
+  },
+}));
+
+const paintingStyles = [
+  'Impressionism',
+  'Realism',
+  'Hyperrealism',
+  'Abstract',
+  'Surrealism',
+  'Pop Art',
+  'Contemporary',
+  'Minimalism',
+  'Expressionism',
+  'Other'
+];
+
+const paintingMaterials = [
+  'Oil Paint',
+  'Acrylic',
+  'Watercolor',
+  'Gouache',
+  'Mixed Media',
+  'Pastel',
+  'Digital',
+  'Other'
+];
 
 const UploadDialog: React.FC<UploadDialogProps> = ({ open, onClose, onUpload }) => {
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [caption, setCaption] = useState('');
+  const [width, setWidth] = useState('');
+  const [height, setHeight] = useState('');
+  const [style, setStyle] = useState('');
+  const [material, setMaterial] = useState('');
+  const [yearCompleted, setYearCompleted] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -177,7 +257,7 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ open, onClose, onUpload }) 
 
       reader.onloadend = () => {
         const base64String = reader.result as string;
-        // Ensure we have a valid base64 image string
+
         if (base64String && base64String.startsWith('data:image/')) {
           setPreviewUrl(base64String);
           setIsLoading(false);
@@ -208,10 +288,25 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ open, onClose, onUpload }) 
   };
 
   const handleUploadClick = () => {
-    if (previewUrl && caption && title && price) {
+    // Check for negative values
+    if (Number(price) < 0 || Number(width) < 0 || Number(height) < 0) {
+      setError('Price, width, and height must be positive numbers.');
+      return;
+    }
+
+    // Check if year is a valid integer
+    const yearNum = Number(yearCompleted);
+    if (!Number.isInteger(yearNum) || yearNum < 1800 || yearNum > new Date().getFullYear()) {
+      setError(`Year must be a whole number between 1800 and ${new Date().getFullYear()}.`);
+      return;
+    }
+
+    if (previewUrl && title && price && width && height && style && material && yearCompleted) {
       const createdAt = new Date().toISOString();
-      onUpload(previewUrl, caption, { title, price, createdAt });
+      onUpload(previewUrl, caption, { title, price, createdAt, width, height, style, material, yearCompleted });
       handleReset();
+    } else {
+      setError('Please fill in all required fields before uploading.');
     }
   };
 
@@ -222,6 +317,11 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ open, onClose, onUpload }) 
     setCaption('');
     setError('');
     setUploadProgress(0);
+    setWidth('');
+    setHeight('');
+    setStyle('');
+    setMaterial('');
+    setYearCompleted('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -276,7 +376,6 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ open, onClose, onUpload }) 
                     height: '100%',
                     width: '100%'
                   }}>
-                    <ImageIcon sx={{ fontSize: 64, color: 'inherit', opacity: 0.7, mb: 2 }} />
                     <Typography variant="h6" sx={{ color: 'inherit', opacity: 0.8 }} gutterBottom>
                       Drop your image here
                     </Typography>
@@ -348,14 +447,14 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ open, onClose, onUpload }) 
               )}
             </PreviewContainer>
 
-            <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ mt: 3, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
               <StyledTextField
                 fullWidth
                 label="Title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 variant="outlined"
-                placeholder="Enter a title for your post"
+                placeholder="Enter title..."
                 required
               />
               <StyledTextField
@@ -364,25 +463,118 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ open, onClose, onUpload }) 
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 variant="outlined"
-                placeholder="Enter the price"
+                placeholder="Enter price..."
                 type="number"
                 InputProps={{
                   startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  inputProps: { 
+                    step: "any",
+                    min: "0"
+                  }
                 }}
                 required
               />
               <StyledTextField
                 fullWidth
-                label="Caption"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
+                label="Width (cm)"
+                value={width}
+                onChange={(e) => setWidth(e.target.value)}
                 variant="outlined"
-                placeholder="Write a caption..."
-                multiline
-                rows={3}
+                placeholder="Enter width"
+                type="number"
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">cm</InputAdornment>,
+                  inputProps: { 
+                    step: "any",
+                    min: "0"
+                  }
+                }}
                 required
               />
+              <StyledTextField
+                fullWidth
+                label="Height (cm)"
+                value={height}
+                onChange={(e) => setHeight(e.target.value)}
+                variant="outlined"
+                placeholder="Enter height"
+                type="number"
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">cm</InputAdornment>,
+                  inputProps: { 
+                    step: "any",
+                    min: "0"
+                  }
+                }}
+                required
+              />
+              <FormControl fullWidth required>
+                <InputLabel id="style-label">Style</InputLabel>
+                <StyledSelect
+                  labelId="style-label"
+                  label="Style"
+                  value={style}
+                  onChange={(e) => setStyle(e.target.value as string)}
+                >
+                  {paintingStyles.map((style) => (
+                    <MenuItem key={style} value={style}>
+                      {style}
+                    </MenuItem>
+                  ))}
+                </StyledSelect>
+              </FormControl>
+              <FormControl fullWidth required>
+                <InputLabel id="material-label">Material</InputLabel>
+                <StyledSelect
+                  labelId="material-label"
+                  label="Material"
+                  value={material}
+                  onChange={(e) => setMaterial(e.target.value as string)}
+                >
+                  {paintingMaterials.map((material) => (
+                    <MenuItem key={material} value={material}>
+                      {material}
+                    </MenuItem>
+                  ))}
+                </StyledSelect>
+              </FormControl>
             </Box>
+            <StyledTextField
+              fullWidth
+              label="Year Completed"
+              value={yearCompleted}
+              onChange={(e) => setYearCompleted(e.target.value)}
+              variant="outlined"
+              placeholder="Enter the year completed"
+              type="number"
+              sx={{ mb: 2 }}
+              InputProps={{
+                inputProps: { 
+                  min: 1800,
+                  max: new Date().getFullYear(),
+                  step: 1,
+                  onKeyDown: (e) => {
+                    // Prevent decimal point
+                    if (e.key === '.') {
+                      e.preventDefault();
+                    }
+                  }
+                }
+              }}
+              required
+              helperText={`Must be less than or equal to ${new Date().getFullYear()}`}
+            />
+            <StyledTextField
+              fullWidth
+              label="Caption"
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              variant="outlined"
+              placeholder="Write a caption... (optional)"
+              multiline
+              rows={4}
+              sx={{ mb: 2 }}
+            />
 
             {error && (
               <Typography color="error" variant="body2" sx={{ mt: 2 }}>

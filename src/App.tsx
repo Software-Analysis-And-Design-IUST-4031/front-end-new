@@ -1,18 +1,16 @@
-import React, { useState, useMemo, createContext, useContext } from 'react';
+import React, { useState, useMemo, createContext, useContext, useEffect } from 'react';
 import { createTheme, ThemeProvider, CssBaseline, PaletteMode } from '@mui/material';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { NextUIProvider } from "@nextui-org/react";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import UserpanelApp from './UserpanelApp';
 import AppNavbar from './Navbar/Navbar';
 import GalleriesContainer from './components_galleries/GalleriesContainer';
-//import SignUp from './SignUp'
-//import Login from './Login'
-//import Galleries from './components__galleries/galleries';
-//import SideBar from './SideBar';
-//import ProfileEditor from './ProfileEditor';
-//import LandingPage from './landingpage/landingpage';
-//import MainPage from './mainpage/mainpage';
-
-// import GeminiChat from './components/GeminiChat';
+import Login from './LoginSignup/Login';
+import SignUp from './LoginSignup/SignUp';
+import LandingPage from './landingpage/landingpage';
+import EmptyPage from './pages/EmptyPage';
+import BlogPage from './Blog/BlogPage';
+import BlogEditor from './Blog/BlogEditor';
 
 export const ColorModeContext = createContext({ 
   toggleColorMode: () => {},
@@ -21,7 +19,40 @@ export const ColorModeContext = createContext({
 
 export const useColorMode = () => useContext(ColorModeContext);
 
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Layout component to handle navbar visibility
+const Layout = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+  const isPublicPage = ['/', '/login', '/signup'].includes(location.pathname);
+  const isLandingPage = location.pathname === '/';
+
+  return (
+    <div className="min-h-screen bg-[#FAFBFC] relative w-full">
+      {!isPublicPage && <AppNavbar />}
+      <main className={`w-full ${!isPublicPage ? 'pt-8' : ''}`}>
+        {children}
+      </main>
+    </div>
+  );
+};
+
 const App: React.FC = () => {
+  // Remove the authentication clearing
+  // useEffect(() => {
+  //   localStorage.removeItem('isAuthenticated');
+  //   localStorage.removeItem('access_token');
+  // }, []);
+
   const [mode, setMode] = useState<PaletteMode>(() => {
     const savedMode = localStorage.getItem('themeMode');
     return (savedMode as PaletteMode) || 'light';
@@ -77,25 +108,55 @@ const App: React.FC = () => {
   );
 
   return (
+    <NextUIProvider>
       <ColorModeContext.Provider value={colorMode}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <Router>
-            <div className="min-h-screen bg-[#FAFBFC] relative">
-              <AppNavbar />
-              <main className="container mx-auto px-4 pt-8">
-                <Routes>
-                  <Route path="/profile" element={<UserpanelApp />} />
-                  <Route path="/" element={<UserpanelApp />} />
-                  <Route path="/home" element={<div>Home Page</div>} />
-                  <Route path="/blog" element={<div>Blog Page</div>} />
-                  <Route path="/galleries" element={<GalleriesContainer />} />
-                </Routes>
-              </main>
-            </div>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/LandingPage" element={<Navigate to="/" replace />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/Login" element={<Navigate to="/login" replace />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/SignUp" element={<Navigate to="/signup" replace />} />
+                <Route path="/home" element={
+                  <ProtectedRoute>
+                    <EmptyPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/Home" element={<Navigate to="/home" replace />} />
+                <Route path="/galleries" element={
+                  <ProtectedRoute>
+                    <GalleriesContainer />
+                  </ProtectedRoute>
+                } />
+                <Route path="/Galleries" element={<Navigate to="/galleries" replace />} />
+                <Route path="/blog" element={
+                  <ProtectedRoute>
+                    <BlogPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/Blog" element={<Navigate to="/blog" replace />} />
+                <Route path="/blog/new" element={
+                  <ProtectedRoute>
+                    <BlogEditor />
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <UserpanelApp />
+                  </ProtectedRoute>
+                } />
+                <Route path="/Profile" element={<Navigate to="/profile" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Layout>
           </Router>
         </ThemeProvider>
       </ColorModeContext.Provider>
+    </NextUIProvider>
   );
 };
 
