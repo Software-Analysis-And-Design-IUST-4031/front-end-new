@@ -86,7 +86,7 @@ const GalleriesContainer: React.FC = () => {
   const [error , setError] = useState(false);
   const [data , setData] = useState([]) ;
   const [currentData , setCurretData] = useState([]);
-  const itemsPerPage = 4 ; 
+  const itemsPerPage = 3 ; 
   const placeholders = itemsPerPage - currentData.length;
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(data.length / itemsPerPage);
@@ -180,36 +180,57 @@ const GalleriesContainer: React.FC = () => {
             Explore our curated collection of exceptional artworks from talented artists around the world
           </Typography>
         </Box>
+        
+        {error ?  (
+          <Grid 
+            container  
+            justifyContent="center"
+          >
+            <Typography
+              variant = 'h4' 
+            
+            >
+              can not display galleries
+            </Typography>
 
-        <Grid 
-          container 
-          spacing={4} 
-          justifyContent="center"
-        >
-          <Suspense fallback={<LoadingFallback />}>
-            {currentData.map((gallery, index) => (
-              <Grid 
-                item 
-                key={index}
-              >
-                <Gallery
-                  {...gallery}
-                  index={index}
-                />
-              </Grid>
-            ))}
-          </Suspense>
-        </Grid>
+          </Grid>
+
+
+
+        ) : (
+          <>
+            <Grid 
+              container 
+              spacing={4} 
+              justifyContent="center"
+            >
+              
+              <Suspense fallback={<LoadingFallback />}>
+                {currentData.map((gallery, index) => (
+                  <Grid 
+                    item 
+                    key={index}
+                  >
+                    <Gallery
+                      {...gallery}
+                      index={index}
+                    />
+                  </Grid>
+                ))}
+              </Suspense>
+            </Grid>
+            <Box display="flex" justifyContent="center" alignItems="center" mt={4}>
+              <Pagination
+                  count={totalPages}
+                  page={currentPage}
+                  onChange={handlePageChange}
+                  variant="outlined"
+                  color="primary"
+              />
+            </Box>
+          </>
+        )}
       </Container>
-      <Box display="flex" justifyContent="center" alignItems="center" mt={2}>
-          <Pagination
-              count={totalPages}
-              page={currentPage}
-              onChange={handlePageChange}
-              variant="outlined"
-              color="primary"
-          />
-      </Box>
     </Box>
   );
 };

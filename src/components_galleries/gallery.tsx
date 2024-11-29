@@ -50,7 +50,7 @@ const Gallery: React.FC<GalleryProps> = memo(({ cover_image, description, galler
   return (
     <Card
       sx={{
-        width: 345,
+        width: 245,
         position: 'relative',
         borderRadius: '24px',
         background: 'transparent',
@@ -162,7 +162,7 @@ const Gallery: React.FC<GalleryProps> = memo(({ cover_image, description, galler
             mt: 2 
           }}>
             <StatBox icon={<PiPaintBrushDuotone style={{ fontSize: '14px' }} />} value={number_of_paintings} title="Associated Paintings" />
-            <StatBox icon={<IoPeopleSharp style={{ fontSize: '14px' }} />} value={number_of_artists} title="Associated Artists" />
+            {/* <StatBox icon={<IoPeopleSharp style={{ fontSize: '14px' }} />} value={number_of_artists} title="Associated Artists" /> */}
             
             <Tooltip 
               title="Send Message" 
