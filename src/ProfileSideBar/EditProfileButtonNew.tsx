@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   IconButton,
   Tooltip,
@@ -21,6 +21,8 @@ import {
   Avatar,
   styled,
   Slider,
+  FormControl,
+  InputLabel
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonIcon from '@mui/icons-material/Person';
@@ -29,7 +31,6 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useColorMode } from '../App';
 import Cropper from 'react-easy-crop';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
-import axios from 'axios'
 
 interface EditProfileButtonProps {
   userData: any;
@@ -153,25 +154,25 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
 
   // Personal Info State
   const [personalInfo, setPersonalInfo] = useState({
-    firstname: userData?.fullName?.split(' ')[0] || '',
-    lastname: userData?.fullName?.split(' ')[1] || '',
-    nickname: userData?.username?.replace('@', '') || '',
+    firstName: userData?.fullName?.split(' ')[0] || '',
+    lastName: userData?.fullName?.split(' ')[1] || '',
+    username: userData?.username?.replace('@', '') || '',
     password: '',
     email: userData?.email || '',
-    phone_number: userData?.phoneNumber || '',
+    phoneNumber: userData?.phoneNumber || '',
     country: userData?.location?.split(', ')[1] || '',
     city: userData?.location?.split(', ')[0] || '',
-    date_of_birth: userData?.dateOfBirth || '',
-    is_gallery: 'no'
+    dateOfBirth: userData?.dateOfBirth || '',
+    isGallery: userData?.isGallery || localStorage.getItem('isGallery') || 'no'
   });
 
   // Art Preferences State
   const [artPreferences, setArtPreferences] = useState({
-    favorite_painter: userData?.favoritePainter || '',
-    favorite_painting: userData?.favoritePainting || '',
-    favorite_painting_style: userData?.favoritePaintingStyle || '',
-    favorite_painting_technique: userData?.favoritePaintingTech || '',
-    favorite_painting_to_own: userData?.favoritePaintingOwn || '',
+    favoritePainter: userData?.favoritePainter || '',
+    favoritePainting: userData?.favoritePainting || '',
+    favoritePaintingStyle: userData?.favoritePaintingStyle || '',
+    favoritePaintingTech: userData?.favoritePaintingTech || '',
+    favoritePaintingOwn: userData?.favoritePaintingOwn || '',
     biography: userData?.bio || ''
   });
 
@@ -182,58 +183,6 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [tempPhotoUrl, setTempPhotoUrl] = useState<string>('');
-  const [isProfileSubmiting, setIsProfileSubmiting] = useState(false);
-  const [isPreferencesfileSubmiting, setIsPreferencesSubmiting] = useState(false);
-
-  useEffect(() => {
-    if (tabValue === 0) {
-      const fetchProfileData = async () => {
-        const token = localStorage.getItem('access_token');
-  
-        try {
-          const response = await axios.get('http://127.0.0.1:8000/api/user/<int:user_id>/detailEditProfile/', {
-            headers : {
-              'Authorization': `Bear ${token}`
-            }
-          });
-  
-          setPersonalInfo(response.data);
-          alert("successful submition!")
-        } catch(error) {
-          if (axios.isAxiosError(error)) {
-            const errorMessage = error.response?.data || 'something went wrong during submition!';
-            console.error(errorMessage);
-          }
-        }
-      };
-      fetchProfileData();
-    }
-  }, [tabValue]);
-
-  useEffect(() => {
-    if (tabValue === 1) {
-      const fetchPreferencesData = async () => {
-        const token = localStorage.getItem('access_token');
-  
-        try {
-          const response = await axios.get('http://127.0.0.1:8000/api/user/<int:user_id>/detailFavorites/', {
-            headers : {
-              'Authorization': `Bear ${token}`
-            }
-          });
-  
-          setPersonalInfo(response.data);
-          alert("successful submition!")
-        } catch(error) {
-          if (axios.isAxiosError(error)) {
-            const errorMessage = error.response?.data || 'something went wrong during submition!';
-            console.error(errorMessage);
-          }
-        }
-      };
-      fetchPreferencesData();
-    }
-  }, [tabValue]);
 
   const handleEditClick = () => {
     setIsEditorOpen(true);
@@ -249,6 +198,13 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     setPersonalInfo(prev => ({
       ...prev,
       [field]: event.target.value
+    }));
+  };
+
+  const handleGalleryChange = (event: any) => {
+    setPersonalInfo(prev => ({
+      ...prev,
+      isGallery: event.target.value
     }));
   };
 
@@ -289,7 +245,6 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         setPhotoUrl(croppedImage);
         setShowCropDialog(false);
         
-        // Clean up the temporary blob URL
         URL.revokeObjectURL(tempPhotoUrl);
       }
     } catch (error) {
@@ -298,76 +253,25 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   };
 
   const handleSubmit = async () => {
-    const updatedUserData = {
+    const updatedData = {
       ...userData,
-      avatarUrl: photoUrl,
-      fullName: `${personalInfo.firstname} ${personalInfo.lastname}`,
-      username: `@${personalInfo.nickname}`,
+      fullName: `${personalInfo.firstName} ${personalInfo.lastName}`,
+      username: `@${personalInfo.username}`,
       email: personalInfo.email,
-      phoneNumber: personalInfo.phone_number,
+      phoneNumber: personalInfo.phoneNumber,
       location: `${personalInfo.city}, ${personalInfo.country}`,
-      dateOfBirth: personalInfo.date_of_birth,
+      dateOfBirth: personalInfo.dateOfBirth,
+      isGallery: personalInfo.isGallery,
+      avatarUrl: photoUrl,
       bio: artPreferences.biography,
-      description: artPreferences.biography,
-      favoritePainter: artPreferences.favorite_painter,
-      favoritePainting: artPreferences.favorite_painting,
-      favoritePaintingStyle: artPreferences.favorite_painting_style,
-      favoritePaintingTech: artPreferences.favorite_painting_technique,
-      favoritePaintingOwn: artPreferences.favorite_painting_to_own,
+      favoritePainter: artPreferences.favoritePainter,
+      favoritePainting: artPreferences.favoritePainting,
+      favoritePaintingStyle: artPreferences.favoritePaintingStyle,
+      favoritePaintingTech: artPreferences.favoritePaintingTech,
+      favoritePaintingOwn: artPreferences.favoritePaintingOwn,
     };
 
-    onProfileUpdate(updatedUserData);
-
-    const token = localStorage.getItem('access_token');
-    if (tabValue === 0) {
-      const persoInfo = {
-        firstname: personalInfo.firstname,
-        lastname: personalInfo.lastname,
-        nickname: personalInfo.nickname,
-        password: personalInfo.password,
-        email: personalInfo.email,
-        phone_number: personalInfo.phone_number,
-        country: personalInfo.country,
-        city: personalInfo.city,
-        date_of_birth: personalInfo.date_of_birth,
-        is_gallery: personalInfo.is_gallery,
-        profile_pciture: photoUrl,
-      }
-      try {
-        const response = await axios.put('http://127.0.0.1:8000/api/user/<int:user_id>/updateProfile/', {
-          body: persoInfo,
-          headers : {
-            'Authorization': `Bear ${token}`
-          }
-        });
-
-        setPersonalInfo(response.data);
-        alert("successful submition!")
-      } catch(error) {
-        if (axios.isAxiosError(error)) {
-          const errorMessage = error.response?.data || 'something went wrong during submition!';
-          alert(errorMessage);
-        }
-      }
-    } else if (tabValue === 1) {
-      try {
-        const response = await axios.put('http://127.0.0.1:8000/api/user/<int:user_id>/updateFavorites/', {
-          body: artPreferences,
-          headers : {
-            'Authorization': `Bear ${token}`
-          }
-        });
-
-        setPersonalInfo(response.data);
-        alert("successful submition!")
-      } catch(error) {
-        if (axios.isAxiosError(error)) {
-          const errorMessage = error.response?.data || 'something went wrong during submition!';
-          alert(errorMessage);
-        }
-      }
-    }
-
+    onProfileUpdate(updatedData);
     handleClose();
   };
 
@@ -557,8 +461,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="First Name"
-                    value={personalInfo.firstname}
-                    onChange={handlePersonalInfoChange('firstname')}
+                    value={personalInfo.firstName}
+                    onChange={handlePersonalInfoChange('firstName')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
@@ -567,8 +471,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Last Name"
-                    value={personalInfo.lastname}
-                    onChange={handlePersonalInfoChange('lastname')}
+                    value={personalInfo.lastName}
+                    onChange={handlePersonalInfoChange('lastName')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
@@ -577,8 +481,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Username"
-                    value={personalInfo.nickname}
-                    onChange={handlePersonalInfoChange('nickname')}
+                    value={personalInfo.username}
+                    onChange={handlePersonalInfoChange('username')}
                     InputProps={{
                       startAdornment: <InputAdornment position="start">@</InputAdornment>,
                     }}
@@ -629,8 +533,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Phone Number"
-                    value={personalInfo.phone_number}
-                    onChange={handlePersonalInfoChange('phone_number')}
+                    value={personalInfo.phoneNumber}
+                    onChange={handlePersonalInfoChange('phoneNumber')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
@@ -640,8 +544,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                     fullWidth
                     label="Date of Birth"
                     type="date"
-                    value={personalInfo.date_of_birth}
-                    onChange={handlePersonalInfoChange('date_of_birth')}
+                    value={personalInfo.dateOfBirth}
+                    onChange={handlePersonalInfoChange('dateOfBirth')}
                     InputLabelProps={{ shrink: true }}
                     variant="outlined"
                     sx={textFieldStyle}
@@ -667,6 +571,40 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                     sx={textFieldStyle}
                   />
                 </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Are you a Gallery?</InputLabel>
+                    <Select
+                      value={personalInfo.isGallery}
+                      onChange={handleGalleryChange}
+                      label="Are you a Gallery?"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      <MenuItem value="no">No</MenuItem>
+                      <MenuItem value="yes">Yes</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
               </Grid>
             </TabPanel>
 
@@ -688,8 +626,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Favorite Painter"
-                    value={artPreferences.favorite_painter}
-                    onChange={handleArtPreferencesChange('favorite_painter')}
+                    value={artPreferences.favoritePainter}
+                    onChange={handleArtPreferencesChange('favoritePainter')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
@@ -698,8 +636,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Favorite Painting"
-                    value={artPreferences.favorite_painting}
-                    onChange={handleArtPreferencesChange('favorite_painting')}
+                    value={artPreferences.favoritePainting}
+                    onChange={handleArtPreferencesChange('favoritePainting')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
@@ -708,8 +646,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Favorite Painting Style"
-                    value={artPreferences.favorite_painting_style}
-                    onChange={handleArtPreferencesChange('favorite_painting_style')}
+                    value={artPreferences.favoritePaintingStyle}
+                    onChange={handleArtPreferencesChange('favoritePaintingStyle')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
@@ -718,8 +656,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Favorite Painting Technique"
-                    value={artPreferences.favorite_painting_technique}
-                    onChange={handleArtPreferencesChange('favorite_painting_technique')}
+                    value={artPreferences.favoritePaintingTech}
+                    onChange={handleArtPreferencesChange('favoritePaintingTech')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
@@ -728,8 +666,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Your Favorite Own Painting"
-                    value={artPreferences.favorite_painting_to_own}
-                    onChange={handleArtPreferencesChange('favorite_painting_to_own')}
+                    value={artPreferences.favoritePaintingOwn}
+                    onChange={handleArtPreferencesChange('favoritePaintingOwn')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
