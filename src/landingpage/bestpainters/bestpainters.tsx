@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
+import { Box, Typography, Pagination } from '@mui/material';
 import './bestpainters.css';
 import pic from './download.jpg';
-import Button from './button'; 
 
 interface Painter {
   name: string;
@@ -23,12 +23,8 @@ const Bestpainters: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(bestPainters.length / itemsPerPage);
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+    setCurrentPage(page);
   };
 
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -36,31 +32,27 @@ const Bestpainters: React.FC = () => {
 
   return (
     <section className="description-section">
-      <h2>List of the Best Painters of the Month</h2>
-      <div className="painters-list">
+      <Typography variant="h4" align="center" gutterBottom>
+        List of the Best Painters of the Month
+      </Typography>
+      <Box className="painters-list">
         {currentPainters.map((painter, index) => (
-          <div key={index} className="painter">
+          <Box key={index} className="painter">
             <img src={painter.photo} alt={painter.name} className="painter-photo" />
-            <h3>{painter.name}</h3>
-            <p>{painter.description}</p>
-          </div>
+            <Typography variant="h6">{painter.name}</Typography>
+            <Typography>{painter.description}</Typography>
+          </Box>
         ))}
-      </div>
-      <div className="pagination-controls">
-        <Button 
-          label="Previous" 
-          onClick={handlePrevPage} 
-          styleType="primary" 
-          disabled={currentPage === 1}
+      </Box>
+      <Box display="flex" justifyContent="center" alignItems="center" mt={4}>
+        <Pagination
+          count={totalPages}
+          page={currentPage}
+          onChange={handlePageChange}
+          variant="outlined"
+          color="primary"
         />
-        <span>Page {currentPage} of {totalPages}</span>
-        <Button 
-          label="Next" 
-          onClick={handleNextPage} 
-          styleType="primary" 
-          disabled={currentPage === totalPages}
-        />
-      </div>
+      </Box>
     </section>
   );
 };

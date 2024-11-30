@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './bestpaintings.css';
-import pic from './download.jpg';
-import Button from './button'; 
+import pic from './d22.jpg';
+import { Pagination, Box } from '@mui/material';
 
 interface Painting {
   name: string;
@@ -23,12 +23,8 @@ const BestPaintings: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(bestPaintings.length / itemsPerPage);
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+    setCurrentPage(page);
   };
 
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -46,21 +42,15 @@ const BestPaintings: React.FC = () => {
           </div>
         ))}
       </div>
-      <div className="pagination-controls">
-        <Button 
-          label="Previous" 
-          onClick={handlePrevPage} 
-          styleType="primary" 
-          disabled={currentPage === 1}
+      <Box mt={3} display="flex" justifyContent="center">
+        <Pagination 
+          count={totalPages} 
+          page={currentPage} 
+          onChange={handlePageChange} 
+          variant="outlined" 
+          color="primary" 
         />
-        <span>Page {currentPage} of {totalPages}</span>
-        <Button 
-          label="Next" 
-          onClick={handleNextPage} 
-          styleType="primary" 
-          disabled={currentPage === totalPages}
-        />
-      </div>
+      </Box>
     </section>
   );
 };

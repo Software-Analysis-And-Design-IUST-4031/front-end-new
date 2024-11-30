@@ -1,33 +1,52 @@
-
 .header {
-    position: relative; 
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-top: -40px;
-    background-color: #ffffff;
+    background: linear-gradient(135deg, #f0f0f0, #ffffff);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2px 40px;
+    width: 100.7%; /* Ensure full width */
+    box-sizing: border-box; /* Avoid padding affecting width */
+    margin-left: -3px;
 }
 
-/* Make the logo larger without affecting alignment */
 .header-logo {
-    width: 200px; 
-    height: 200px; 
-    object-fit: contain; 
-}
-
-/* Divider line */
-.header-divider {
-    position: absolute; /* Position relative to the header */              /* Align it to the left side */
-    bottom: 10px;        /* Keep it just below the header */
-    height: 2px;          /* Set the divider's height */
-    width: 100%;          /* Make it span the full width of the header */
-    background-color: #000000;
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 
+.header-buttons {
+    display: flex;
+    gap: 20px;
+}
 
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 5px;
+    border: none;
+    background-color: #0057b7;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
 
+button:hover {
+    background-color: #003c8f; /* Darker blue on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+}
 
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 87, 183, 0.4);
+}
 
-
-
+button:active {
+    transform: translateY(0); /* Remove lift effect when clicked */
+}

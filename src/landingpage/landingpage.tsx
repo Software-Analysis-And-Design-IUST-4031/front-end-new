@@ -31,9 +31,8 @@ const LandingPage: React.FC = () => {
             <MyLottieAnimation2 />
           </div>
           <Bestpainters />
-          <Bestpaintings/>
           <Features />
-          
+          <Bestpaintings/>
           <Footer />
         </>
       )}
