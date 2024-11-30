@@ -13,7 +13,8 @@ import { Snackbar, Alert } from "@mui/material"
 const Login = () => {
 const navigate = useNavigate();
 const [open, setOpen] = useState(false);
-const [severity, setSeverity] = useState<"success" | "error" | "warning" | "info ">("success");
+const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
+const [message, setMessage] = useState('');
 const [userName, setUserName] = useState('');
 const [password, setPassword] = useState('');
 const [errors, setErrors] = useState({ userName: '', password: '' }); 
@@ -67,13 +68,17 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     //localStorage.setItem('access_token', access_token);
     //alert("hellow");
 
-    const message = JSON.stringify(response.data) || 'login successful!';
-    alert(message);
+    const login_message = JSON.stringify(response.data.message) || 'login successful!';
+    setSeverity('success');
+    setMessage(login_message);
+    setOpen(true);
     setTimeout(() => {navigate("/home")}, 3000);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const errorMessage = error.response?.data || 'Error occured during login!';
-      alert(errorMessage);
+      setSeverity('error');
+      setMessage(errorMessage);
+      setOpen(true);
       setTimeout(() => {setIsSubmiting(false)}, 3000);
     } 
   }
@@ -201,12 +206,12 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
               </Link>
           </Grid>
         </form>
-        <Snackbar open={open} autoHideDuration={5000} onClose={handleAlertClose} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
-          <Alert onClose={handleAlertClose} severity="success" sx={{width: '235px', height: '90px', textAlign: 'center'}}>
-            {"login successfully!"}
+      </Box>
+      <Snackbar open={open} autoHideDuration={5000} onClose={handleAlertClose} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
+          <Alert onClose={handleAlertClose} severity={severity} sx={{width: '235px', height: '90px', textAlign: 'center'}}>
+            {message}
           </Alert>
         </Snackbar>
-      </Box>
     </MantineProvider>
   );
 }

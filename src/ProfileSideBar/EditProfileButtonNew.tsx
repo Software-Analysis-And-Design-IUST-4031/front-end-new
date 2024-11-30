@@ -21,6 +21,7 @@ import {
   Avatar,
   styled,
   Slider,
+  SelectChangeEvent,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonIcon from '@mui/icons-material/Person';
@@ -151,6 +152,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const countries = ['France', 'Iran', 'USA', 'Africa'];
+
   // Personal Info State
   const [personalInfo, setPersonalInfo] = useState({
     firstname: userData?.fullName?.split(' ')[0] || '',
@@ -244,11 +247,12 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   };
 
   const handlePersonalInfoChange = (field: keyof typeof personalInfo) => (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
   ) => {
+    //const value = (event.target as HTMLInputElement).value || (event.target as {value: unknown}).value;
     setPersonalInfo(prev => ({
       ...prev,
-      [field]: event.target.value
+      [field]: event.target.value,
     }));
   };
 
@@ -658,14 +662,15 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
+                  <Select
                     fullWidth
                     label="Country"
                     value={personalInfo.country}
                     onChange={handlePersonalInfoChange('country')}
                     variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                    sx={textFieldStyle}>
+
+                    </Select>
                 </Grid>
               </Grid>
             </TabPanel>

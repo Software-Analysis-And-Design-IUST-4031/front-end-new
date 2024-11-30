@@ -12,7 +12,8 @@ import { Snackbar, Alert } from "@mui/material"
 const SignUp = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [severity, setSeverity] = useState<"success" | "error" | "warning" | "info ">("success");
+  const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
+  const [message, setMessage] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [userName, setUserName] = useState('');
@@ -118,11 +119,14 @@ const SignUp = () => {
       //const message = JSON.stringify(response.data) || 'signup successful!';
       //alert(message);
       setOpen(true);
+      setSeverity('success');
+      setMessage('signup successfully!');
       setTimeout(() => {navigate("/Login")}, 3000);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        //const errorMessage = error.response?.data || 'Error occured during signup!';
-        //alert(errorMessage);
+        const errorMessage = error.response?.data || 'Error occured during signup!';
+        setSeverity('error');
+        setMessage(errorMessage);
         setOpen(true);
         setTimeout(() => {setIsSubmiting(false)}, 3000);
       }
@@ -371,12 +375,12 @@ const SignUp = () => {
             </Grid.Col>
           </Grid>
         </form>
-        <Snackbar open={open} autoHideDuration={5000} onClose={handleAlertClose} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
-          <Alert onClose={handleAlertClose} severity="success" sx={{width: '235px', height: '90px', textAlign: 'center'}}>
-            {"signup successfully!"}
+      </Box>
+      <Snackbar open={open} autoHideDuration={5000} onClose={handleAlertClose} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
+          <Alert onClose={handleAlertClose} severity={severity} sx={{width: '235px', height: '90px', textAlign: 'center'}}>
+            {message}
           </Alert>
         </Snackbar>
-      </Box>
     </MantineProvider>
   );
 }
