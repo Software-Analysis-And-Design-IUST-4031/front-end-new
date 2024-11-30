@@ -43,6 +43,16 @@ import Galleries from './galleries';
 
 
 
+interface Gallery_intefrace {
+  cover_image: string;
+  description: string;
+  gallery_name: string;
+  number_of_paintings: number;
+  number_of_artists: number;
+  owner_id: number;
+}
+
+
 // Memoize the theme toggle button to prevent unnecessary re-renders
 const ThemeToggle = memo(({ mode, toggleColorMode }: { mode: string, toggleColorMode: () => void }) => (
   <IconButton
@@ -88,14 +98,14 @@ const GalleriesContainer: React.FC = () => {
   const { toggleColorMode, mode } = useColorMode();
   const [loading , setLoading] = useState(false);
   const [error , setError] = useState(false);
-  const [data , setData] = useState([]) ;
-  const [currentData , setCurretData] = useState([]);
+  const [data , setData] = useState<Gallery_intefrace[]>([]) ;
+  const [currentData , setCurretData] = useState<Gallery_intefrace[]>([]);
   const itemsPerPage = 3 ; 
   const placeholders = itemsPerPage - currentData.length;
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
-  const handlePageChange = (event , page: number) => {
+  const handlePageChange = (event : React.ChangeEvent<unknown> , page: number) => {
     setCurrentPage(page);
   };
 
@@ -108,6 +118,14 @@ const GalleriesContainer: React.FC = () => {
           try
           {
               const response = await axios.get('http://127.0.0.1:8000/api/galleries/');
+              const baseURL = 'http://127.0.0.1:8000';
+              response.data = response.data.map(
+              (gallery : Gallery_intefrace) =>
+                  ({
+                      ...gallery , 
+                      cover_image: `${baseURL}${gallery.cover_image}`,
+                  })
+              );
               setData(response.data);
           }
           catch (error)
@@ -217,6 +235,12 @@ const GalleriesContainer: React.FC = () => {
                   >
                     <Gallery
                       {...gallery}
+                      // cover_image={gallery.cover_image}
+                      // description={gallery.description}
+                      // gallery_name={gallery.gallery_name}
+                      // number_of_paintings={gallery.number_of_paintings}
+                      // number_of_artists={gallery.number_of_artists}
+                      // owner_id={gallery.owner_id}
                       index={index}
                     />
                   </Grid>
