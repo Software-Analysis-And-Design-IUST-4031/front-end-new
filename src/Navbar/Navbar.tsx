@@ -119,8 +119,14 @@ export default function AppNavbar() {
     };
   });
 
-  const currentPath = location.pathname === '/' ? '/profile' : location.pathname;
+  const currentPath = location.pathname;
   
+  // Only show navbar if user is authenticated
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  if (!isAuthenticated) {
+    return null;
+  }
+
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     navigate(newValue);
   };
@@ -134,7 +140,7 @@ export default function AppNavbar() {
       mt: '-20px',
       p: 0,
     }}>
-      <LogoContainer onClick={() => navigate('/')}>
+      <LogoContainer onClick={() => navigate('/home')}>
         <Logo 
           src={mode === 'dark' ? whiteLogo : blackLogo} 
           alt="Logo"
@@ -161,8 +167,8 @@ export default function AppNavbar() {
           }}
         >
           <StyledTab label="Home" value="/home" />
-          <StyledTab label="Blog" value="/blog" />
           <StyledTab label="Galleries" value="/galleries" />
+          <StyledTab label="Blog" value="/blog" />
           <StyledTab label="Profile" value="/profile" />
         </StyledTabs>
       </Box>

@@ -73,7 +73,7 @@ const StyledContainer = styled(Box)<CustomThemeProps>(({ theme, customBg }) => (
   minHeight: '100vh',
   backgroundColor: customBg,
   transition: 'background-color 0.3s ease',
-  borderRadius: '32px 32px 0 0',
+  borderRadius: theme.shape.borderRadius * 4,
   margin: '0 auto', // Center horizontally
   maxWidth: '1200px', // Set maximum width
   width: '100%',
