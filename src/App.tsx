@@ -1,6 +1,5 @@
 import React, { useState, useMemo, createContext, useContext, useEffect } from 'react';
 import { createTheme, ThemeProvider, CssBaseline, PaletteMode } from '@mui/material';
-import { NextUIProvider } from "@nextui-org/react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import UserpanelApp from './UserpanelApp';
 import AppNavbar from './Navbar/Navbar';
@@ -11,6 +10,7 @@ import LandingPage from './landingpage/landingpage';
 import EmptyPage from './pages/EmptyPage';
 import BlogPage from './Blog/BlogPage';
 import BlogEditor from './Blog/BlogEditor';
+import Home from './mainpage/Home';
 
 export const ColorModeContext = createContext({ 
   toggleColorMode: () => {},
@@ -108,55 +108,51 @@ const App: React.FC = () => {
   );
 
   return (
-    <NextUIProvider>
-      <ColorModeContext.Provider value={colorMode}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <Router>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/LandingPage" element={<Navigate to="/" replace />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/Login" element={<Navigate to="/login" replace />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/SignUp" element={<Navigate to="/signup" replace />} />
-                <Route path="/home" element={
-                  <ProtectedRoute>
-                    <EmptyPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/Home" element={<Navigate to="/home" replace />} />
-                <Route path="/galleries" element={
-                  <ProtectedRoute>
-                    <GalleriesContainer />
-                  </ProtectedRoute>
-                } />
-                <Route path="/Galleries" element={<Navigate to="/galleries" replace />} />
-                <Route path="/blog" element={
-                  <ProtectedRoute>
-                    <BlogPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/Blog" element={<Navigate to="/blog" replace />} />
-                <Route path="/blog/new" element={
-                  <ProtectedRoute>
-                    <BlogEditor />
-                  </ProtectedRoute>
-                } />
-                <Route path="/profile" element={
-                  <ProtectedRoute>
-                    <UserpanelApp />
-                  </ProtectedRoute>
-                } />
-                <Route path="/Profile" element={<Navigate to="/profile" replace />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </Layout>
-          </Router>
-        </ThemeProvider>
-      </ColorModeContext.Provider>
-    </NextUIProvider>
+    <ColorModeContext.Provider value={colorMode}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/SignUp" element={<Navigate to="/signup" replace />} />
+              <Route path="/home" element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              } />
+              <Route path="/Home" element={<Navigate to="/home" replace />} />
+              <Route path="/galleries" element={
+                <ProtectedRoute>
+                  <GalleriesContainer />
+                </ProtectedRoute>
+              } />
+              <Route path="/Galleries" element={<Navigate to="/galleries" replace />} />
+              <Route path="/blog" element={
+                <ProtectedRoute>
+                  <BlogPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/Blog" element={<Navigate to="/blog" replace />} />
+              <Route path="/blog/new" element={
+                <ProtectedRoute>
+                  <BlogEditor />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <UserpanelApp />
+                </ProtectedRoute>
+              } />
+              <Route path="/Profile" element={<Navigate to="/profile" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </ThemeProvider>
+    </ColorModeContext.Provider>
   );
 };
 

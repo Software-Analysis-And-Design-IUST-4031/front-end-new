@@ -40,14 +40,14 @@ const samplePosts: BlogPost[] = [
     title: 'How to implement authentication in React with JWT?',
     preview: 'I am trying to implement authentication in my React application using JWT tokens...',
     author: {
-      name: 'John Doe',
+      name: 'Lucy Johnsone aziz',
       avatar: 'https://i.pravatar.cc/150?img=1',
-      reputation: 1234,
+      reputation: 11259,
     },
     votes: 25,
     answers: 3,
     views: 1200,
-    tags: ['react', 'authentication', 'jwt', 'security'],
+    tags: ['react', 'awli', 'ajab'],
     createdAt: '2024-03-15',
   },
   {
@@ -57,12 +57,12 @@ const samplePosts: BlogPost[] = [
     author: {
       name: 'Jane Smith',
       avatar: 'https://i.pravatar.cc/150?img=2',
-      reputation: 5678,
+      reputation: 518,
     },
     votes: 42,
     answers: 5,
     views: 2300,
-    tags: ['react', 'state-management', 'redux', 'context-api'],
+    tags: ['1', '2', '3', 'hala', 'bikhiale', 'ghosse'],
     createdAt: '2024-03-14',
   },
 ];
