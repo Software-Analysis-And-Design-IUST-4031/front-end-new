@@ -137,6 +137,7 @@ const SideBar: React.FC<SideBarProps> = ({ onThemeClick, customTheme }) => {
           <List sx={{ flex: 1 }}>
             {menuItems.map((item, index) => (
               <ListItem
+                component="li"
                 key={item.text}
                 button
                 onClick={() => {
