@@ -29,7 +29,7 @@
     "@mantine/nprogress": "^7.13.5",
     "@mantine/spotlight": "^7.13.5",
     "@mantine/tiptap": "^7.13.5",
-    "@mui/icons-material": "^6.1.8",
+    "@mui/icons-material": "^6.1.9",
     "@mui/material": "^6.1.9",
     "@nextui-org/react": "^2.4.8",
     "@tabler/icons-react": "^3.23.0",
