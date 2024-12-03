@@ -8,7 +8,8 @@ import {
   ListItemText,
   Box,
   useTheme,
-  Typography
+  Typography,
+  ButtonBase
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -137,8 +138,8 @@ const SideBar: React.FC<SideBarProps> = ({ onThemeClick, customTheme }) => {
           <List sx={{ flex: 1 }}>
             {menuItems.map((item, index) => (
               <ListItem
+                component={ButtonBase}
                 key={item.text}
-                button
                 onClick={() => {
                   if (item.onClick) {
                     item.onClick();
@@ -183,7 +184,7 @@ const SideBar: React.FC<SideBarProps> = ({ onThemeClick, customTheme }) => {
               </ListItem>
             ))}
             <ListItem
-              button
+              component={ButtonBase}
               onClick={() => {
                 onThemeClick();
                 setOpen(false);
