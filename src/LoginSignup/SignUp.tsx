@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SyntheticEvent } from 'react';
 import Button from '@mui/material/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import '@mantine/core/styles.css';
@@ -9,27 +9,30 @@ import { EyeCheck, EyeOff } from 'tabler-icons-react';
 import { Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
 import AuthLayout from './AuthLayout';
 import { useColorMode } from '../App';
+import { Snackbar, Alert } from "@mui/material";
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
+  const [message, setMessage] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
-  const [errors, setErrors] = useState({
-    firstName: '', 
-    lastName: '', 
-    userName: '', 
-    email: '', 
-    password: '', 
-    confirmPassword: '', 
-    api: ''
-  });
+  const [errors, setErrors] = useState({firstName: '', lastName: '', userName: '', email: '', password: '', confirmPassword: ''});
   const [isSubmiting, setIsSubmiting] = useState(false);
   const { mode } = useColorMode();
   const isDark = mode === 'dark';
+
+  const handleAlertClose = (event: SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'cliclaway') {
+      return;
+    }
+    setOpen(false);
+  }
 
   // Only redirect to home if user is already authenticated
   useEffect(() => {
@@ -42,37 +45,55 @@ const SignUp = () => {
   const handleFirstnameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setFirstName(value);
-    setErrors(prev => ({ ...prev, firstName: '', api: '' }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      firstName: value.trim() === '' ? 'first name is required!' : '',
+    }));
   }
 
   const handleLastnameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setLastName(value);
-    setErrors(prev => ({ ...prev, lastName: '', api: '' }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      lastName: value.trim() === '' ? 'last name is required!' : '',
+    }));
   }
 
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setUserName(value);
-    setErrors(prev => ({ ...prev, userName: '', api: '' }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      userName: value.trim() === '' ? 'username is required!' : '',
+    }));
   }
 
   const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setPassword(value);
-    setErrors(prev => ({ ...prev, password: '', confirmPassword: '', api: '' }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      password: value.trim() === '' ? 'password is required!' : '',
+    }));
   }
 
   const handleConfirmPasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setConfirmPassword(value);
-    setErrors(prev => ({ ...prev, confirmPassword: '', api: '' }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      confirmPassword: value.trim() === '' ? 'confirm password is required!' : '',
+    }));
   }
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setEmail(value);
-    setErrors(prev => ({ ...prev, email: '', api: '' }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      email: value.trim() === '' ? 'email address is required!' : '',
+    }));
   }
 
   const validateForm = () => {
@@ -100,55 +121,42 @@ const SignUp = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    
-    if (!validateForm()) {
+
+    if (!firstName || !lastName || !userName || !password || !confirmPassword || !email) {
+      const newErrors = {firstName: firstName ? '' : 'first name is required!', lastName: lastName ? '' : 'last name is required!',
+        userName: userName ? '' : 'username is required!', email: email ? '' : 'email address is required!',
+        password: password ? '' : 'password is required!', confirmPassword: confirmPassword ? '' : 'confirm password is required!'
+      };
+      setErrors(newErrors);
       return;
     }
 
-    setIsSubmiting(true);
     try {
       const response = await axios.post('http://127.0.0.1:8000/api/user/register/', {
-        firstname: firstName,
-        lastname: lastName,
-        username: userName,
-        password: password, 
-        confirm_password: confirmPassword,
-        email: email,
-      });
 
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('access_token', response.data.access);
-        localStorage.setItem('isAuthenticated', 'true');
-        if (response.data.user) {
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-        }
-        navigate('/home');
-      } else {
-        navigate('/login');
-      }
+          firstname: firstName,
+          lastname: lastName,
+          username: userName,
+          password: password, 
+          confirm_password: confirmPassword,
+          email: email,
+        } 
+      );
+
+      //const message = JSON.stringify(response.data) || 'signup successful!';
+      //alert(message);
+      setOpen(true);
+      setSeverity('success');
+      setMessage(response.data.message || 'signup successfully!');
+      setTimeout(() => {navigate("/Login")}, 3000);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const errorData = error.response?.data;
-        if (typeof errorData === 'object' && errorData !== null) {
-          // Handle field-specific errors
-          const newErrors = { ...errors };
-          for (const [key, value] of Object.entries(errorData)) {
-            if (key in newErrors) {
-              newErrors[key as keyof typeof errors] = Array.isArray(value) ? value[0] : value as string;
-            }
-          }
-          setErrors(newErrors);
-        } else {
-          // Handle general error
-          setErrors(prev => ({ 
-            ...prev, 
-            api: error.response?.data?.detail || 'Error occurred during signup!' 
-          }));
-        }
+        const errorMessage = error.response?.data || 'Error occured during signup!';
+        setSeverity('error');
+        setMessage(errorMessage);
+        setOpen(true);
+        setTimeout(() => {setIsSubmiting(false)}, 3000);
       }
-    } finally {
-      setIsSubmiting(false);
     }
   };
  
@@ -192,12 +200,6 @@ const SignUp = () => {
           Sign Up
         </h1>
 
-        {errors.api && (
-          <Text color="red" size="sm" mb="md" ta="center">
-            {errors.api}
-          </Text>
-        )}
-
         <form onSubmit={handleSubmit}>
           <Grid>
             <Grid.Col span={{ base: 12, sm: 6 }}>
@@ -221,10 +223,12 @@ const SignUp = () => {
                     }
                   },
                   label: {
+                    textAlign: "left",
+                    marginLeft: '0px',
                     color: isDark ? '#FFFFFF' : '#1A1B1E',
                     fontSize: '0.9rem',
                     fontWeight: 500,
-                    marginBottom: '0.5rem'
+                    marginBottom: '0.5rem',
                   }
                 }}
               />
@@ -251,10 +255,11 @@ const SignUp = () => {
                     }
                   },
                   label: {
+                    textAlign: "left",
                     color: isDark ? '#FFFFFF' : '#1A1B1E',
                     fontSize: '0.9rem',
                     fontWeight: 500,
-                    marginBottom: '0.5rem'
+                    marginBottom: '0.5rem',
                   }
                 }}
               />
@@ -281,6 +286,7 @@ const SignUp = () => {
                     }
                   },
                   label: {
+                    textAlign: "left",
                     color: isDark ? '#FFFFFF' : '#1A1B1E',
                     fontSize: '0.9rem',
                     fontWeight: 500,
@@ -311,6 +317,7 @@ const SignUp = () => {
                     }
                   },
                   label: {
+                    textAlign: "left",
                     color: isDark ? '#FFFFFF' : '#1A1B1E',
                     fontSize: '0.9rem',
                     fontWeight: 500,
@@ -340,6 +347,7 @@ const SignUp = () => {
                     }
                   },
                   label: {
+                    textAlign: "left",
                     color: isDark ? '#FFFFFF' : '#1A1B1E',
                     fontSize: '0.9rem',
                     fontWeight: 500,
@@ -375,6 +383,7 @@ const SignUp = () => {
                     }
                   },
                   label: {
+                    textAlign: "left",
                     color: isDark ? '#FFFFFF' : '#1A1B1E',
                     fontSize: '0.9rem',
                     fontWeight: 500,
@@ -414,6 +423,11 @@ const SignUp = () => {
           </Grid>
         </form>
       </Box>
+      <Snackbar open={open} autoHideDuration={5000} onClose={handleAlertClose} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
+          <Alert onClose={handleAlertClose} severity={severity} sx={{width: '235px', height: '90px', textAlign: 'center'}}>
+            {message}
+          </Alert>
+        </Snackbar>
     </AuthLayout>
   );
 };

@@ -122,32 +122,22 @@ const App: React.FC = () => {
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/SignUp" element={<Navigate to="/signup" replace />} />
                 <Route path="/home" element={
-                  <ProtectedRoute>
                     <EmptyPage />
-                  </ProtectedRoute>
                 } />
                 <Route path="/Home" element={<Navigate to="/home" replace />} />
                 <Route path="/galleries" element={
-                  <ProtectedRoute>
                     <GalleriesContainer />
-                  </ProtectedRoute>
                 } />
                 <Route path="/Galleries" element={<Navigate to="/galleries" replace />} />
                 <Route path="/blog" element={
-                  <ProtectedRoute>
                     <BlogPage />
-                  </ProtectedRoute>
                 } />
                 <Route path="/Blog" element={<Navigate to="/blog" replace />} />
                 <Route path="/blog/new" element={
-                  <ProtectedRoute>
                     <BlogEditor />
-                  </ProtectedRoute>
                 } />
                 <Route path="/profile" element={
-                  <ProtectedRoute>
                     <UserpanelApp />
-                  </ProtectedRoute>
                 } />
                 <Route path="/Profile" element={<Navigate to="/profile" replace />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
