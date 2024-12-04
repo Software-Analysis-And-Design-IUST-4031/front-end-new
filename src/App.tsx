@@ -11,6 +11,7 @@ import LandingPage from './landingpage/landingpage';
 import EmptyPage from './pages/EmptyPage';
 import BlogPage from './Blog/BlogPage';
 import BlogEditor from './Blog/BlogEditor';
+import Home from './mainpage/Home';
 
 export const ColorModeContext = createContext({ 
   toggleColorMode: () => {},
@@ -118,6 +119,7 @@ const App: React.FC = () => {
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/LandingPage" element={<Navigate to="/" replace />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/HomePage" element={<Home />} />
                 <Route path="/Login" element={<Navigate to="/login" replace />} />
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/SignUp" element={<Navigate to="/signup" replace />} />

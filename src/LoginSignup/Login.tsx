@@ -125,7 +125,7 @@ const Login = () => {
         setMessage(errorMessage);
         setOpen(true);
         //setTimeout(() => {setIsSubmiting(false)}, 3000);
-        setTimeout(() => {navigate("/profile")}, 3000);
+        setTimeout(() => {navigate("/HomePage")}, 3000);
       } 
     }
   };
