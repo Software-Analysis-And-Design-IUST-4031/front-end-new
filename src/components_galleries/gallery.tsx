@@ -10,7 +10,8 @@ interface GalleryProps {
   number_of_paintings: number;
   number_of_artists: number;
   index: number;
-  owner_id : number
+  owner_id : number;
+  onclick_gallery : any ; 
 }
 
 interface StatBoxProps {
@@ -19,7 +20,7 @@ interface StatBoxProps {
   title: string;
 }
 
-const Gallery: React.FC<GalleryProps> = memo(({ cover_image, description, gallery_name, number_of_paintings, number_of_artists, owner_id , index}) => {
+const Gallery: React.FC<GalleryProps> = memo(({ cover_image, description, gallery_name, number_of_paintings, number_of_artists, owner_id , index , onclick_gallery}) => {
   const theme = useTheme();
   const mode = theme.palette.mode;
   const [imageError, setImageError] = useState(false);
@@ -54,6 +55,7 @@ const Gallery: React.FC<GalleryProps> = memo(({ cover_image, description, galler
 
   return (
     <Card
+      onClick={onclick_gallery}
       sx={{
         width: 245,
         position: 'relative',

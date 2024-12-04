@@ -5,7 +5,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useColorMode } from '../App';
 import '../Themes.css';
 import axios from 'axios';
-
+import { useNavigate } from 'react-router-dom';
 const Gallery = lazy(() => import('./gallery'));
 
 // const galleryData = [
@@ -50,6 +50,7 @@ interface Gallery_intefrace {
   number_of_paintings: number;
   number_of_artists: number;
   owner_id: number;
+  onClick ? : () => void;
 }
 
 
@@ -104,7 +105,7 @@ const GalleriesContainer: React.FC = () => {
   const placeholders = itemsPerPage - currentData.length;
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(data.length / itemsPerPage);
-
+  const navigate = useNavigate(); 
   const handlePageChange = (event : React.ChangeEvent<unknown> , page: number) => {
     setCurrentPage(page);
   };
@@ -124,9 +125,15 @@ const GalleriesContainer: React.FC = () => {
                   ({
                       ...gallery , 
                       cover_image: `${baseURL}${gallery.cover_image}`,
+                      
+                      // cover_image : 'http://127.0.0.1:8000/media/paintings/cat_QuxFppF.webp',
                   })
+                  
               );
               setData(response.data);
+              response.data.forEach((gallery : any) => {  
+                console.log(gallery.cover_image);  
+              })
           }
           catch (error)
           {
@@ -242,6 +249,7 @@ const GalleriesContainer: React.FC = () => {
                       // number_of_artists={gallery.number_of_artists}
                       // owner_id={gallery.owner_id}
                       index={index}
+                      onclick_gallery={() => navigate(`/profile`)}
                     />
                   </Grid>
                 ))}
