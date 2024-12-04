@@ -1,10 +1,14 @@
-import React from 'react';
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import AppRoutes from './App';
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { NextUIProvider } from '@nextui-org/react'
+import 'bootstrap/dist/css/bootstrap.css'
+import './index.css'
+import App from './App'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AppRoutes />
-  </StrictMode>
-);
+    <NextUIProvider>
+      <App />
+    </NextUIProvider>
+  </StrictMode>,
+)
