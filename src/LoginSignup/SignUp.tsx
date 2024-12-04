@@ -156,6 +156,7 @@ const SignUp = () => {
         setMessage(errorMessage);
         setOpen(true);
         setTimeout(() => {setIsSubmiting(false)}, 3000);
+        //setTimeout(() => {navigate("/Login")}, 3000);
       }
     }
   };
