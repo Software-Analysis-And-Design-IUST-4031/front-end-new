@@ -1,6 +1,8 @@
 import React, { useState, useMemo, createContext, useContext, useEffect } from 'react';
 import { createTheme, ThemeProvider, CssBaseline, PaletteMode } from '@mui/material';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { NextUIProvider } from "@nextui-org/react";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import UserpanelApp from './UserpanelApp';
 import AppNavbar from './Navbar/Navbar';
 import GalleriesContainer from './components_galleries/GalleriesContainer';
@@ -108,51 +110,46 @@ const App: React.FC = () => {
   );
 
   return (
-    <ColorModeContext.Provider value={colorMode}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Router>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/SignUp" element={<Navigate to="/signup" replace />} />
-              <Route path="/home" element={
-                <ProtectedRoute>
-                  <Home />
-                </ProtectedRoute>
-              } />
-              <Route path="/Home" element={<Navigate to="/home" replace />} />
-              <Route path="/galleries" element={
-                <ProtectedRoute>
-                  <GalleriesContainer />
-                </ProtectedRoute>
-              } />
-              <Route path="/Galleries" element={<Navigate to="/galleries" replace />} />
-              <Route path="/blog" element={
-                <ProtectedRoute>
-                  <BlogPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/Blog" element={<Navigate to="/blog" replace />} />
-              <Route path="/blog/new" element={
-                <ProtectedRoute>
-                  <BlogEditor />
-                </ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <UserpanelApp />
-                </ProtectedRoute>
-              } />
-              <Route path="/Profile" element={<Navigate to="/profile" replace />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Layout>
-        </Router>
-      </ThemeProvider>
-    </ColorModeContext.Provider>
+    <NextUIProvider>
+      <ColorModeContext.Provider value={colorMode}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Router>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/LandingPage" element={<Navigate to="/" replace />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/HomePage" element={<Home />} />
+                <Route path="/Login" element={<Navigate to="/login" replace />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/SignUp" element={<Navigate to="/signup" replace />} />
+                <Route path="/home" element={
+                    <EmptyPage />
+                } />
+                <Route path="/Home" element={<Navigate to="/home" replace />} />
+                <Route path="/galleries" element={
+                    <GalleriesContainer />
+                } />
+                <Route path="/Galleries" element={<Navigate to="/galleries" replace />} />
+                <Route path="/blog" element={
+                    <BlogPage />
+                } />
+                <Route path="/Blog" element={<Navigate to="/blog" replace />} />
+                <Route path="/blog/new" element={
+                    <BlogEditor />
+                } />
+                <Route path="/profile" element={
+                    <UserpanelApp />
+                } />
+                <Route path="/Profile" element={<Navigate to="/profile" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Layout>
+          </Router>
+        </ThemeProvider>
+      </ColorModeContext.Provider>
+    </NextUIProvider>
   );
 };
 
