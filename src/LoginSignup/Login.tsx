@@ -30,18 +30,8 @@ const Login = () => {
   const { mode } = useColorMode();
   const isDark = mode === 'dark';
 
-  // Only redirect to home if user is already authenticated
-  useEffect(() => {
-    const auth = localStorage.getItem('isAuthenticated');
-    const token = localStorage.getItem('access_token');
-    if (auth === 'true' && token) {
-      navigate('/home');
-    }
-  }, [navigate]);
-
   useEffect(() => {
     return () => {
-      // Cleanup authentication check on unmount
       setIsSubmiting(false);
     };
   }, []);
@@ -71,32 +61,14 @@ const Login = () => {
     }));
   }
 
-  const validateForm = (): boolean => {
-    const newErrors: LoginErrors = {
-      userName: '',
-      password: '',
-      api: ''
-    };
-
-    if (!userName.trim()) {
-      newErrors.userName = 'Username is required!';
-    }
-
-    if (!password) {
-      newErrors.password = 'Password is required!';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters!';
-    }
-
-    setErrors(newErrors);
-    return !Object.values(newErrors).some(error => error !== '');
-  };
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!userName || !password) {
-      const newErrors = {userName: userName ? '' : 'username is required!',
-      password: password ? '' : 'password is required!'};
+    
+    if (!userName.trim() || !password.trim()) {
+      const newErrors = {
+        userName: userName.trim() ? '' : 'Username is required!',
+        password: password.trim() ? '' : 'Password is required!'
+      };
       setErrors(newErrors);
       return;
     }
@@ -104,28 +76,27 @@ const Login = () => {
     setIsSubmiting(true);
     try {
       const response = await axios.post('http://127.0.0.1:8000/api/user/login/', {
-          username: userName,
-          password: password,
+          username: userName.trim(),
+          password: password.trim(),
         } 
       );
   
-      //const access_token = response.data.access;
-      //localStorage.setItem('access_token', access_token);
-      //alert("hellow");
-  
-      const login_message = JSON.stringify(response.data.message) || 'login successful!';
+      const login_message = JSON.stringify(response.data.message) || 'Login successful!';
       setSeverity('success');
       setMessage(login_message);
       setOpen(true);
-      setTimeout(() => {navigate("/profile")}, 3000);
+      
+      setTimeout(() => {
+        navigate("/HomePage");
+      }, 3000);
+      
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data || 'Error occured during login!';
+        const errorMessage = error.response?.data?.message || 'Error occurred during login!';
         setSeverity('error');
         setMessage(errorMessage);
         setOpen(true);
-        //setTimeout(() => {setIsSubmiting(false)}, 3000);
-        setTimeout(() => {navigate("/HomePage")}, 3000);
+        setIsSubmiting(false);
       } 
     }
   };

@@ -6,11 +6,14 @@ import {
   styled,
   alpha,
   useTheme,
+  IconButton,
 } from '@mui/material';
 import { useColorMode } from '../App';
 import { useState } from 'react';
 import blackLogo from './Logos/black_on_trans.png';
 import whiteLogo from './Logos/white_on_trans.png';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 
 interface CustomTheme {
   bg: string;
@@ -103,7 +106,7 @@ export default function AppNavbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const theme = useTheme();
-  const { mode } = useColorMode();
+  const { mode, toggleColorMode } = useColorMode();
   const [customTheme] = useState<CustomTheme>(() => {
     try {
       const savedTheme = localStorage.getItem('customTheme');
@@ -139,7 +142,25 @@ export default function AppNavbar() {
       alignItems: 'center',
       mt: '-20px',
       p: 0,
+      position: 'relative',
     }}>
+      <IconButton
+        onClick={toggleColorMode}
+        color="inherit"
+        sx={{
+          position: 'fixed',
+          top: 20,
+          right: 20,
+          backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+          '&:hover': {
+            backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+          },
+          zIndex: 1300,
+        }}
+      >
+        {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+      </IconButton>
+
       <LogoContainer onClick={() => navigate('/home')}>
         <Logo 
           src={mode === 'dark' ? whiteLogo : blackLogo} 
