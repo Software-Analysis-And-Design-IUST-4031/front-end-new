@@ -1,58 +1,121 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './bestpaintings.css';
-import pic from './d22.jpg';
-import { Pagination, Box } from '@mui/material';
+import PostCard from './card';
+import { Box, Pagination, CircularProgress, Typography } from '@mui/material';
+import axios from 'axios';
 
 interface Painting {
-  name: string;
-  photo: string;
-  description: string;
+    id: string;
+    imageUrl: string;
+    caption: string;
+    title: string;
+    price: string;
+    likes: number;
+    createdAt: string;
+    artist: string;
+    year: number;
+    style: string;
 }
 
-const bestPaintings: Painting[] = [
-  { name: "Sunrise", photo: pic, description: "A breathtaking view of sunrise over the ocean." },
-  { name: "The Forest", photo: pic, description: "A deep dive into the heart of an ancient forest." },
-  { name: "City Lights", photo: pic, description: "A dazzling scene of a city skyline at night." },
-  { name: "Desert Mirage", photo: pic, description: "A mesmerizing desert landscape under the scorching sun." },
-  { name: "Mountain Escape", photo: pic, description: "A serene mountain scene with snow-capped peaks." }
+const itemsPerPage = 3; // Number of items to show per page
+
+const mockSamples: Painting[] = [
+    {
+        id: '1',
+        imageUrl: 'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8',
+        caption: 'A stunning masterpiece by Van Gogh',
+        title: 'Starry Night',
+        price: '5000',
+        likes: 10,  // Example like count
+        createdAt: new Date().toISOString(),
+        artist: 'Vincent Van Gogh',
+        year: 1889,
+        style: 'Post-Impressionism',
+    },
+    {
+        id: '2',
+        imageUrl: 'https://images.unsplash.com/photo-1549289524-06cf8837ace5',
+        caption: 'The enigmatic smile',
+        title: 'Mona Lisa',
+        price: '10000',
+        likes: 50,  // Example like count
+        createdAt: new Date().toISOString(),
+        artist: 'Leonardo da Vinci',
+        year: 1503,
+        style: 'Renaissance',
+    },
+    {
+        id: '3',
+        imageUrl: 'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8',
+        caption: 'A surrealist masterpiece',
+        title: 'The Persistence of Memory',
+        price: '7000',
+        likes: 15,  // Example like count
+        createdAt: new Date().toISOString(),
+        artist: 'Salvador Dalí',
+        year: 1931,
+        style: 'Surrealism',
+    },
 ];
 
-const itemsPerPage = 2;
+const Paintings: React.FC = () => {
+    const [posts, setPosts] = useState<Painting[]>(mockSamples); // Use mock samples initially
+    const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(false);
 
-const BestPaintings: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(bestPaintings.length / itemsPerPage);
+    const totalPages = Math.ceil(posts.length / itemsPerPage);
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
-    setCurrentPage(page);
-  };
+    const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+        setCurrentPage(page);
+    };
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentPaintings = bestPaintings.slice(startIndex, startIndex + itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const currentPaintings = posts.slice(startIndex, startIndex + itemsPerPage);
 
-  return (
-    <section className="description-section">
-      <h2>List of the Best Paintings of the Month</h2>
-      <div className="paintings-list">
-        {currentPaintings.map((painting, index) => (
-          <div key={index} className="painting">
-            <img src={painting.photo} alt={painting.name} className="painting-photo" />
-            <h3>{painting.name}</h3>
-            <p>{painting.description}</p>
-          </div>
-        ))}
-      </div>
-      <Box mt={3} display="flex" justifyContent="center">
-        <Pagination 
-          count={totalPages} 
-          page={currentPage} 
-          onChange={handlePageChange} 
-          variant="outlined" 
-          color="primary" 
-        />
-      </Box>
-    </section>
-  );
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/paintings/');
+                setPosts(response.data);  // Set posts to fetched data
+            } catch (err) {
+                // In case of an error, leave the mock data in place
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []); // Only run once when the component mounts
+
+    return (
+        <section className="paintings-section">
+            <h2>Paintings</h2>
+
+            {loading ? (
+                <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+                    <CircularProgress />
+                </Box>
+            ) : (
+                <>
+                    <div className="paintings-grid">
+                        {/* Render PostCards using mock data or fetched data */}
+                        <PostCard posts={currentPaintings} onShare={() => null} />
+                    </div>
+
+                    {/* Pagination Controls */}
+                    <Box mt={3} display="flex" justifyContent="center">
+                        <Pagination
+                            count={totalPages}
+                            page={currentPage}
+                            onChange={handlePageChange}
+                            variant="outlined"
+                            color="primary"
+                        />
+                    </Box>
+                </>
+            )}
+        </section>
+    );
 };
 
-export default BestPaintings;
+export default Paintings;

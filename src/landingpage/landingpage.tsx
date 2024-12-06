@@ -20,19 +20,17 @@ const LandingPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full min-h-screen flex flex-col">
+    <div className="landing-page">
       {showAnimation ? (
         <MyLottieAnimation1 />
       ) : (
         <>
           <Header />
-          <div className="w-full flex-1 flex flex-col md:flex-row justify-between items-center px-4 md:px-8">
-            <DescriptionSection />
-            <MyLottieAnimation2 />
-          </div>
+          <DescriptionSection />
+          <MyLottieAnimation2 />
           <Bestpainters />
           <Features />
-          <Bestpaintings/>
+          <Bestpaintings />
           <Footer />
         </>
       )}

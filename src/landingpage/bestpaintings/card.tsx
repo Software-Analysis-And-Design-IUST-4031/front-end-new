@@ -18,8 +18,6 @@ import {
 } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import BookmarkIcon from '@mui/icons-material/Bookmark';
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import ShareIcon from '@mui/icons-material/Share';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 
@@ -30,15 +28,11 @@ interface Post {
   title: string;
   price: string;
   likes: number;
-  isLiked: boolean;
-  isSaved: boolean;
   createdAt: string;
 }
 
 interface CardProps {
   posts: Post[];
-  onLike: (id: string) => void;
-  onSave: (id: string) => void;
   onShare: (id: string) => void;
 }
 
@@ -51,7 +45,7 @@ const PostCard = styled(Paper)(({ theme }) => ({
   '&:hover': {
     transform: 'translateY(-12px)',
     '& .image-container': {
-      boxShadow: theme.palette.mode === 'dark' 
+      boxShadow: theme.palette.mode === 'dark'
         ? '0 20px 40px rgba(0,0,0,0.4)'
         : '0 20px 40px rgba(0,0,0,0.15)',
       '&::after': {
@@ -75,7 +69,7 @@ const ImageContainer = styled(Box)(({ theme }) => ({
   overflow: 'hidden',
   transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
   cursor: 'pointer',
-  boxShadow: theme.palette.mode === 'dark' 
+  boxShadow: theme.palette.mode === 'dark'
     ? '0 10px 30px rgba(0,0,0,0.3)'
     : '0 10px 30px rgba(0,0,0,0.1)',
   '&::after': {
@@ -126,14 +120,6 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
   '& .MuiSvgIcon-root': {
     fontSize: '1.4rem',
   },
-  '&.liked': {
-    color: '#ff1744',
-    backgroundColor: 'rgba(255,23,68,0.2)',
-  },
-  '&.saved': {
-    color: '#2196f3',
-    backgroundColor: 'rgba(33,150,243,0.2)',
-  }
 }));
 
 const PostInfo = styled(Box)(({ theme }) => ({
@@ -186,10 +172,8 @@ const LikeCount = styled(Box)(({ theme }) => ({
 
 const CardItem: React.FC<{
   post: Post;
-  onLike: (id: string) => void;
-  onSave: (id: string) => void;
   onShare: (id: string) => void;
-}> = ({ post, onLike, onSave, onShare }) => {
+}> = ({ post, onShare }) => {
   const [showDialog, setShowDialog] = useState(false);
 
   const handleDialogOpen = () => {
@@ -209,15 +193,6 @@ const CardItem: React.FC<{
             <PostActions>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <ActionButton
-                  className={post.isLiked ? 'liked' : ''}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onLike(post.id);
-                  }}
-                >
-                  {post.isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                </ActionButton>
-                <ActionButton
                   onClick={(e) => {
                     e.stopPropagation();
                     onShare(post.id);
@@ -226,15 +201,6 @@ const CardItem: React.FC<{
                   <ShareIcon />
                 </ActionButton>
               </Box>
-              <ActionButton
-                className={post.isSaved ? 'saved' : ''}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSave(post.id);
-                }}
-              >
-                {post.isSaved ? <BookmarkIcon /> : <BookmarkBorderIcon />}
-              </ActionButton>
             </PostActions>
           </ImageContainer>
           <PostInfo>
@@ -270,7 +236,7 @@ const CardItem: React.FC<{
   );
 };
 
-const Card: React.FC<CardProps> = ({ posts, onLike, onSave, onShare }) => {
+const Card: React.FC<CardProps> = ({ posts, onShare }) => {
   return (
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
@@ -278,8 +244,6 @@ const Card: React.FC<CardProps> = ({ posts, onLike, onSave, onShare }) => {
           <CardItem
             key={post.id}
             post={post}
-            onLike={onLike}
-            onSave={onSave}
             onShare={onShare}
           />
         ))}
