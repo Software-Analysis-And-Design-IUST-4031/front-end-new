@@ -11,11 +11,26 @@ import AuthLayout from './AuthLayout';
 import { useColorMode } from '../App';
 import { IconArrowLeft } from '@tabler/icons-react';
 import { Snackbar, Alert } from "@mui/material";
+import userService from '../services/userService'; // Import userService
 
 interface LoginErrors {
   userName: string;
   password: string;
   api: string;
+}
+
+interface LoginResponse {
+  token: string;
+  user: {
+    user_id: number;
+    email: string;
+    firstname: string;
+    lastname: string;
+    username: string;
+    is_active: boolean;
+    is_admin: boolean;
+    date_joined: string;
+  };
 }
 
 const Login = () => {
@@ -24,7 +39,7 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({ userName: '', password: '' }); 
+  const [errors, setErrors] = useState({ userName: '', password: '', api: '' }); 
   const [isSubmiting, setIsSubmiting] = useState(false);
   const navigate = useNavigate();
   const { mode } = useColorMode();
@@ -63,41 +78,69 @@ const Login = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setErrors({ userName: '', password: '', api: '' });
     
-    if (!userName.trim() || !password.trim()) {
+    if (!userName || !password) {
       const newErrors = {
-        userName: userName.trim() ? '' : 'Username is required!',
-        password: password.trim() ? '' : 'Password is required!'
+        userName: userName ? '' : 'Username is required!',
+        password: password ? '' : 'Password is required!',
+        api: ''
       };
       setErrors(newErrors);
       return;
     }
-  
+
     setIsSubmiting(true);
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/user/login/', {
-          username: userName.trim(),
-          password: password.trim(),
-        } 
-      );
-  
-      const login_message = JSON.stringify(response.data.message) || 'Login successful!';
+      const response = await userService.login({
+        username: userName,
+        password: password
+      });
+      console.log('Login response:', response);
+      const userId = response.user.user_id;
+      console.log('Navigation attempted with userId:', userId);
+
+
       setSeverity('success');
-      setMessage(login_message);
+      setMessage('Login successful!');
       setOpen(true);
-      
+
+
       setTimeout(() => {
-        navigate("/HomePage");
-      }, 3000);
+        navigate(`/${userId}/home`);
+      }, 500);
       
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data?.message || 'Error occurred during login!';
-        setSeverity('error');
-        setMessage(errorMessage);
-        setOpen(true);
-        setIsSubmiting(false);
-      } 
+    } catch (error: any) {
+      setIsSubmiting(false);
+      console.error('Login error:', error);
+      
+      if (error.response) {
+        const errorData = error.response.data;
+        const status = error.response.status;
+        console.log('Error response:', { status, data: errorData });
+        
+        switch (status) {
+          case 401:
+            setMessage('Invalid username or password');
+            break;
+          case 404:
+            setMessage('Server not found. Please try again later');
+            break;
+          case 500:
+            setMessage('Server error. Please try again later');
+            break;
+          default:
+            setMessage(errorData.message || 'An error occurred during login');
+        }
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error('No response received:', error.request);
+        setMessage('No response from server. Please check your connection');
+      } else {
+        // Error in setting up the request
+        console.error('Error setting up request:', error.message);
+        setMessage(error.message || 'An error occurred during login');
+      }
     }
   };
 

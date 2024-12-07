@@ -1,6 +1,6 @@
 import React, { useState, useMemo, createContext, useContext, useEffect } from 'react';
 import { createTheme, ThemeProvider, CssBaseline, PaletteMode } from '@mui/material';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import UserpanelApp from './UserpanelApp';
 import AppNavbar from './Navbar/Navbar';
 import GalleriesContainer from './components_galleries/GalleriesContainer';
@@ -114,15 +114,22 @@ const App: React.FC = () => {
                 <Route path="/Login" element={<Navigate to="/login" replace />} />
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/SignUp" element={<Navigate to="/signup" replace />} />
-                <Route path="/home" element={<Home />} />
+                
+                {/* User-specific routes */}
+                <Route path=":userId">
+                  <Route index element={<Navigate to="home" replace />} />
+                  <Route path="home" element={<Home />} />
+                  <Route path="galleries" element={<GalleriesContainer />} />
+                  <Route path="blog" element={<BlogPage />} />
+                  <Route path="blog/:id" element={<BlogPostDetail />} />
+                  <Route path="blog/new" element={<BlogEditor />} />
+                  <Route path="profile" element={<UserpanelApp />} />
+                </Route>
+
+                {/* Redirects */}
                 <Route path="/HomePage" element={<Navigate to="/home" replace />} />
-                <Route path="/galleries" element={<GalleriesContainer />} />
                 <Route path="/Galleries" element={<Navigate to="/galleries" replace />} />
-                <Route path="/blog" element={<BlogPage />} />
                 <Route path="/Blog" element={<Navigate to="/blog" replace />} />
-                <Route path="/blog/:id" element={<BlogPostDetail />} />
-                <Route path="/blog/new" element={<BlogEditor />} />
-                <Route path="/profile" element={<UserpanelApp />} />
                 <Route path="/Profile" element={<Navigate to="/profile" replace />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

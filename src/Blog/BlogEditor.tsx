@@ -372,7 +372,7 @@ const BlogEditor: React.FC = () => {
               <style>{customStyles}</style>
               <Slate 
                 editor={editor} 
-                initialValue={value}
+                value={value}
                 onChange={handleChange}
               >
                 <Editable
