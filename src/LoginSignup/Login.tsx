@@ -117,7 +117,7 @@ const Login = () => {
       setSeverity('success');
       setMessage(login_message);
       setOpen(true);
-      setTimeout(() => {navigate("/profile")}, 3000);
+      setTimeout(() => {navigate("/HomePage")}, 3000);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMessage = error.response?.data || 'Error occured during login!';

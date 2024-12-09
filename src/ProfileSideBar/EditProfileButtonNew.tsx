@@ -31,6 +31,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useColorMode } from '../App';
 import Cropper from 'react-easy-crop';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import axios from 'axios';
 
 interface EditProfileButtonProps {
   userData: any;
@@ -154,16 +155,16 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
 
   // Personal Info State
   const [personalInfo, setPersonalInfo] = useState({
-    firstName: userData?.fullName?.split(' ')[0] || '',
-    lastName: userData?.fullName?.split(' ')[1] || '',
-    username: userData?.username?.replace('@', '') || '',
+    firstname: userData?.fullName?.split(' ')[0] || '',
+    lastname: userData?.fullName?.split(' ')[1] || '',
+    nickname: userData?.username?.replace('@', '') || '',
     password: '',
     email: userData?.email || '',
-    phoneNumber: userData?.phoneNumber || '',
+    phone_number: userData?.phoneNumber || '',
     country: userData?.location?.split(', ')[1] || '',
     city: userData?.location?.split(', ')[0] || '',
-    dateOfBirth: userData?.dateOfBirth || '',
-    isGallery: userData?.isGallery || localStorage.getItem('isGallery') || 'no'
+    date_of_birth: userData?.dateOfBirth || '',
+    is_gallery: userData?.isGallery || localStorage.getItem('isGallery') || 'no'
   });
 
   // Art Preferences State
@@ -255,13 +256,13 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   const handleSubmit = async () => {
     const updatedData = {
       ...userData,
-      fullName: `${personalInfo.firstName} ${personalInfo.lastName}`,
-      username: `@${personalInfo.username}`,
+      fullName: `${personalInfo.firstname} ${personalInfo.lastname}`,
+      username: `@${personalInfo.nickname}`,
       email: personalInfo.email,
-      phoneNumber: personalInfo.phoneNumber,
+      phoneNumber: personalInfo.phone_number,
       location: `${personalInfo.city}, ${personalInfo.country}`,
-      dateOfBirth: personalInfo.dateOfBirth,
-      isGallery: personalInfo.isGallery,
+      dateOfBirth: personalInfo.date_of_birth,
+      isGallery: personalInfo.is_gallery,
       avatarUrl: photoUrl,
       bio: artPreferences.biography,
       favoritePainter: artPreferences.favoritePainter,
@@ -272,6 +273,56 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     };
 
     onProfileUpdate(updatedData);
+    const token = localStorage.getItem('access_token');
+    if (tabValue === 0) {
+      const persoInfo = {
+        firstname: personalInfo.firstname,
+        lastname: personalInfo.lastname,
+        nickname: personalInfo.nickname,
+        password: personalInfo.password,
+        email: personalInfo.email,
+        phone_number: personalInfo.phone_number,
+        country: personalInfo.country,
+        city: personalInfo.city,
+        date_of_birth: personalInfo.date_of_birth,
+        is_gallery: personalInfo.is_gallery,
+        profile_pciture: photoUrl,
+      }
+      try {
+        const response = await axios.put('http://127.0.0.1:8000/api/user/<int:user_id>/updateProfile/', {
+          body: persoInfo,
+          headers : {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        setPersonalInfo(response.data);
+        alert("successful submition!")
+      } catch(error) {
+        if (axios.isAxiosError(error)) {
+          const errorMessage = error.response?.data || 'something went wrong during submition!';
+          alert(errorMessage);
+        }
+      }
+    } else if (tabValue === 1) {
+      try {
+        const response = await axios.put('http://127.0.0.1:8000/api/user/<int:user_id>/updateFavorites/', {
+          body: artPreferences,
+          headers : {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        setPersonalInfo(response.data);
+        alert("successful submition!")
+      } catch(error) {
+        if (axios.isAxiosError(error)) {
+          const errorMessage = error.response?.data || 'something went wrong during submition!';
+          alert(errorMessage);
+        }
+      }
+    }
+
     handleClose();
   };
 
@@ -461,8 +512,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="First Name"
-                    value={personalInfo.firstName}
-                    onChange={handlePersonalInfoChange('firstName')}
+                    value={personalInfo.firstname}
+                    onChange={handlePersonalInfoChange('firstname')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
@@ -471,8 +522,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Last Name"
-                    value={personalInfo.lastName}
-                    onChange={handlePersonalInfoChange('lastName')}
+                    value={personalInfo.lastname}
+                    onChange={handlePersonalInfoChange('lastname')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
@@ -481,8 +532,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Username"
-                    value={personalInfo.username}
-                    onChange={handlePersonalInfoChange('username')}
+                    value={personalInfo.nickname}
+                    onChange={handlePersonalInfoChange('nickname')}
                     InputProps={{
                       startAdornment: <InputAdornment position="start">@</InputAdornment>,
                     }}
@@ -533,8 +584,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Phone Number"
-                    value={personalInfo.phoneNumber}
-                    onChange={handlePersonalInfoChange('phoneNumber')}
+                    value={personalInfo.phone_number}
+                    onChange={handlePersonalInfoChange('phone_number')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
@@ -544,8 +595,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                     fullWidth
                     label="Date of Birth"
                     type="date"
-                    value={personalInfo.dateOfBirth}
-                    onChange={handlePersonalInfoChange('dateOfBirth')}
+                    value={personalInfo.date_of_birth}
+                    onChange={handlePersonalInfoChange('date_of_birth')}
                     InputLabelProps={{ shrink: true }}
                     variant="outlined"
                     sx={textFieldStyle}
@@ -575,7 +626,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <FormControl fullWidth sx={textFieldStyle}>
                     <InputLabel>Are you a Gallery?</InputLabel>
                     <Select
-                      value={personalInfo.isGallery}
+                      value={personalInfo.is_gallery}
                       onChange={handleGalleryChange}
                       label="Are you a Gallery?"
                       sx={{
