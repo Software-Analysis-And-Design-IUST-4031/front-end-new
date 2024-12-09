@@ -22,7 +22,9 @@ import {
   styled,
   Slider,
   FormControl,
-  InputLabel
+  InputLabel,
+  Autocomplete,
+  SelectChangeEvent,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonIcon from '@mui/icons-material/Person';
@@ -194,11 +196,12 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   };
 
   const handlePersonalInfoChange = (field: keyof typeof personalInfo) => (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
   ) => {
+    //const value = (event.target as HTMLInputElement).value || (event.target as {value: unknown}).value;
     setPersonalInfo(prev => ({
       ...prev,
-      [field]: event.target.value
+      [field]: event.target.value,
     }));
   };
 
@@ -210,7 +213,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   };
 
   const handleArtPreferencesChange = (field: keyof typeof artPreferences) => (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
   ) => {
     setArtPreferences(prev => ({
       ...prev,
@@ -252,6 +255,79 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
       console.error('Error cropping image:', error);
     }
   };
+
+  const countries = [{
+      name: 'Iran',
+      cities: ["Tehran", "Isfahan", "Mashhad", "Tabriz", "Semnan"]
+    }, {
+      name: 'France',
+      cities: ["Paris", "Mars"]
+    }, {
+      name: 'USA',
+      cities: ["NewYork", "Texas", "MeryLand", "WanshinTon", "Nevada"]
+    }
+  ];
+
+  const favorite_painters = [
+    "Leonardo da Vinci",
+    "Vincent van Gogh",
+    "Pablo Picasso",
+    "Claude Monet",
+    "Salvador Dalí",
+    "Frida Kahlo",
+    "Rembrandt",
+    "Michelangelo",
+    "Georgia O'Keeffe",
+    "Edvard Munch"
+  ];
+  const favorite_paintings = [
+    "Mona Lisa",
+    "The Starry Night",
+    "Guernica",
+    "The Persistence of Memory",
+    "The Last Supper",
+    "Girl with a Pearl Earring",
+    "The Scream",
+    "Water Lilies",
+    "The Creation of Adam",
+    "American Gothic"
+  ];
+  const favorite_painting_styles = [
+    "Realism",
+    "Impressionism",
+    "Cubism",
+    "Surrealism",
+    "Abstract",
+    "Expressionism",
+    "Baroque",
+    "Renaissance",
+    "Fauvism",
+    "Minimalism"
+  ];
+  const favorite_painting_techniques = [
+    "Oil Painting",
+    "Watercolor",
+    "Acrylic Painting",
+    "Fresco",
+    "Tempera",
+    "Gouache",
+    "Impasto",
+    "Encaustic",
+    "Glazing",
+    "Dry Brush"
+  ];
+  const favorite_painting_to_own = [
+    "Mona Lisa",
+    "The Starry Night",
+    "Guernica",
+    "The Persistence of Memory",
+    "The Last Supper",
+    "Girl with a Pearl Earring",
+    "The Scream",
+    "Water Lilies",
+    "The Creation of Adam",
+    "American Gothic"
+  ];
 
   const handleSubmit = async () => {
     const updatedData = {
@@ -603,31 +679,86 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="City"
-                    value={personalInfo.city}
-                    onChange={handlePersonalInfoChange('city')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>City</InputLabel>
+                    <Select
+                      value={personalInfo.city}
+                      onChange={handlePersonalInfoChange('city')}
+                      disabled={!personalInfo.country}
+                      label="City"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {personalInfo.country && countries.find((country) => country.name === personalInfo.country)?.cities.map((city: string) => (
+                        <MenuItem key={city} value={city}>
+                          {city}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Country"
-                    value={personalInfo.country}
-                    onChange={handlePersonalInfoChange('country')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Country</InputLabel>
+                    <Select
+                      value={personalInfo.country}
+                      onChange={handlePersonalInfoChange('country')}
+                      label="Country"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {countries.map((country) => (
+                        <MenuItem key={country.name} value={country.name}>
+                          {country.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth sx={textFieldStyle}>
                     <InputLabel>Are you a Gallery?</InputLabel>
                     <Select
                       value={personalInfo.is_gallery}
-                      onChange={handleGalleryChange}
+                      onChange={handlePersonalInfoChange('is_gallery')}
                       label="Are you a Gallery?"
                       sx={{
                         '& .MuiOutlinedInput-notchedOutline': {
@@ -674,54 +805,189 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Favorite Painter"
-                    value={artPreferences.favoritePainter}
-                    onChange={handleArtPreferencesChange('favoritePainter')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                  <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Favorite Painter</InputLabel>
+                    <Select
+                      value={artPreferences.favoritePainter}
+                      onChange={handleArtPreferencesChange('favoritePainter')}
+                      label="Favorite Painter"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {favorite_painters.map((favorite_painter) => (
+                        <MenuItem key={favorite_painter} value={favorite_painter}>
+                          {favorite_painter}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Favorite Painting"
-                    value={artPreferences.favoritePainting}
-                    onChange={handleArtPreferencesChange('favoritePainting')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                  <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Favorite Painting</InputLabel>
+                    <Select
+                      value={artPreferences.favoritePainting}
+                      onChange={handleArtPreferencesChange('favoritePainting')}
+                      label="Favorite Painting"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {favorite_paintings.map((favorite_painting) => (
+                        <MenuItem key={favorite_painting} value={favorite_painting}>
+                          {favorite_painting}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Favorite Painting Style"
-                    value={artPreferences.favoritePaintingStyle}
-                    onChange={handleArtPreferencesChange('favoritePaintingStyle')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                  <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Favorite Painting Style</InputLabel>
+                    <Select
+                      value={artPreferences.favoritePaintingStyle}
+                      onChange={handleArtPreferencesChange('favoritePaintingStyle')}
+                      label="Favorite Painting Style"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {favorite_painting_styles.map((favorite_painting_style) => (
+                        <MenuItem key={favorite_painting_style} value={favorite_painting_style}>
+                          {favorite_painting_style}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Favorite Painting Technique"
-                    value={artPreferences.favoritePaintingTech}
-                    onChange={handleArtPreferencesChange('favoritePaintingTech')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                  <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Favorite Painting Technique</InputLabel>
+                    <Select
+                      value={artPreferences.favoritePaintingTech}
+                      onChange={handleArtPreferencesChange('favoritePaintingTech')}
+                      label="Favorite Painting Technique"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {favorite_painting_techniques.map((favorite_painting_technique) => (
+                        <MenuItem key={favorite_painting_technique} value={favorite_painting_technique}>
+                          {favorite_painting_technique}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Your Favorite Own Painting"
-                    value={artPreferences.favoritePaintingOwn}
-                    onChange={handleArtPreferencesChange('favoritePaintingOwn')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                  <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Favorite Painting To Own</InputLabel>
+                    <Select
+                      value={artPreferences.favoritePaintingOwn}
+                      onChange={handleArtPreferencesChange('favoritePaintingOwn')}
+                      label="Your Favorite Own Painting"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {favorite_painting_to_own.map((favorite_own_painting) => (
+                        <MenuItem key={favorite_own_painting} value={favorite_own_painting}>
+                          {favorite_own_painting}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
               </Grid>
             </TabPanel>

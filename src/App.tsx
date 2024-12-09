@@ -116,7 +116,7 @@ const App: React.FC = () => {
           <Router>
             <Layout>
               <Routes>
-                <Route path="/" element={<LandingPage />} />
+                <Route path="/" element={<UserpanelApp />} />
                 <Route path="/LandingPage" element={<Navigate to="/" replace />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/HomePage" element={<Home />} />
