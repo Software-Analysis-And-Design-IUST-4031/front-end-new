@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, SyntheticEvent } from 'react';
 import {
   IconButton,
   Tooltip,
@@ -25,6 +25,8 @@ import {
   InputLabel,
   Autocomplete,
   SelectChangeEvent,
+  Snackbar, 
+  Alert,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonIcon from '@mui/icons-material/Person';
@@ -155,6 +157,10 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [open, setOpen] = useState(false);
+  const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
+  const [message, setMessage] = useState('');
+
   // Personal Info State
   const [personalInfo, setPersonalInfo] = useState({
     firstname: userData?.fullName?.split(' ')[0] || '',
@@ -186,6 +192,31 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [tempPhotoUrl, setTempPhotoUrl] = useState<string>('');
+
+  useEffect(() => {
+    if (tabValue === 1) {
+      const fetchPreferencesData = async () => {
+        const token = localStorage.getItem('access_token');
+  
+        try {
+          const response = await axios.get('http://127.0.0.1:8000/api/user/<int:user_id>/detailFavorites/', {
+            headers : {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+  
+          setPersonalInfo(response.data);
+          alert("successful submition!")
+        } catch(error) {
+          if (axios.isAxiosError(error)) {
+            const errorMessage = error.response?.data || 'something went wrong during submition!';
+            console.error(errorMessage);
+          }
+        }
+      };
+      fetchPreferencesData();
+    }
+  }, [tabValue]);
 
   const handleEditClick = () => {
     setIsEditorOpen(true);
@@ -255,6 +286,13 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
       console.error('Error cropping image:', error);
     }
   };
+
+  const handleAlertClose = (event: SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'cliclaway') {
+      return;
+    }
+    setOpen(false);
+  }
 
   const countries = [{
       name: 'Iran',
@@ -373,11 +411,18 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         });
 
         setPersonalInfo(response.data);
-        alert("successful submition!")
+        const personal_message = JSON.stringify(response.data.message) || 'personal info was updated successfully!';
+        setSeverity('success');
+        setMessage(personal_message);
+        //alert("successful submition!")
+        handleClose();
       } catch(error) {
         if (axios.isAxiosError(error)) {
           const errorMessage = error.response?.data || 'something went wrong during submition!';
-          alert(errorMessage);
+          setSeverity('error');
+          setMessage(errorMessage);
+          setOpen(true)
+          //alert(errorMessage);
         }
       }
     } else if (tabValue === 1) {
@@ -390,16 +435,23 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         });
 
         setPersonalInfo(response.data);
-        alert("successful submition!")
+        const personal_message = JSON.stringify(response.data.message) || 'preferences were updated successfully!';
+        setSeverity('success');
+        setMessage(personal_message);
+        //alert("successful submition!")
+        handleClose();
       } catch(error) {
         if (axios.isAxiosError(error)) {
           const errorMessage = error.response?.data || 'something went wrong during submition!';
-          alert(errorMessage);
+          setSeverity('error');
+          setMessage(errorMessage);
+          setOpen(true)
+          //alert(errorMessage);
         }
       }
     }
 
-    handleClose();
+    //handleClose();
   };
 
   const textFieldStyle = mode === 'dark' ? {
@@ -1169,6 +1221,11 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar open={open} autoHideDuration={5000} onClose={handleAlertClose} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
+          <Alert onClose={handleAlertClose} severity={severity} sx={{width: '235px', height: '90px', textAlign: 'center'}}>
+            {message}
+          </Alert>
+      </Snackbar>
     </>
   );
 };
