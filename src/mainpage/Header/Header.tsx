@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from './Button';
 import './Header.css';
 
 const Header: React.FC = () => {
+    const navigate = useNavigate();
 
     const handleSignUp = () => {
-        console.log('Sign up clicked');
+        setTimeout(() => {navigate("/profile")}, 1400);
     };
 
     const handleSignIn = () => {
-        console.log('Sign in clicked');
+        setTimeout(() => {navigate("/galleries")}, 1400);
     };
 
 

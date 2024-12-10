@@ -11,6 +11,7 @@ import LandingPage from './landingpage/landingpage';
 import EmptyPage from './pages/EmptyPage';
 import BlogPage from './Blog/BlogPage';
 import BlogEditor from './Blog/BlogEditor';
+import Home from './mainpage/Home';
 
 export const ColorModeContext = createContext({ 
   toggleColorMode: () => {},
@@ -118,36 +119,27 @@ const App: React.FC = () => {
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/LandingPage" element={<Navigate to="/" replace />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/HomePage" element={<Home />} />
                 <Route path="/Login" element={<Navigate to="/login" replace />} />
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/SignUp" element={<Navigate to="/signup" replace />} />
                 <Route path="/home" element={
-                  <ProtectedRoute>
                     <EmptyPage />
-                  </ProtectedRoute>
                 } />
                 <Route path="/Home" element={<Navigate to="/home" replace />} />
                 <Route path="/galleries" element={
-                  <ProtectedRoute>
                     <GalleriesContainer />
-                  </ProtectedRoute>
                 } />
                 <Route path="/Galleries" element={<Navigate to="/galleries" replace />} />
                 <Route path="/blog" element={
-                  <ProtectedRoute>
                     <BlogPage />
-                  </ProtectedRoute>
                 } />
                 <Route path="/Blog" element={<Navigate to="/blog" replace />} />
                 <Route path="/blog/new" element={
-                  <ProtectedRoute>
                     <BlogEditor />
-                  </ProtectedRoute>
                 } />
                 <Route path="/profile" element={
-                  <ProtectedRoute>
                     <UserpanelApp />
-                  </ProtectedRoute>
                 } />
                 <Route path="/Profile" element={<Navigate to="/profile" replace />} />
                 <Route path="*" element={<Navigate to="/" replace />} />

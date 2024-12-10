@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SyntheticEvent } from 'react';
 import Button from '@mui/material/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import '@mantine/core/styles.css';
@@ -10,6 +10,7 @@ import { Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
 import AuthLayout from './AuthLayout';
 import { useColorMode } from '../App';
 import { IconArrowLeft } from '@tabler/icons-react';
+import { Snackbar, Alert } from "@mui/material";
 
 interface LoginErrors {
   userName: string;
@@ -18,13 +19,12 @@ interface LoginErrors {
 }
 
 const Login = () => {
+  const [open, setOpen] = useState(false);
+  const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
+  const [message, setMessage] = useState('');
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState<LoginErrors>({ 
-    userName: '', 
-    password: '', 
-    api: '' 
-  }); 
+  const [errors, setErrors] = useState({ userName: '', password: '' }); 
   const [isSubmiting, setIsSubmiting] = useState(false);
   const navigate = useNavigate();
   const { mode } = useColorMode();
@@ -46,16 +46,29 @@ const Login = () => {
     };
   }, []);
 
+  const handleAlertClose = (event: SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'cliclaway') {
+      return;
+    }
+    setOpen(false);
+  }
+
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setUserName(value);
-    setErrors(prev => ({ ...prev, userName: '', api: '' }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      userName: value.trim() === '' ? 'username is required!' : '',
+    }));
   }
 
   const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setPassword(value);
-    setErrors(prev => ({ ...prev, password: '', api: '' }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      password: value.trim() === '' ? 'password is required!' : '',
+    }));
   }
 
   const validateForm = (): boolean => {
@@ -81,61 +94,39 @@ const Login = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    
-    if (!validateForm()) {
+    if (!userName || !password) {
+      const newErrors = {userName: userName ? '' : 'username is required!',
+      password: password ? '' : 'password is required!'};
+      setErrors(newErrors);
       return;
     }
-
+  
     setIsSubmiting(true);
     try {
-      // For test user
-      if (userName === 'testuser' && password === 'Test@123') {
-        localStorage.setItem('access_token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3R1c2VyIiwiaWF0IjoxNTE2MjM5MDIyfQ.7eMe1dyoNm0QQmkTGgVLcTMvPtZg4NE6mF5NEQ');
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('user', JSON.stringify({
-          id: 1,
-          firstname: 'Test',
-          lastname: 'User',
-          username: 'testuser',
-          email: 'testuser@example.com'
-        }));
-        navigate('/home');
-        return;
-      }
-
-      // For other users, try API
       const response = await axios.post('http://127.0.0.1:8000/api/user/login/', {
-        username: userName,
-        password: password,
-      });
-
-      if (response.data?.access) {
-        localStorage.setItem('access_token', response.data.access);
-        localStorage.setItem('isAuthenticated', 'true');
-        if (response.data.user) {
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-        }
-        navigate('/home');
-      } else {
-        setErrors(prev => ({ ...prev, api: 'Invalid response from server' }));
-      }
+          username: userName,
+          password: password,
+        } 
+      );
+  
+      //const access_token = response.data.access;
+      //localStorage.setItem('access_token', access_token);
+      //alert("hellow");
+  
+      const login_message = JSON.stringify(response.data.message) || 'login successful!';
+      setSeverity('success');
+      setMessage(login_message);
+      setOpen(true);
+      setTimeout(() => {navigate("/profile")}, 3000);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          setErrors(prev => ({ ...prev, api: 'Invalid username or password' }));
-        } else if (error.response?.status === 404) {
-          setErrors(prev => ({ ...prev, api: 'Server not found. Please try again later.' }));
-        } else {
-          const errorMessage = error.response?.data?.detail || 
-                             error.response?.data?.message || 
-                             'An error occurred during login. Please try again.';
-          setErrors(prev => ({ ...prev, api: errorMessage }));
-        }
-      } else {
-        setErrors(prev => ({ ...prev, api: 'Network error. Please check your connection.' }));
-      }
-    } finally {
-      setIsSubmiting(false);
+        const errorMessage = error.response?.data || 'Error occured during login!';
+        setSeverity('error');
+        setMessage(errorMessage);
+        setOpen(true);
+        //setTimeout(() => {setIsSubmiting(false)}, 3000);
+        setTimeout(() => {navigate("/HomePage")}, 3000);
+      } 
     }
   };
 
@@ -179,17 +170,6 @@ const Login = () => {
           }}>
             Login
           </h1>
-
-          {errors.api && (
-            <Text color="red" size="sm" mb="md" ta="center" style={{ 
-              backgroundColor: isDark ? 'rgba(255, 0, 0, 0.1)' : 'rgba(255, 0, 0, 0.05)',
-              padding: '0.5rem',
-              borderRadius: '4px',
-              marginBottom: '1rem'
-            }}>
-              {errors.api}
-            </Text>
-          )}
 
           <Grid>
             <Grid.Col span={12}>
@@ -268,6 +248,11 @@ const Login = () => {
           </Grid>
         </form>
       </Box>
+      <Snackbar open={open} autoHideDuration={5000} onClose={handleAlertClose} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
+          <Alert onClose={handleAlertClose} severity={severity} sx={{width: '235px', height: '90px', textAlign: 'center'}}>
+            {message}
+          </Alert>
+        </Snackbar>
     </AuthLayout>
   );
 };
