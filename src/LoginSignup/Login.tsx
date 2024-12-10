@@ -39,7 +39,7 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({ userName: '', password: '', api: '' }); 
+  const [errors, setErrors] = useState({ userName: '', password: '' }); 
   const [isSubmiting, setIsSubmiting] = useState(false);
   const navigate = useNavigate();
   const { mode } = useColorMode();
@@ -78,69 +78,58 @@ const Login = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setErrors({ userName: '', password: '', api: '' });
     
-    if (!userName || !password) {
+    if (!userName.trim() || !password.trim()) {
       const newErrors = {
-        userName: userName ? '' : 'Username is required!',
-        password: password ? '' : 'Password is required!',
-        api: ''
+        userName: userName.trim() ? '' : 'Username is required!',
+        password: password.trim() ? '' : 'Password is required!'
       };
       setErrors(newErrors);
       return;
     }
-
+  
     setIsSubmiting(true);
     try {
-      const response = await userService.login({
-        username: userName,
-        password: password
+      const response = await axios.post<LoginResponse>('http://127.0.0.1:8000/api/user/login/', {
+        username: userName.trim(),
+        password: password.trim(),
       });
-      console.log('Login response:', response);
-      const userId = response.user.user_id;
-      console.log('Navigation attempted with userId:', userId);
-
+  
+      // Store the token and properly initialize it
+      if (response.data.token) {
+        const token = response.data.token;
+        const userId = response.data.user.user_id.toString();
+        localStorage.setItem('token', token);
+        localStorage.setItem('userId', userId);
+        axios.defaults.headers.common['Authorization'] = `Token ${token}`;
+        userService.setAuthToken(token); // Make sure token is properly set in userService
+      }
 
       setSeverity('success');
+      //setMessage(`${response.data.user.user_id}`);
+      //setMessage('Login successful!');
+      alert(JSON.stringify(response.config.data));
       setMessage('Login successful!');
       setOpen(true);
-
-
+      
       setTimeout(() => {
-        navigate(`/${userId}/home`);
-      }, 500);
+        // Navigate to user-specific home route
+        navigate(`/${response.data.user.username}/home`);
+      }, 1500);
       
-    } catch (error: any) {
-      setIsSubmiting(false);
-      console.error('Login error:', error);
-      
-      if (error.response) {
-        const errorData = error.response.data;
-        const status = error.response.status;
-        console.log('Error response:', { status, data: errorData });
-        
-        switch (status) {
-          case 401:
-            setMessage('Invalid username or password');
-            break;
-          case 404:
-            setMessage('Server not found. Please try again later');
-            break;
-          case 500:
-            setMessage('Server error. Please try again later');
-            break;
-          default:
-            setMessage(errorData.message || 'An error occurred during login');
-        }
-      } else if (error.request) {
-        // Request was made but no response received
-        console.error('No response received:', error.request);
-        setMessage('No response from server. Please check your connection');
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const errorMessage = (error as any).response?.data?.message || 'Error occurred during login!';
+        setSeverity('error');
+        setMessage(errorMessage);
+        setOpen(true);
       } else {
-        // Error in setting up the request
-        console.error('Error setting up request:', error.message);
-        setMessage(error.message || 'An error occurred during login');
+        setSeverity('error');
+        setMessage('An unexpected error occurred');
+        setOpen(true);
       }
+    } finally {
+      setIsSubmiting(false);
     }
   };
 

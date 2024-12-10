@@ -10,32 +10,33 @@ import { Snackbar, Alert } from "@mui/material"
 import userService from './services/userService';
 
 interface LoginResponse {
-  user_id: string;
+  token: string;
+  user: {
+    user_id: number;
+    email: string;
+    firstname: string;
+    lastname: string;
+    username: string;
+    is_active: boolean;
+    is_admin: boolean;
+    date_joined: string;
+  };
+}
+
+interface ErrorResponse {
   message: string;
 }
-
-interface LoginError {
-  detail?: string;
-  message?: string;
-  non_field_errors?: string[];
-  username?: string[];
-  password?: string[];
-}
-
-// Type guard for axios error
-const isAxiosError = (error: any): error is { response?: { status: number; data: any } } => {
-  return error.response !== undefined;
-};
 
 const Login = () => {
 const navigate = useNavigate();
 const [open, setOpen] = useState(false);
-const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
+const [severity, setSeverity] = useState<'success' | 'error'>('success');
 const [message, setMessage] = useState('');
 const [userName, setUserName] = useState('');
 const [password, setPassword] = useState('');
-const [errors, setErrors] = useState({ userName: '', password: '' }); 
 const [isSubmiting, setIsSubmiting] = useState(false);
+const [errors, setErrors] = useState({ userName: '', password: '' }); 
+const [visible, setVisible] = useState(false);
 
 const handleAlertClose = (event: SyntheticEvent | Event, reason?: string) => {
   if (reason === 'cliclaway') {
@@ -64,84 +65,40 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   }));
 }
 
-const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+const handleSubmit = async (event: SyntheticEvent) => {
   event.preventDefault();
-  
-  // Reset previous errors
-  setErrors({ userName: '', password: '' });
-  
-  // Validate inputs
-  if (!userName || !password) {
-    const newErrors = {
-      userName: userName ? '' : 'Username is required!',
-      password: password ? '' : 'Password is required!'
-    };
-    setErrors(newErrors);
-    return;
-  }
-
   setIsSubmiting(true);
+
   try {
     const response = await userService.login({
       username: userName,
       password: password
     });
 
-    // Store user ID in localStorage
-    const userId = response.user.user_id;
-    localStorage.setItem('userId', userId.toString());
+    // Set success message
     
+    // Store user data
+    localStorage.setItem('token', response.token);
+    localStorage.setItem('userId', response.user.user_id.toString());
+    
+    // Navigate immediately
+    const userId = response.user.user_id;
+    console.log('Token:', response.token);
+    console.log('User ID:', userId);
+    console.log('Navigating to:', `user/${userId}/home`);
     setSeverity('success');
-    setMessage('Login successful!');
+    setMessage(`${userId}`);
     setOpen(true);
 
-    // Navigate to user's home page
-    setTimeout(() => {
-      navigate(`/${userId}/home`);
-    }, 500);
-  } catch (error: any) {
-    setIsSubmiting(false);
     
-    if (error.response) {
-      const errorData = error.response.data as LoginError;
-      const status = error.response.status;
-      
-      switch (status) {
-        case 401:
-          setMessage('Invalid username or password');
-          break;
-        case 404:
-          setMessage('Server not found. Please try again later');
-          break;
-        case 500:
-          setMessage('Internal server error. Please try again later');
-          break;
-        default:
-          if (errorData) {
-            if (errorData.non_field_errors && errorData.non_field_errors.length > 0) {
-              setMessage(errorData.non_field_errors[0]);
-            } else if (errorData.username && errorData.username.length > 0) {
-              const errorMsg = errorData.username[0];
-              setErrors(prev => ({ ...prev, userName: errorMsg }));
-              setMessage(`Username error: ${errorMsg}`);
-            } else if (errorData.password && errorData.password.length > 0) {
-              const errorMsg = errorData.password[0];
-              setErrors(prev => ({ ...prev, password: errorMsg }));
-              setMessage(`Password error: ${errorMsg}`);
-            } else if (errorData.detail || errorData.message) {
-              setMessage(errorData.detail || errorData.message || 'Login failed');
-            } else {
-              setMessage('An unexpected error occurred');
-            }
-          } else {
-            setMessage('Login failed. Please try again.');
-          }
-      }
-    } else {
-      setMessage('Network error. Please check your connection');
-    }
+    // Navigate without timeout
+    navigate(`user/${userId}/home`, { replace: true });
+  } catch (error) {
+    const errorMessage = (error as any)?.response?.data?.message || 'Error occurred during login!';
     setSeverity('error');
+    setMessage(errorMessage);
     setOpen(true);
+    setIsSubmiting(false);
   }
 };
 

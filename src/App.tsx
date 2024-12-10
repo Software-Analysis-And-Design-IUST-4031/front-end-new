@@ -22,6 +22,13 @@ export const useColorMode = () => useContext(ColorModeContext);
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const isAuthenticated = localStorage.getItem('token');
+  const location = useLocation();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  
   return <>{children}</>;
 };
 
@@ -109,16 +116,12 @@ const App: React.FC = () => {
             <Layout>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/LandingPage" element={<Navigate to="/" replace />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/Login" element={<Navigate to="/login" replace />} />
                 <Route path="/signup" element={<SignUp />} />
-                <Route path="/SignUp" element={<Navigate to="/signup" replace />} />
                 
                 {/* User-specific routes */}
-                <Route path=":userId">
-                  <Route index element={<Navigate to="home" replace />} />
-                  <Route path="home" element={<Home />} />
+                <Route path="/:username/*" element={<ProtectedRoute><UserpanelApp /></ProtectedRoute>}>
+                  <Route path="home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
                   <Route path="galleries" element={<GalleriesContainer />} />
                   <Route path="blog" element={<BlogPage />} />
                   <Route path="blog/:id" element={<BlogPostDetail />} />
@@ -127,10 +130,6 @@ const App: React.FC = () => {
                 </Route>
 
                 {/* Redirects */}
-                <Route path="/HomePage" element={<Navigate to="/home" replace />} />
-                <Route path="/Galleries" element={<Navigate to="/galleries" replace />} />
-                <Route path="/Blog" element={<Navigate to="/blog" replace />} />
-                <Route path="/Profile" element={<Navigate to="/profile" replace />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Layout>

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import api from '../api/config';
 
 // Types
 interface RequestConfig {
@@ -12,9 +11,9 @@ interface RequestConfig {
 
 export interface UserProfile {
     user_id?: number;
-    email: string;
-    firstname: string;
-    lastname: string;
+    email?: string;
+    firstname?: string;
+    lastname?: string;
     username?: string;
     is_active?: boolean;
     is_admin?: boolean;
@@ -82,10 +81,12 @@ interface RegisterResponse {
     message: string;
 }
 
+const BASE_URL = 'http://127.0.0.1:8000/api';
+
 const userService = {
     // Authentication
     async login(credentials: LoginCredentials): Promise<LoginResponse> {
-        const response = await api.post<LoginResponse>('/user/login/', credentials);
+        const response = await axios.post<LoginResponse>(`${BASE_URL}/user/login/`, credentials);
         if (response.data.token) {
             this.setAuthToken(response.data.token);
             localStorage.setItem('userId', response.data.user.user_id.toString());
@@ -95,22 +96,22 @@ const userService = {
 
     async logout(): Promise<void> {
         try {
-            await api.post('/user/logout/');
+            await axios.post(`${BASE_URL}/user/logout/`);
         } finally {
             localStorage.removeItem('token');
             localStorage.removeItem('userId');
-            delete api.defaults.headers.common['Authorization'];
+            delete axios.defaults.headers.common['Authorization'];
         }
     },
 
     async register(data: RegistrationData): Promise<RegisterResponse> {
-        const response = await api.post<RegisterResponse>('/user/register/', data);
+        const response = await axios.post<RegisterResponse>(`${BASE_URL}/user/register/`, data);
         return response.data;
     },
 
     // User Profile Management
     async getUserDetails(userId: number): Promise<UserProfile> {
-        const response = await api.get<UserProfile>(`/user/${userId}/detail/`);
+        const response = await axios.get<UserProfile>(`${BASE_URL}/user/${userId}/detail/`);
         return response.data;
     },
 
@@ -126,7 +127,7 @@ const userService = {
             }
         });
 
-        const response = await api.put<UserProfile>(`/user/${userId}/updateEditProfile/`, formData, {
+        const response = await axios.put<UserProfile>(`${BASE_URL}/user/${userId}/updateEditProfile/`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -135,28 +136,27 @@ const userService = {
     },
 
     async updateUserFavorites(userId: number, favoritesData: UserProfile): Promise<UserProfile> {
-        const response = await api.put<UserProfile>(`/user/${userId}/updateFavorites/`, favoritesData);
+        const response = await axios.put<UserProfile>(`${BASE_URL}/user/${userId}/updateFavorites/`, favoritesData);
         return response.data;
     },
 
     async getUserProfileDetails(userId: number): Promise<UserProfile> {
-        const response = await api.get<UserProfile>(`/user/${userId}/detailEditProfile/`);
+        const response = await axios.get<UserProfile>(`${BASE_URL}/user/${userId}/detailEditProfile/`);
         return response.data;
     },
 
     async getUserFavorites(userId: number): Promise<UserProfile> {
-        const response = await api.get<UserProfile>(`/user/${userId}/detailFavorites/`);
+        const response = await axios.get<UserProfile>(`${BASE_URL}/user/${userId}/detailFavorites/`);
         return response.data;
     },
 
-    // Painting Management
     async getUserPaintings(userId: number): Promise<Painting[]> {
-        const response = await api.get<Painting[]>(`/painting/user/${userId}/paintings/`);
+        const response = await axios.get<Painting[]>(`${BASE_URL}/painting/user/${userId}/paintings/`);
         return response.data;
     },
 
     async addPainting(userId: number, formData: FormData): Promise<Painting> {
-        const response = await api.post<Painting>(`/painting/user/${userId}/paintings/add/`, formData, {
+        const response = await axios.post<Painting>(`${BASE_URL}/painting/user/${userId}/paintings/add/`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -166,8 +166,9 @@ const userService = {
 
     // Utility function to set up auth token
     setAuthToken(token: string): void {
-        localStorage.setItem('token', token);
-        api.defaults.headers.common['Authorization'] = `Token ${token}`;
+        if (token) {
+            axios.defaults.headers.common['Authorization'] = `Token ${token}`;
+        }
     },
 
     // Initialize auth state from localStorage
@@ -178,19 +179,19 @@ const userService = {
         }
     },
 
-
+    // Check if user is authenticated
     isAuthenticated(): boolean {
         return !!localStorage.getItem('token');
     },
 
-
+    // Get current user ID
     getCurrentUserId(): number | null {
         const userId = localStorage.getItem('userId');
-        return userId ? parseInt(userId, 10) : null;
-    },
+        return userId ? parseInt(userId) : null;
+    }
 };
 
-
+// Initialize auth state when the service is loaded
 userService.initializeAuth();
 
 export default userService;
