@@ -37,11 +37,11 @@ const Galleries: React.FC = () => {
 
   return (
     <>
-      {galleryData.map((gallery, index) => (
+      {/* {galleryData.map((gallery, index) => (
         <Grid item key={index}>
           <Gallery {...gallery} index={index} />
         </Grid>
-      ))}
+      ))} */}
     </>
   );
 };
