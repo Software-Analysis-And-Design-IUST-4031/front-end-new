@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, SyntheticEvent } from 'react';
 import {
   IconButton,
   Tooltip,
@@ -22,7 +22,11 @@ import {
   styled,
   Slider,
   FormControl,
-  InputLabel
+  InputLabel,
+  Autocomplete,
+  SelectChangeEvent, 
+  Snackbar,
+  Alert
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonIcon from '@mui/icons-material/Person';
@@ -31,6 +35,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useColorMode } from '../App';
 import Cropper from 'react-easy-crop';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import axios from 'axios';
 
 interface EditProfileButtonProps {
   userData: any;
@@ -145,6 +150,17 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   customTheme,
   id
 }) => {
+  const [open, setOpen] = useState(false);
+  const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
+  const [message, setMessage] = useState(''); 
+
+  const handleAlertClose = (event: SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'cliclaway') {
+      return;
+    }
+    setOpen(false);
+  }
+
   const theme = useTheme();
   const { mode } = useColorMode();
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -154,16 +170,16 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
 
   // Personal Info State
   const [personalInfo, setPersonalInfo] = useState({
-    firstName: userData?.fullName?.split(' ')[0] || '',
-    lastName: userData?.fullName?.split(' ')[1] || '',
-    username: userData?.username?.replace('@', '') || '',
+    firstname: userData?.fullName?.split(' ')[0] || '',
+    lastname: userData?.fullName?.split(' ')[1] || '',
+    nickname: userData?.username?.replace('@', '') || '',
     password: '',
     email: userData?.email || '',
-    phoneNumber: userData?.phoneNumber || '',
+    phone_number: userData?.phoneNumber || '',
     country: userData?.location?.split(', ')[1] || '',
     city: userData?.location?.split(', ')[0] || '',
-    dateOfBirth: userData?.dateOfBirth || '',
-    isGallery: userData?.isGallery || localStorage.getItem('isGallery') || 'no'
+    date_of_birth: userData?.dateOfBirth || '',
+    is_gallery: userData?.isGallery || localStorage.getItem('isGallery') || 'no'
   });
 
   // Art Preferences State
@@ -184,6 +200,61 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [tempPhotoUrl, setTempPhotoUrl] = useState<string>('');
 
+  const [countries, setCountries] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [isCityDisabled, setIsCityDisabled] = useState(true);
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      const token = localStorage.getItem('access_token');
+      try {
+        const response = await axios.get("https://zaferuni.liara.run/api/countries/", {
+            headers : {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+        setCountries(response.data);
+        setOpen(true);
+        setSeverity('success');
+        setMessage('countries retrived successfully!');
+      } catch(error) {
+        setOpen(true);
+        setSeverity('error');
+        setMessage('countries retrived unsuccessfully!');
+      }
+    };
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    if (personalInfo.country) {
+      const fetchCities = async () => {
+        const token = localStorage.getItem('access_token');
+        try {
+          const response = await axios.get("https://zaferuni.liara.run/api/cities/<str:country_iso3>", {
+              headers : {
+                'Authorization': `Bearer ${token}`
+              }
+            }
+          );
+          setCities(response.data);
+          setOpen(true);
+          setSeverity('success');
+          setMessage('cities retrived successfully!');
+        } catch(error) {
+          setOpen(true);
+          setSeverity('error');
+          setMessage('cities retrived unsuccessfully!');
+        }
+      };
+      fetchCities();
+    } else {
+      setCities([]);
+      setIsCityDisabled(true);
+    }
+  }, [personalInfo.country]);
+
   const handleEditClick = () => {
     setIsEditorOpen(true);
   };
@@ -193,11 +264,12 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   };
 
   const handlePersonalInfoChange = (field: keyof typeof personalInfo) => (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
   ) => {
+    //const value = (event.target as HTMLInputElement).value || (event.target as {value: unknown}).value;
     setPersonalInfo(prev => ({
       ...prev,
-      [field]: event.target.value
+      [field]: event.target.value,
     }));
   };
 
@@ -209,7 +281,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   };
 
   const handleArtPreferencesChange = (field: keyof typeof artPreferences) => (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
   ) => {
     setArtPreferences(prev => ({
       ...prev,
@@ -252,16 +324,89 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     }
   };
 
+  /*const countries = [{
+      name: 'Iran',
+      cities: ["Tehran", "Isfahan", "Mashhad", "Tabriz", "Semnan"]
+    }, {
+      name: 'France',
+      cities: ["Paris", "Mars"]
+    }, {
+      name: 'USA',
+      cities: ["NewYork", "Texas", "MeryLand", "WanshinTon", "Nevada"]
+    }
+  ];*/
+
+  const favorite_painters = [
+    "Leonardo da Vinci",
+    "Vincent van Gogh",
+    "Pablo Picasso",
+    "Claude Monet",
+    "Salvador Dalí",
+    "Frida Kahlo",
+    "Rembrandt",
+    "Michelangelo",
+    "Georgia O'Keeffe",
+    "Edvard Munch"
+  ];
+  const favorite_paintings = [
+    "Mona Lisa",
+    "The Starry Night",
+    "Guernica",
+    "The Persistence of Memory",
+    "The Last Supper",
+    "Girl with a Pearl Earring",
+    "The Scream",
+    "Water Lilies",
+    "The Creation of Adam",
+    "American Gothic"
+  ];
+  const favorite_painting_styles = [
+    "Realism",
+    "Impressionism",
+    "Cubism",
+    "Surrealism",
+    "Abstract",
+    "Expressionism",
+    "Baroque",
+    "Renaissance",
+    "Fauvism",
+    "Minimalism"
+  ];
+  const favorite_painting_techniques = [
+    "Oil Painting",
+    "Watercolor",
+    "Acrylic Painting",
+    "Fresco",
+    "Tempera",
+    "Gouache",
+    "Impasto",
+    "Encaustic",
+    "Glazing",
+    "Dry Brush"
+  ];
+  const favorite_painting_to_own = [
+    "Mona Lisa",
+    "The Starry Night",
+    "Guernica",
+    "The Persistence of Memory",
+    "The Last Supper",
+    "Girl with a Pearl Earring",
+    "The Scream",
+    "Water Lilies",
+    "The Creation of Adam",
+    "American Gothic"
+  ];
+
   const handleSubmit = async () => {
     const updatedData = {
       ...userData,
-      fullName: `${personalInfo.firstName} ${personalInfo.lastName}`,
-      username: `@${personalInfo.username}`,
+      fullName: `${personalInfo.firstname} ${personalInfo.lastname}`,
+      username: `@${personalInfo.nickname}`,
       email: personalInfo.email,
-      phoneNumber: personalInfo.phoneNumber,
+      phoneNumber: personalInfo.phone_number,
       location: `${personalInfo.city}, ${personalInfo.country}`,
-      dateOfBirth: personalInfo.dateOfBirth,
-      isGallery: personalInfo.isGallery,
+      dateOfBirth: personalInfo.date_of_birth,
+      isGallery: personalInfo.is_gallery,
       avatarUrl: photoUrl,
       bio: artPreferences.biography,
       favoritePainter: artPreferences.favoritePainter,
@@ -272,6 +417,56 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     };
 
     onProfileUpdate(updatedData);
+    const token = localStorage.getItem('access_token');
+    if (tabValue === 0) {
+      const persoInfo = {
+        firstname: personalInfo.firstname,
+        lastname: personalInfo.lastname,
+        nickname: personalInfo.nickname,
+        //password: personalInfo.password,
+        email: personalInfo.email,
+        phone_number: personalInfo.phone_number,
+        country: personalInfo.country,
+        city: personalInfo.city,
+        date_of_birth: personalInfo.date_of_birth,
+        is_gallery: personalInfo.is_gallery,
+        profile_pciture: photoUrl,
+      }
+      try {
+        const response = await axios.put('https://zaferuni.liara.run/api/user/<int:user_id>/updateProfile/', {
+          body: persoInfo,
+          headers : {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        setPersonalInfo(response.data);
+        alert("successful submition!")
+      } catch(error) {
+        if (axios.isAxiosError(error)) {
+          const errorMessage = error.response?.data || 'something went wrong during submition!';
+          alert(errorMessage);
+        }
+      }
+    } else if (tabValue === 1) {
+      try {
+        const response = await axios.put('https://zaferuni.liara.run/api/user/<int:user_id>/updateFavorites/', {
+          body: artPreferences,
+          headers : {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        setPersonalInfo(response.data);
+        alert("successful submition!")
+      } catch(error) {
+        if (axios.isAxiosError(error)) {
+          const errorMessage = error.response?.data || 'something went wrong during submition!';
+          alert(errorMessage);
+        }
+      }
+    }
+
     handleClose();
   };
 
@@ -461,8 +656,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="First Name"
-                    value={personalInfo.firstName}
-                    onChange={handlePersonalInfoChange('firstName')}
+                    value={personalInfo.firstname}
+                    onChange={handlePersonalInfoChange('firstname')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
@@ -471,8 +666,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Last Name"
-                    value={personalInfo.lastName}
-                    onChange={handlePersonalInfoChange('lastName')}
+                    value={personalInfo.lastname}
+                    onChange={handlePersonalInfoChange('lastname')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
@@ -481,8 +676,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Username"
-                    value={personalInfo.username}
-                    onChange={handlePersonalInfoChange('username')}
+                    value={personalInfo.nickname}
+                    onChange={handlePersonalInfoChange('nickname')}
                     InputProps={{
                       startAdornment: <InputAdornment position="start">@</InputAdornment>,
                     }}
@@ -500,6 +695,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                     variant="outlined"
                     sx={textFieldStyle}
                     InputProps={{
+                      readOnly: true,
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton
@@ -533,8 +729,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   <TextField
                     fullWidth
                     label="Phone Number"
-                    value={personalInfo.phoneNumber}
-                    onChange={handlePersonalInfoChange('phoneNumber')}
+                    value={personalInfo.phone_number}
+                    onChange={handlePersonalInfoChange('phone_number')}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
@@ -544,39 +740,94 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                     fullWidth
                     label="Date of Birth"
                     type="date"
-                    value={personalInfo.dateOfBirth}
-                    onChange={handlePersonalInfoChange('dateOfBirth')}
+                    value={personalInfo.date_of_birth}
+                    onChange={handlePersonalInfoChange('date_of_birth')}
                     InputLabelProps={{ shrink: true }}
                     variant="outlined"
                     sx={textFieldStyle}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="City"
-                    value={personalInfo.city}
-                    onChange={handlePersonalInfoChange('city')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>City</InputLabel>
+                    <Select
+                      value={personalInfo.city}
+                      onChange={handlePersonalInfoChange('city')}
+                      disabled={isCityDisabled}
+                      label="City"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {personalInfo.country && cities.map((city: string) => (
+                        <MenuItem key={city} value={city}>
+                          {city}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Country"
-                    value={personalInfo.country}
-                    onChange={handlePersonalInfoChange('country')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Country</InputLabel>
+                    <Select
+                      value={personalInfo.country}
+                      onChange={handlePersonalInfoChange('country')}
+                      label="Country"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {countries.map((country) => (
+                        <MenuItem key={country} value={country}>
+                          {country}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth sx={textFieldStyle}>
                     <InputLabel>Are you a Gallery?</InputLabel>
                     <Select
-                      value={personalInfo.isGallery}
-                      onChange={handleGalleryChange}
+                      value={personalInfo.is_gallery}
+                      onChange={handlePersonalInfoChange('is_gallery')}
                       label="Are you a Gallery?"
                       sx={{
                         '& .MuiOutlinedInput-notchedOutline': {
@@ -623,54 +874,189 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Favorite Painter"
-                    value={artPreferences.favoritePainter}
-                    onChange={handleArtPreferencesChange('favoritePainter')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                  <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Favorite Painter</InputLabel>
+                    <Select
+                      value={artPreferences.favoritePainter}
+                      onChange={handleArtPreferencesChange('favoritePainter')}
+                      label="Favorite Painter"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {favorite_painters.map((favorite_painter) => (
+                        <MenuItem key={favorite_painter} value={favorite_painter}>
+                          {favorite_painter}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Favorite Painting"
-                    value={artPreferences.favoritePainting}
-                    onChange={handleArtPreferencesChange('favoritePainting')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                  <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Favorite Painting</InputLabel>
+                    <Select
+                      value={artPreferences.favoritePainting}
+                      onChange={handleArtPreferencesChange('favoritePainting')}
+                      label="Favorite Painting"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {favorite_paintings.map((favorite_painting) => (
+                        <MenuItem key={favorite_painting} value={favorite_painting}>
+                          {favorite_painting}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Favorite Painting Style"
-                    value={artPreferences.favoritePaintingStyle}
-                    onChange={handleArtPreferencesChange('favoritePaintingStyle')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                  <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Favorite Painting Style</InputLabel>
+                    <Select
+                      value={artPreferences.favoritePaintingStyle}
+                      onChange={handleArtPreferencesChange('favoritePaintingStyle')}
+                      label="Favorite Painting Style"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {favorite_painting_styles.map((favorite_painting_style) => (
+                        <MenuItem key={favorite_painting_style} value={favorite_painting_style}>
+                          {favorite_painting_style}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Favorite Painting Technique"
-                    value={artPreferences.favoritePaintingTech}
-                    onChange={handleArtPreferencesChange('favoritePaintingTech')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                  <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Favorite Painting Technique</InputLabel>
+                    <Select
+                      value={artPreferences.favoritePaintingTech}
+                      onChange={handleArtPreferencesChange('favoritePaintingTech')}
+                      label="Favorite Painting Technique"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {favorite_painting_techniques.map((favorite_painting_technique) => (
+                        <MenuItem key={favorite_painting_technique} value={favorite_painting_technique}>
+                          {favorite_painting_technique}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Your Favorite Own Painting"
-                    value={artPreferences.favoritePaintingOwn}
-                    onChange={handleArtPreferencesChange('favoritePaintingOwn')}
-                    variant="outlined"
-                    sx={textFieldStyle}
-                  />
+                  <FormControl fullWidth sx={textFieldStyle}>
+                    <InputLabel>Favorite Painting To Own</InputLabel>
+                    <Select
+                      value={artPreferences.favoritePaintingOwn}
+                      onChange={handleArtPreferencesChange('favoritePaintingOwn')}
+                      label="Your Favorite Own Painting"
+                      sx={{
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderRadius: '8px',
+                        },
+                        '& .MuiSelect-select': {
+                          borderRadius: '8px',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            mt: 1,
+                            borderRadius: '8px',
+                            '& .MuiMenuItem-root': {
+                              mx: 1,
+                              my: 0.5,
+                              borderRadius: '4px',
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      {favorite_painting_to_own.map((favorite_own_painting) => (
+                        <MenuItem key={favorite_own_painting} value={favorite_own_painting}>
+                          {favorite_own_painting}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
               </Grid>
             </TabPanel>
@@ -852,6 +1238,11 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar open={open} autoHideDuration={5000} onClose={handleAlertClose} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
+          <Alert onClose={handleAlertClose} severity={severity} sx={{width: '235px', height: '90px', textAlign: 'center'}}>
+            {message}
+          </Alert>
+        </Snackbar>
     </>
   );
 };

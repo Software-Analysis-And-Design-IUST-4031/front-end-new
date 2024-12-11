@@ -20,7 +20,7 @@ interface LoginErrors {
 }
 
 interface LoginResponse {
-  token: string;
+  access: string;
   user: {
     user_id: number;
     email: string;
@@ -37,7 +37,7 @@ const Login = () => {
   const [open, setOpen] = useState(false);
   const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
   const [message, setMessage] = useState('');
-  const [userName, setUserName] = useState('');
+  const [username, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({ userName: '', password: '' }); 
   const [isSubmiting, setIsSubmiting] = useState(false);
@@ -79,9 +79,9 @@ const Login = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     
-    if (!userName.trim() || !password.trim()) {
+    if (!username.trim() || !password.trim()) {
       const newErrors = {
-        userName: userName.trim() ? '' : 'Username is required!',
+        userName: username.trim() ? '' : 'Username is required!',
         password: password.trim() ? '' : 'Password is required!'
       };
       setErrors(newErrors);
@@ -90,29 +90,34 @@ const Login = () => {
   
     setIsSubmiting(true);
     try {
-      const response = await userService.login({
-        username: userName,
+      const response = await axios.post<LoginResponse>('http://127.0.0.1:8000/api/user/login/', {
+        username: username,
         password: password,
       });
-
+  
       // Store the token and properly initialize it
-      if (response.token) {
-        const token = response.token;
-        const username = response.user.username;
-        localStorage.setItem('token', token);
+      if (response.data.access) {
+        const token = response.data.access;
+        //const userId = response.data.user.user_id.toString();
+        localStorage.setItem('access_token', token);
         localStorage.setItem('username', username);
         axios.defaults.headers.common['Authorization'] = `Token ${token}`;
-        userService.setAuthToken(token);
-
-        setSeverity('success');
-        setMessage('Login successful!');
-        setOpen(true);
-        
-        // Navigate immediately without setTimeout
-        console.log('Navigating to:', `/${username}/home`);
-        navigate(`/${username}/home`, { replace: true });
+        userService.setAuthToken(token); // Make sure token is properly set in userService
       }
-    } catch (error: any) {
+
+      setSeverity('success');
+      //setMessage(`${response.data.user.user_id}`);
+      //setMessage('Login successful!');
+      //alert(JSON.stringify(response.config.data));
+      setMessage('Login successfully!');
+      setOpen(true);
+      
+      setTimeout(() => {
+        // Navigate to user-specific home route
+        navigate(`/${username}/home`);
+      }, 1500);
+      
+    } catch (error: unknown) {
       if (error && typeof error === 'object' && 'response' in error) {
         const errorMessage = (error as any).response?.data?.message || 'Error occurred during login!';
         setSeverity('error');
@@ -122,6 +127,10 @@ const Login = () => {
         setSeverity('error');
         setMessage('An unexpected error occurred');
         setOpen(true);
+        /*setTimeout(() => {
+          // Navigate to user-specific home route
+          navigate(`/${username}/home`);
+        }, 1500);*/
       }
     } finally {
       setIsSubmiting(false);
@@ -174,7 +183,7 @@ const Login = () => {
               <TextInput
                 label="Username"
                 placeholder="Enter your username"
-                value={userName}
+                value={username}
                 onChange={handleUsernameChange}
                 error={errors.userName}
                 styles={{
