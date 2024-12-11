@@ -1,19 +1,17 @@
-import React, { useState, useMemo, createContext, useContext } from 'react';
+import React, { useState, useMemo, createContext, useContext, useEffect } from 'react';
 import { createTheme, ThemeProvider, CssBaseline, PaletteMode } from '@mui/material';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import UserpanelApp from './UserpanelApp';
 import AppNavbar from './Navbar/Navbar';
 import GalleriesContainer from './components_galleries/GalleriesContainer';
-import SignUp from './SignUp';
-import Login from './Login';
+import Login from './LoginSignup/Login';
+import SignUp from './LoginSignup/SignUp';
 import LandingPage from './landingpage/landingpage';
-//import Galleries from './components__galleries/galleries';
-//import SideBar from './SideBar';
-//import ProfileEditor from './ProfileEditor';
-//
-//import MainPage from './mainpage/mainpage';
-
-// import GeminiChat from './components/GeminiChat';
+import EmptyPage from './pages/EmptyPage';
+import BlogPage from './Blog/BlogPage';
+import BlogEditor from './Blog/BlogEditor';
+import BlogPostDetail from './Blog/BlogPostDetail';
+import Home from './mainpage/Home';
 
 export const ColorModeContext = createContext({ 
   toggleColorMode: () => {},
@@ -22,7 +20,40 @@ export const ColorModeContext = createContext({
 
 export const useColorMode = () => useContext(ColorModeContext);
 
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const isAuthenticated = localStorage.getItem('token');
+  const location = useLocation();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Layout component to handle navbar visibility
+const Layout = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+  const isPublicPage = ['/', '/login', '/signup'].includes(location.pathname);
+
+  return (
+    <div className="min-h-screen bg-[#FAFBFC] relative w-full">
+      {!isPublicPage && <AppNavbar />}
+      <main className={`w-full ${!isPublicPage ? 'pt-8' : ''}`}>
+        {children}
+      </main>
+    </div>
+  );
+};
+
 const App: React.FC = () => {
+  // Remove the authentication clearing
+  // useEffect(() => {
+  //   localStorage.removeItem('isAuthenticated');
+  //   localStorage.removeItem('access_token');
+  // }, []);
+
   const [mode, setMode] = useState<PaletteMode>(() => {
     const savedMode = localStorage.getItem('themeMode');
     return (savedMode as PaletteMode) || 'light';
@@ -51,7 +82,7 @@ const App: React.FC = () => {
             main: '#1976d2',
           },
           secondary: {
-            main: '#ff4081',
+            main: '#ff4081'
           },
           background: {
             default: mode === 'light' ? '#ffffff' : '#121212',
@@ -82,22 +113,26 @@ const App: React.FC = () => {
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <Router>
-            <div className="min-h-screen bg-[#FAFBFC] relative">
-              <AppNavbar />
-              <main className="container mx-auto px-4 pt-8">
+            <Layout>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/profile" element={<UserpanelApp />} />
-                <Route path="/SignUp" element={<SignUp />} />
-                <Route path="/Login" element={<Login />} />
-                <Route path="/LandingPage" element={<LandingPage />} />
-                <Route path="/home" element={<div>Home Page</div>} />
-                <Route path="/blog" element={<div>Blog Page</div>} />
-                <Route path="/galleries" element={<GalleriesContainer />} />
-              </Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<SignUp />} />
+                
+                {/* User-specific routes */}
+               
+                <Route path="/:username/home" element={<Home />} />
+                <Route path="/:username/galleries" element={<GalleriesContainer />} />
+                <Route path="/:username/blog" element={<BlogPage />} />
+                <Route path="/:username/blog/:id" element={<BlogPostDetail />} />
+                <Route path="/:username/blog/new" element={<BlogEditor />} />
+                <Route path="/:username/profile" element={<UserpanelApp />} />
+                
 
-              </main>
-            </div>
+                {/* Redirects */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Layout>
           </Router>
         </ThemeProvider>
       </ColorModeContext.Provider>

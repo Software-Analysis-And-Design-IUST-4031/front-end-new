@@ -1,26 +1,29 @@
 .footer {
-    bottom: 0;
-    height: 5%;
+    width: 100%;
     display: flex;
     align-items: center;
-    padding: 20px;
+    justify-content: center;
+    padding: 40px;
     background-color: #000000;
     text-align: left;
     z-index: 1000;
-    border-top: 1px solid #333; /* Add a bottom border */
-    border-radius: 8px 8px 0 0; /* Smooth corners at the bottom */
+    border-top: 1px solid #333;
+    box-sizing: border-box;
 }
 
 .footer-title {
     margin: 0;
-    flex-grow: 1;
     font-family: 'Pacifico', cursive;
 }
 
 .footer-content {
     display: flex;
     flex-direction: column;
-    gap: 0px; 
+    align-items: center;
+    gap: 8px;
     font-size: 14px;
     color: #fff;
+    width: 100%;
+    max-width: 1200px;
+    text-align: center;
 }

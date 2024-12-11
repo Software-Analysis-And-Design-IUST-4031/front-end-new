@@ -6,11 +6,11 @@ import { useNavigate } from 'react-router-dom'
 const Header: React.FC = () => {
     const navigate = useNavigate();
     const handleSignUp = () => {
-        navigate("/SignUp");
+        navigate("/signup");
     };
 
     const handleSignIn = () => {
-        navigate("/Login");
+        navigate("/login");
     };
 
     return (

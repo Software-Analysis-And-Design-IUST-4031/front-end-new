@@ -4,20 +4,22 @@ body {
 }
 
 .header {
+    position: sticky;
     top: 0;
+    width: 100%;
     display: flex;
     align-items: center;
-    padding: 20px;
+    justify-content: space-between;
+    padding: 20px 40px;
     background-color: #000000;
     text-align: left;
     z-index: 1000;
-    border-bottom: 1px solid #333; /* Add a bottom border */
-    border-radius: 0 0 8px 8px; /* Smooth corners at the bottom */
+    border-bottom: 1px solid #333;
+    box-sizing: border-box;
 }
 
 .header-title {
     margin: 0;
-    flex-grow: 1;
     font-family: 'Pacifico', cursive;
     color: white;
 }

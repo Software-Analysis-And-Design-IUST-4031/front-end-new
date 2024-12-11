@@ -3,22 +3,40 @@ import Button from '@mui/material/Button'
 import { Link } from 'react-router-dom'
 import '@mantine/core/styles.css';
 import './Login.css'
-import axios from 'axios'
 import { EyeCheck, EyeOff } from 'tabler-icons-react';
 import { MantineProvider, Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
 import { useNavigate } from 'react-router-dom'
 import { Snackbar, Alert } from "@mui/material"
+import userService from './services/userService';
 
+interface LoginResponse {
+  token: string;
+  user: {
+    user_id: number;
+    email: string;
+    firstname: string;
+    lastname: string;
+    username: string;
+    is_active: boolean;
+    is_admin: boolean;
+    date_joined: string;
+  };
+}
+
+interface ErrorResponse {
+  message: string;
+}
 
 const Login = () => {
 const navigate = useNavigate();
 const [open, setOpen] = useState(false);
-const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
+const [severity, setSeverity] = useState<'success' | 'error'>('success');
 const [message, setMessage] = useState('');
 const [userName, setUserName] = useState('');
 const [password, setPassword] = useState('');
-const [errors, setErrors] = useState({ userName: '', password: '' }); 
 const [isSubmiting, setIsSubmiting] = useState(false);
+const [errors, setErrors] = useState({ userName: '', password: '' }); 
+const [visible, setVisible] = useState(false);
 
 const handleAlertClose = (event: SyntheticEvent | Event, reason?: string) => {
   if (reason === 'cliclaway') {
@@ -47,40 +65,40 @@ const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   }));
 }
 
-const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+const handleSubmit = async (event: SyntheticEvent) => {
   event.preventDefault();
-  if (!userName || !password) {
-    const newErrors = {userName: userName ? '' : 'username is required!',
-    password: password ? '' : 'password is required!'};
-    setErrors(newErrors);
-    return;
-  }
-
   setIsSubmiting(true);
+
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/user/login/', {
-        username: userName,
-        password: password,
-      } 
-    );
+    const response = await userService.login({
+      username: userName,
+      password: password
+    });
 
-    //const access_token = response.data.access;
-    //localStorage.setItem('access_token', access_token);
-    //alert("hellow");
-
-    const login_message = JSON.stringify(response.data.message) || 'login successful!';
+    // Set success message
+    
+    // Store user data
+    localStorage.setItem('token', response.token);
+    localStorage.setItem('userId', response.user.user_id.toString());
+    
+    // Navigate immediately
+    const userId = response.user.user_id;
+    console.log('Token:', response.token);
+    console.log('User ID:', userId);
+    console.log('Navigating to:', `user/${userId}/home`);
     setSeverity('success');
-    setMessage(login_message);
+    setMessage(`${userId}`);
     setOpen(true);
-    setTimeout(() => {navigate("/home")}, 3000);
+
+    
+    // Navigate without timeout
+    navigate(`user/${userId}/home`, { replace: true });
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const errorMessage = error.response?.data || 'Error occured during login!';
-      setSeverity('error');
-      setMessage(errorMessage);
-      setOpen(true);
-      setTimeout(() => {setIsSubmiting(false)}, 3000);
-    } 
+    const errorMessage = (error as any)?.response?.data?.message || 'Error occurred during login!';
+    setSeverity('error');
+    setMessage(errorMessage);
+    setOpen(true);
+    setIsSubmiting(false);
   }
 };
 

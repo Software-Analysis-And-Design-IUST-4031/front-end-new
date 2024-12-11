@@ -9,7 +9,6 @@ export const SearchBar: React.FC = () => {
 
   const handleSearch = () => {
     console.log('Searching for:', searchValue);
-    // Add your search logic here
   };
 
   return (

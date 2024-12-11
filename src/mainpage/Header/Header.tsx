@@ -1,27 +1,31 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from './Button';
 import './Header.css';
 
 const Header: React.FC = () => {
+    const navigate = useNavigate();
 
-    const handleSignUp = () => {
-        console.log('Sign up clicked');
+    const handleProfile = () => {
+        navigate("/profile");
     };
 
-    const handleSignIn = () => {
-        console.log('Sign in clicked');
+    const handleGallery = () => {
+        navigate("/galleries");
     };
 
+    const handleLogin = () => {
+        navigate("/login");
+    };
 
     return (
         <header className="header">
             <h1 className="header-title">zaferouni</h1>
             <div className="header-buttons">
-                <Button label="Profile" onClick={handleSignUp} styleType="primary" />
-                <Button label="Gallery" onClick={handleSignIn} styleType="primary" />
+                <Button label="Profile" onClick={handleProfile} styleType="primary" />
+                <Button label="Gallery" onClick={handleGallery} styleType="primary" />
+                <Button label="Login" onClick={handleLogin} styleType="primary" />
             </div>
-           
-            
         </header>
     );
 };
