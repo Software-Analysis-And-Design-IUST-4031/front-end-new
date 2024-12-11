@@ -1,0 +1,28 @@
+.filters-container {
+    display: flex;
+    justify-content: center; /* Center the filters horizontally */
+    align-items: center;
+    flex-wrap: wrap;
+    background-color: #f9f9f9;
+    padding: 10px;  /* Reduced padding */
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    gap: 10px; /* Consistent spacing between items */
+    margin: 0 auto 15px auto; /* Center container with auto margins */
+    max-width: 800px; /* Optional: limit the container width */
+}
+
+.filter-input, .filter-select {
+    width: 180px; /* Slightly smaller width */
+    padding: 8px;  /* Reduced padding */
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    text-align: center; /* Center text inside inputs */
+}
+
+@media (min-width: 768px) {
+    .filters-container {
+        gap: 20px; /* Closer gap on larger screens */
+    }
+}

@@ -5,9 +5,9 @@ const Footer: React.FC = () => {
     return (
         <footer className="footer">
             <div className="footer-content">
-                <p>Contact us: info@artshop.com</p>
-                <p>Follow us on social media:</p>
-                <p>Instagram: @artshop | Facebook: Art Shop</p>
+                <p>Contact us: info@zaferuni.com</p>
+                <p>https://zaferuni.liara.run/</p>
+                <p>Instagram: zaferuni</p>
             </div>
         </footer>
     );
