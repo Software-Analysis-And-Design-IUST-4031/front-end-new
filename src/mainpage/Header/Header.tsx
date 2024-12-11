@@ -5,13 +5,14 @@ import './Header.css';
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
+    const username = localStorage.getItem('username');
 
     const handleProfile = () => {
-        navigate("/profile");
+        navigate(`/${username}/profile`);
     };
 
     const handleGallery = () => {
-        navigate("/galleries");
+        navigate(`/${username}/galleries`);
     };
 
     const handleLogin = () => {
