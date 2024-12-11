@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, SyntheticEvent } from 'react';
 import {
   IconButton,
   Tooltip,
@@ -24,7 +24,9 @@ import {
   FormControl,
   InputLabel,
   Autocomplete,
-  SelectChangeEvent,
+  SelectChangeEvent, 
+  Snackbar,
+  Alert
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonIcon from '@mui/icons-material/Person';
@@ -148,6 +150,17 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   customTheme,
   id
 }) => {
+  const [open, setOpen] = useState(false);
+  const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
+  const [message, setMessage] = useState(''); 
+
+  const handleAlertClose = (event: SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'cliclaway') {
+      return;
+    }
+    setOpen(false);
+  }
+
   const theme = useTheme();
   const { mode } = useColorMode();
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -186,6 +199,61 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [tempPhotoUrl, setTempPhotoUrl] = useState<string>('');
+
+  const [countries, setCountries] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [isCityDisabled, setIsCityDisabled] = useState(true);
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      const token = localStorage.getItem('access_token');
+      try {
+        const response = await axios.get("https://zaferuni.liara.run/api/countries/", {
+            headers : {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+        setCountries(response.data);
+        setOpen(true);
+        setSeverity('success');
+        setMessage('countries retrived successfully!');
+      } catch(error) {
+        setOpen(true);
+        setSeverity('error');
+        setMessage('countries retrived unsuccessfully!');
+      }
+    };
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    if (personalInfo.country) {
+      const fetchCities = async () => {
+        const token = localStorage.getItem('access_token');
+        try {
+          const response = await axios.get("https://zaferuni.liara.run/api/cities/<str:country_iso3>", {
+              headers : {
+                'Authorization': `Bearer ${token}`
+              }
+            }
+          );
+          setCities(response.data);
+          setOpen(true);
+          setSeverity('success');
+          setMessage('cities retrived successfully!');
+        } catch(error) {
+          setOpen(true);
+          setSeverity('error');
+          setMessage('cities retrived unsuccessfully!');
+        }
+      };
+      fetchCities();
+    } else {
+      setCities([]);
+      setIsCityDisabled(true);
+    }
+  }, [personalInfo.country]);
 
   const handleEditClick = () => {
     setIsEditorOpen(true);
@@ -256,7 +324,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     }
   };
 
-  const countries = [{
+  /*const countries = [{
       name: 'Iran',
       cities: ["Tehran", "Isfahan", "Mashhad", "Tabriz", "Semnan"]
     }, {
@@ -266,7 +334,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
       name: 'USA',
       cities: ["NewYork", "Texas", "MeryLand", "WanshinTon", "Nevada"]
     }
-  ];
+  ];*/
 
   const favorite_painters = [
     "Leonardo da Vinci",
@@ -355,7 +423,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         firstname: personalInfo.firstname,
         lastname: personalInfo.lastname,
         nickname: personalInfo.nickname,
-        password: personalInfo.password,
+        //password: personalInfo.password,
         email: personalInfo.email,
         phone_number: personalInfo.phone_number,
         country: personalInfo.country,
@@ -365,7 +433,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         profile_pciture: photoUrl,
       }
       try {
-        const response = await axios.put('http://127.0.0.1:8000/api/user/<int:user_id>/updateProfile/', {
+        const response = await axios.put('https://zaferuni.liara.run/api/user/<int:user_id>/updateProfile/', {
           body: persoInfo,
           headers : {
             'Authorization': `Bearer ${token}`
@@ -382,7 +450,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
       }
     } else if (tabValue === 1) {
       try {
-        const response = await axios.put('http://127.0.0.1:8000/api/user/<int:user_id>/updateFavorites/', {
+        const response = await axios.put('https://zaferuni.liara.run/api/user/<int:user_id>/updateFavorites/', {
           body: artPreferences,
           headers : {
             'Authorization': `Bearer ${token}`
@@ -627,6 +695,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                     variant="outlined"
                     sx={textFieldStyle}
                     InputProps={{
+                      readOnly: true,
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton
@@ -684,7 +753,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                     <Select
                       value={personalInfo.city}
                       onChange={handlePersonalInfoChange('city')}
-                      disabled={!personalInfo.country}
+                      disabled={isCityDisabled}
                       label="City"
                       sx={{
                         '& .MuiOutlinedInput-notchedOutline': {
@@ -708,7 +777,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                         }
                       }}
                     >
-                      {personalInfo.country && countries.find((country) => country.name === personalInfo.country)?.cities.map((city: string) => (
+                      {personalInfo.country && cities.map((city: string) => (
                         <MenuItem key={city} value={city}>
                           {city}
                         </MenuItem>
@@ -746,8 +815,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                       }}
                     >
                       {countries.map((country) => (
-                        <MenuItem key={country.name} value={country.name}>
-                          {country.name}
+                        <MenuItem key={country} value={country}>
+                          {country}
                         </MenuItem>
                       ))}
                     </Select>
@@ -1169,6 +1238,11 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar open={open} autoHideDuration={5000} onClose={handleAlertClose} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
+          <Alert onClose={handleAlertClose} severity={severity} sx={{width: '235px', height: '90px', textAlign: 'center'}}>
+            {message}
+          </Alert>
+        </Snackbar>
     </>
   );
 };
