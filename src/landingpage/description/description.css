@@ -4,12 +4,11 @@
     text-align: center;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-
+    margin-top: 40px; /* Added margin to create space between the top component and the description section */
 }
 
 .description-section h2 {
     font: normal;
-
 }
 
 .description-section p {
@@ -19,6 +18,4 @@
     margin: 0 auto;
     line-height: 1.6;
     padding: 0 10px;
-
 }
-

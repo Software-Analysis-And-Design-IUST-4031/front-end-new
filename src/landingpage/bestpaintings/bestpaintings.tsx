@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import './bestpaintings.css';
+import './pp.css';
 import PostCard from './card';
-import { Box, Pagination, CircularProgress, Typography } from '@mui/material';
+import { Box, Pagination, CircularProgress } from '@mui/material';
 import axios from 'axios';
+import img255 from './d22.jpg';
 
 interface Painting {
     id: string;
@@ -17,7 +18,7 @@ interface Painting {
     style: string;
 }
 
-const itemsPerPage = 3; // Number of items to show per page
+const itemsPerPage = 4;
 
 const mockSamples: Painting[] = [
     {
@@ -26,7 +27,7 @@ const mockSamples: Painting[] = [
         caption: 'A stunning masterpiece by Van Gogh',
         title: 'Starry Night',
         price: '5000',
-        likes: 10,  // Example like count
+        likes: 1,
         createdAt: new Date().toISOString(),
         artist: 'Vincent Van Gogh',
         year: 1889,
@@ -38,7 +39,7 @@ const mockSamples: Painting[] = [
         caption: 'The enigmatic smile',
         title: 'Mona Lisa',
         price: '10000',
-        likes: 50,  // Example like count
+        likes: 50,
         createdAt: new Date().toISOString(),
         artist: 'Leonardo da Vinci',
         year: 1503,
@@ -46,20 +47,32 @@ const mockSamples: Painting[] = [
     },
     {
         id: '3',
-        imageUrl: 'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8',
+        imageUrl: img255,
         caption: 'A surrealist masterpiece',
         title: 'The Persistence of Memory',
         price: '7000',
-        likes: 15,  // Example like count
+        likes: 15,
         createdAt: new Date().toISOString(),
         artist: 'Salvador Dalí',
         year: 1931,
         style: 'Surrealism',
     },
+    {
+        id: '4',
+        imageUrl: 'https://via.placeholder.com/150',
+        caption: 'Vibrant and colorful.',
+        title: 'Color Explosion',
+        price: '$400',
+        likes: 180,
+        createdAt: '2023-09-10',
+        artist: 'David Brown',
+        year: 2023,
+        style: 'Abstract',
+    },
 ];
 
-const Paintings: React.FC = () => {
-    const [posts, setPosts] = useState<Painting[]>(mockSamples); // Use mock samples initially
+const BestPaintings: React.FC = () => {
+    const [posts, setPosts] = useState<Painting[]>(mockSamples);
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(false);
 
@@ -76,16 +89,16 @@ const Paintings: React.FC = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const response = await axios.get('http://127.0.0.1:8000/api/paintings/');
-                setPosts(response.data);  // Set posts to fetched data
+                const response = await axios.get('https://zaferuni.liara.run/api/painting/paintings/sorted-by-likes/');
+                setPosts(response.data);
             } catch (err) {
-                // In case of an error, leave the mock data in place
+                console.error('Error fetching data', err);
             } finally {
                 setLoading(false);
             }
         };
         fetchData();
-    }, []); // Only run once when the component mounts
+    }, []);
 
     return (
         <section className="paintings-section">
@@ -97,13 +110,11 @@ const Paintings: React.FC = () => {
                 </Box>
             ) : (
                 <>
-                    <div className="paintings-grid">
-                        {/* Render PostCards using mock data or fetched data */}
+                    <div className="painting-grid">
                         <PostCard posts={currentPaintings} onShare={() => null} />
                     </div>
 
-                    {/* Pagination Controls */}
-                    <Box mt={3} display="flex" justifyContent="center">
+                    <Box mt={3} display="flex" justifyContent="center" className="pagination-container">
                         <Pagination
                             count={totalPages}
                             page={currentPage}
@@ -118,4 +129,4 @@ const Paintings: React.FC = () => {
     );
 };
 
-export default Paintings;
+export default BestPaintings;

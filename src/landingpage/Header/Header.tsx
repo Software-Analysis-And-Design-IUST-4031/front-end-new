@@ -26,7 +26,7 @@ const StyledTabs = styled(Tabs)(({ theme }) => ({
   },
   margin: 0,
   padding: 0,
-  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.20)}`,  // Reduced the alpha value for a lighter border
   '& .MuiTabs-flexContainer': {
     gap: theme.spacing(2),
   },

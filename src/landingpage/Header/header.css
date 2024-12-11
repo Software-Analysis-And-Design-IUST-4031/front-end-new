@@ -1,23 +1,23 @@
 .header {
     display: flex;
-    flex-direction: column; /* Stack items vertically */
-    align-items: center; /* Center items horizontally */
-    justify-content: center; /* Center items vertically */
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
     padding: 20px;
-    width: 100%; /* Full width */
+    width: 100%; 
     box-sizing: border-box;
   }
   
   .header-logo {
     width: 180px;
-    height: auto; /* Maintain aspect ratio */
+    height: auto; 
     object-fit: contain;
-    margin-bottom: 20px; /* Add spacing below the logo */
+    margin-bottom: 20px; 
   }
   
   .header-buttons {
     display: flex;
-    gap: 20px; /* Space between the buttons */
+    gap: 20px; 
   }
   
   button {
