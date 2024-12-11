@@ -90,34 +90,29 @@ const Login = () => {
   
     setIsSubmiting(true);
     try {
-      const response = await axios.post<LoginResponse>('http://127.0.0.1:8000/api/user/login/', {
-        username: userName.trim(),
-        password: password.trim(),
+      const response = await userService.login({
+        username: userName,
+        password: password,
       });
-  
-      // Store the token and properly initialize it
-      if (response.data.token) {
-        const token = response.data.token;
-        const userId = response.data.user.user_id.toString();
-        localStorage.setItem('token', token);
-        localStorage.setItem('userId', userId);
-        axios.defaults.headers.common['Authorization'] = `Token ${token}`;
-        userService.setAuthToken(token); // Make sure token is properly set in userService
-      }
 
-      setSeverity('success');
-      //setMessage(`${response.data.user.user_id}`);
-      //setMessage('Login successful!');
-      alert(JSON.stringify(response.config.data));
-      setMessage('Login successful!');
-      setOpen(true);
-      
-      setTimeout(() => {
-        // Navigate to user-specific home route
-        navigate(`/${response.data.user.username}/home`);
-      }, 1500);
-      
-    } catch (error: unknown) {
+      // Store the token and properly initialize it
+      if (response.token) {
+        const token = response.token;
+        const username = response.user.username;
+        localStorage.setItem('token', token);
+        localStorage.setItem('username', username);
+        axios.defaults.headers.common['Authorization'] = `Token ${token}`;
+        userService.setAuthToken(token);
+
+        setSeverity('success');
+        setMessage('Login successful!');
+        setOpen(true);
+        
+        // Navigate immediately without setTimeout
+        console.log('Navigating to:', `/${username}/home`);
+        navigate(`/${username}/home`, { replace: true });
+      }
+    } catch (error: any) {
       if (error && typeof error === 'object' && 'response' in error) {
         const errorMessage = (error as any).response?.data?.message || 'Error occurred during login!';
         setSeverity('error');

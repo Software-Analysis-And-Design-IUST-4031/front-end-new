@@ -86,36 +86,42 @@ const BASE_URL = 'http://127.0.0.1:8000/api';
 const userService = {
     // Authentication
     async login(credentials: LoginCredentials): Promise<LoginResponse> {
-        const response = await axios.post<LoginResponse>(`${BASE_URL}/user/login/`, credentials);
+        const response = await axios.post<LoginResponse>(`${BASE_URL}/auth/login/`, credentials);
         if (response.data.token) {
             this.setAuthToken(response.data.token);
-            localStorage.setItem('userId', response.data.user.user_id.toString());
+            localStorage.setItem('username', response.data.user.username);
         }
         return response.data;
     },
 
     async logout(): Promise<void> {
         try {
-            await axios.post(`${BASE_URL}/user/logout/`);
+            await axios.post(`${BASE_URL}/auth/logout/`);
         } finally {
             localStorage.removeItem('token');
-            localStorage.removeItem('userId');
+            localStorage.removeItem('username');
             delete axios.defaults.headers.common['Authorization'];
         }
     },
 
     async register(data: RegistrationData): Promise<RegisterResponse> {
-        const response = await axios.post<RegisterResponse>(`${BASE_URL}/user/register/`, data);
+        const response = await axios.post<RegisterResponse>(`${BASE_URL}/auth/register/`, data);
         return response.data;
     },
 
     // User Profile Management
-    async getUserDetails(userId: number): Promise<UserProfile> {
-        const response = await axios.get<UserProfile>(`${BASE_URL}/user/${userId}/detail/`);
+    async getUserDetails(username: string): Promise<UserProfile> {
+        const response = await axios.get<UserProfile>(`${BASE_URL}/users/${username}/profile/`);
         return response.data;
     },
 
-    async updateUserProfile(userId: number, profileData: UserProfile): Promise<UserProfile> {
+    async updateUserProfile(username: string, profileData: UserProfile): Promise<UserProfile> {
+        let config: RequestConfig = {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        };
+
         const formData = new FormData();
         Object.entries(profileData).forEach(([key, value]) => {
             if (value !== undefined) {
@@ -127,40 +133,44 @@ const userService = {
             }
         });
 
-        const response = await axios.put<UserProfile>(`${BASE_URL}/user/${userId}/updateEditProfile/`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        const response = await axios.put<UserProfile>(
+            `${BASE_URL}/users/${username}/profile/`,
+            formData,
+            config
+        );
         return response.data;
     },
 
-    async updateUserFavorites(userId: number, favoritesData: UserProfile): Promise<UserProfile> {
-        const response = await axios.put<UserProfile>(`${BASE_URL}/user/${userId}/updateFavorites/`, favoritesData);
+    async updateUserFavorites(username: string, favoritesData: UserProfile): Promise<UserProfile> {
+        const response = await axios.put<UserProfile>(`${BASE_URL}/users/${username}/favorites/`, favoritesData);
         return response.data;
     },
 
-    async getUserProfileDetails(userId: number): Promise<UserProfile> {
-        const response = await axios.get<UserProfile>(`${BASE_URL}/user/${userId}/detailEditProfile/`);
+    async getUserProfileDetails(username: string): Promise<UserProfile> {
+        const response = await axios.get<UserProfile>(`${BASE_URL}/users/${username}/profile/`);
         return response.data;
     },
 
-    async getUserFavorites(userId: number): Promise<UserProfile> {
-        const response = await axios.get<UserProfile>(`${BASE_URL}/user/${userId}/detailFavorites/`);
+    async getUserFavorites(username: string): Promise<UserProfile> {
+        const response = await axios.get<UserProfile>(`${BASE_URL}/users/${username}/favorites/`);
         return response.data;
     },
 
-    async getUserPaintings(userId: number): Promise<Painting[]> {
-        const response = await axios.get<Painting[]>(`${BASE_URL}/painting/user/${userId}/paintings/`);
+    async getUserPaintings(username: string): Promise<Painting[]> {
+        const response = await axios.get<Painting[]>(`${BASE_URL}/users/${username}/paintings/`);
         return response.data;
     },
 
-    async addPainting(userId: number, formData: FormData): Promise<Painting> {
-        const response = await axios.post<Painting>(`${BASE_URL}/painting/user/${userId}/paintings/add/`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+    async addPainting(username: string, formData: FormData): Promise<Painting> {
+        const response = await axios.post<Painting>(
+            `${BASE_URL}/users/${username}/paintings/`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }
+        );
         return response.data;
     },
 
@@ -168,6 +178,8 @@ const userService = {
     setAuthToken(token: string): void {
         if (token) {
             axios.defaults.headers.common['Authorization'] = `Token ${token}`;
+        } else {
+            delete axios.defaults.headers.common['Authorization'];
         }
     },
 
@@ -184,10 +196,9 @@ const userService = {
         return !!localStorage.getItem('token');
     },
 
-    // Get current user ID
-    getCurrentUserId(): number | null {
-        const userId = localStorage.getItem('userId');
-        return userId ? parseInt(userId) : null;
+    // Get current username
+    getCurrentUsername(): string | null {
+        return localStorage.getItem('username');
     }
 };
 

@@ -159,21 +159,15 @@ const ProfilePage: React.FC = () => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const userId = userService.getCurrentUserId();
-        const token = localStorage.getItem('token');
-        
-        if (!userId || !token) {
-          console.log('No userId or token found:', { userId, token });
-          navigate('/login');
+        const username = userService.getCurrentUsername();
+        if (!username) {
+          console.error('No username found');
           return;
         }
-
-        // Ensure token is set in axios headers
-        axios.defaults.headers.common['Authorization'] = `Token ${token}`;
         
         const [profile, userPaintings] = await Promise.all([
-          userService.getUserDetails(userId),
-          userService.getUserPaintings(userId)
+          userService.getUserDetails(username),
+          userService.getUserPaintings(username)
         ]);
         
         if (profile && 'user_id' in profile) {
@@ -203,8 +197,8 @@ const ProfilePage: React.FC = () => {
   }, [navigate]);
 
   const handleUpload = async (imageUrl: string, caption: string, metadata: { title: string; price: string; createdAt: string }) => {
-    const userId = userService.getCurrentUserId();
-    if (!userId) return;
+    const username = userService.getCurrentUsername();
+    if (!username) return;
 
     try {
       const formData = new FormData();
@@ -214,7 +208,7 @@ const ProfilePage: React.FC = () => {
       formData.append('image', imageUrl);
       formData.append('creation_date', metadata.createdAt);
 
-      const response = await userService.addPainting(userId, formData);
+      const response = await userService.addPainting(username, formData);
       setPaintings(prev => [response, ...prev]);
       setUploadDialogOpen(false);
     } catch (error: unknown) {

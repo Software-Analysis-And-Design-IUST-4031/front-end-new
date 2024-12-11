@@ -120,8 +120,9 @@ const App: React.FC = () => {
                 <Route path="/signup" element={<SignUp />} />
                 
                 {/* User-specific routes */}
-                <Route path="/:username/*" element={<ProtectedRoute><UserpanelApp /></ProtectedRoute>}>
-                  <Route path="home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                <Route path="/:username" element={<ProtectedRoute><UserpanelApp /></ProtectedRoute>}>
+                  <Route index element={<Navigate to="home" replace />} />
+                  <Route path="home" element={<Home />} />
                   <Route path="galleries" element={<GalleriesContainer />} />
                   <Route path="blog" element={<BlogPage />} />
                   <Route path="blog/:id" element={<BlogPostDetail />} />
