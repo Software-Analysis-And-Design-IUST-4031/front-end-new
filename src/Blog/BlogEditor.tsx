@@ -240,6 +240,39 @@ const BlogEditor: React.FC = () => {
     }
   };
 
+  const customStyles = `
+    .ql-editor {
+      min-height: 400px !important;
+    }
+    .ql-editor img {
+      max-width: 250px !important;
+      max-height: 200px !important;
+      width: auto !important;
+      height: auto !important;
+      display: block;
+      margin: 20px auto;
+      position: relative;
+      z-index: 1;
+      object-fit: contain;
+    }
+    .ql-editor img:hover {
+      cursor: pointer;
+      opacity: 0.95;
+    }
+    .ql-editor p {
+      position: relative;
+      z-index: 2;
+      margin: 1em 0;
+      min-height: 1.5em;
+    }
+    .ql-editor * {
+      pointer-events: auto;
+    }
+    .ql-container {
+      overflow: visible;
+    }
+  `;
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -290,35 +323,44 @@ const BlogEditor: React.FC = () => {
           Include all the information someone would need to answer your question.
         </Typography>
         
-        <Box sx={{ mb: 3 }}>
-          <Paper 
-            variant="outlined" 
-            sx={{ 
-              mb: 1,
-              borderColor: 'divider',
-              backgroundColor: '#f8f9fa'
-            }}
-          >
-            <Box sx={{ display: 'flex', gap: 1, p: 1 }}>
-              <ToolbarButton format="bold" icon={<FormatBold />} tooltip="Bold" />
-              <ToolbarButton format="italic" icon={<FormatItalic />} tooltip="Italic" />
-              <ToolbarButton format="underline" icon={<FormatUnderlined />} tooltip="Underline" />
-              <ToolbarButton format="code" icon={<Code />} tooltip="Code" />
-              <Divider orientation="vertical" flexItem />
-              <ToolbarButton format="bulleted-list" icon={<FormatListBulleted />} tooltip="Bullet List" />
-              <ToolbarButton format="numbered-list" icon={<FormatListNumbered />} tooltip="Number List" />
-              <ToolbarButton format="quote" icon={<FormatQuote />} tooltip="Quote" />
-            </Box>
-          </Paper>
-
+        <Box sx={{ 
+          mt: 2,
+          '& .ql-editor': {
+            minHeight: '400px',
+            '& img': {
+              maxWidth: '100%',
+              height: 'auto !important',
+              display: 'block',
+              margin: '1rem 0',
+              clear: 'both',
+            },
+            '& p': {
+              marginBottom: '1rem',
+              position: 'relative',
+              zIndex: 1
+            }
+          },
+          '& .ql-container': {
+            fontSize: '1rem',
+            position: 'relative',
+            zIndex: 1
+          },
+          '& .ql-toolbar': {
+            position: 'sticky',
+            top: 0,
+            zIndex: 2,
+            backgroundColor: 'white',
+            borderColor: 'divider'
+          }
+        }}>
           <Paper 
             variant="outlined" 
             sx={{ 
               minHeight: '300px',
               backgroundColor: '#fff',
-              borderColor: theme => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : 'rgba(0, 0, 0, 0.23)',
+              borderColor: 'divider',
               '&:hover': {
-                borderColor: theme => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
+                borderColor: 'text.secondary',
               },
               '&:focus-within': {
                 borderColor: 'primary.main',
@@ -327,9 +369,10 @@ const BlogEditor: React.FC = () => {
             }}
           >
             <Box sx={{ p: 2 }}>
+              <style>{customStyles}</style>
               <Slate 
                 editor={editor} 
-                initialValue={value}
+                value={value}
                 onChange={handleChange}
               >
                 <Editable

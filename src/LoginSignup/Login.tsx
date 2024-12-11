@@ -11,6 +11,7 @@ import AuthLayout from './AuthLayout';
 import { useColorMode } from '../App';
 import { IconArrowLeft } from '@tabler/icons-react';
 import { Snackbar, Alert } from "@mui/material";
+import userService from '../services/userService'; // Import userService
 
 interface LoginErrors {
   userName: string;
@@ -18,11 +19,25 @@ interface LoginErrors {
   api: string;
 }
 
+interface LoginResponse {
+  access: string;
+  user: {
+    user_id: number;
+    email: string;
+    firstname: string;
+    lastname: string;
+    username: string;
+    is_active: boolean;
+    is_admin: boolean;
+    date_joined: string;
+  };
+}
+
 const Login = () => {
   const [open, setOpen] = useState(false);
   const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
   const [message, setMessage] = useState('');
-  const [userName, setUserName] = useState('');
+  const [username, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({ userName: '', password: '' }); 
   const [isSubmiting, setIsSubmiting] = useState(false);
@@ -30,18 +45,8 @@ const Login = () => {
   const { mode } = useColorMode();
   const isDark = mode === 'dark';
 
-  // Only redirect to home if user is already authenticated
-  useEffect(() => {
-    const auth = localStorage.getItem('isAuthenticated');
-    const token = localStorage.getItem('access_token');
-    if (auth === 'true' && token) {
-      navigate('/home');
-    }
-  }, [navigate]);
-
   useEffect(() => {
     return () => {
-      // Cleanup authentication check on unmount
       setIsSubmiting(false);
     };
   }, []);
@@ -71,62 +76,64 @@ const Login = () => {
     }));
   }
 
-  const validateForm = (): boolean => {
-    const newErrors: LoginErrors = {
-      userName: '',
-      password: '',
-      api: ''
-    };
-
-    if (!userName.trim()) {
-      newErrors.userName = 'Username is required!';
-    }
-
-    if (!password) {
-      newErrors.password = 'Password is required!';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters!';
-    }
-
-    setErrors(newErrors);
-    return !Object.values(newErrors).some(error => error !== '');
-  };
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!userName || !password) {
-      const newErrors = {userName: userName ? '' : 'username is required!',
-      password: password ? '' : 'password is required!'};
+    
+    if (!username.trim() || !password.trim()) {
+      const newErrors = {
+        userName: username.trim() ? '' : 'Username is required!',
+        password: password.trim() ? '' : 'Password is required!'
+      };
       setErrors(newErrors);
       return;
     }
   
     setIsSubmiting(true);
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/user/login/', {
-          username: userName,
-          password: password,
-        } 
-      );
+      const response = await axios.post<LoginResponse>('http://127.0.0.1:8000/api/user/login/', {
+        username: username,
+        password: password,
+      });
   
-      //const access_token = response.data.access;
-      //localStorage.setItem('access_token', access_token);
-      //alert("hellow");
-  
-      const login_message = JSON.stringify(response.data.message) || 'login successful!';
+      // Store the token and properly initialize it
+      if (response.data.access) {
+        const token = response.data.access;
+        //const userId = response.data.user.user_id.toString();
+        localStorage.setItem('access_token', token);
+        localStorage.setItem('username', username);
+        axios.defaults.headers.common['Authorization'] = `Token ${token}`;
+        userService.setAuthToken(token); // Make sure token is properly set in userService
+      }
+
       setSeverity('success');
-      setMessage(login_message);
+      //setMessage(`${response.data.user.user_id}`);
+      //setMessage('Login successful!');
+      //alert(JSON.stringify(response.config.data));
+      setMessage('Login successfully!');
       setOpen(true);
-      setTimeout(() => {navigate("/HomePage")}, 3000);
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data || 'Error occured during login!';
+      
+      setTimeout(() => {
+        // Navigate to user-specific home route
+        navigate(`/${username}/home`);
+      }, 1500);
+      
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const errorMessage = (error as any).response?.data?.message || 'Error occurred during login!';
         setSeverity('error');
         setMessage(errorMessage);
         setOpen(true);
-        //setTimeout(() => {setIsSubmiting(false)}, 3000);
-        setTimeout(() => {navigate("/HomePage")}, 3000);
-      } 
+      } else {
+        setSeverity('error');
+        setMessage('An unexpected error occurred');
+        setOpen(true);
+        /*setTimeout(() => {
+          // Navigate to user-specific home route
+          navigate(`/${username}/home`);
+        }, 1500);*/
+      }
+    } finally {
+      setIsSubmiting(false);
     }
   };
 
@@ -176,7 +183,7 @@ const Login = () => {
               <TextInput
                 label="Username"
                 placeholder="Enter your username"
-                value={userName}
+                value={username}
                 onChange={handleUsernameChange}
                 error={errors.userName}
                 styles={{

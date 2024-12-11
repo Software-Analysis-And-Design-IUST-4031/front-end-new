@@ -1,32 +1,10 @@
 import React, { memo, Suspense, lazy } from 'react';
-import { Box, Grid, Container, IconButton, Typography, useTheme, CircularProgress } from '@mui/material';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { Box, Grid, Container, Typography, useTheme, CircularProgress } from '@mui/material';
 import { useColorMode } from '../App';
 import '../Themes.css';
 import Galleries from './galleries';
 
 const Gallery = lazy(() => import('./gallery'));
-
-// Memoize the theme toggle button to prevent unnecessary re-renders
-const ThemeToggle = memo(({ mode, toggleColorMode }: { mode: string, toggleColorMode: () => void }) => (
-  <IconButton
-    onClick={toggleColorMode}
-    color="inherit"
-    sx={{
-      position: 'fixed',
-      top: 20,
-      right: 20,
-      bgcolor: mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-      '&:hover': {
-        bgcolor: mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
-      },
-      zIndex: 1300,
-    }}
-  >
-    {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-  </IconButton>
-));
 
 const LoadingFallback = () => (
   <Box 
@@ -70,7 +48,6 @@ const GalleriesContainer: React.FC = () => {
           : '0 25px 70px -15px rgba(0,0,0,0.25)',
       }}
     >
-      <ThemeToggle mode={mode} toggleColorMode={toggleColorMode} />
       
       <Container maxWidth="xl" sx={{ pt: 8, pb: 8 }}>
         <Box sx={{ textAlign: 'center', mb: 6, p: 4 }}>

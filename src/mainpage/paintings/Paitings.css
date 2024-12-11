@@ -19,11 +19,9 @@
 }
 
 .paintings-grid {
-    display: flex;
-    justify-content: space-evenly;  
-    flex-wrap: wrap;  
-    gap: 20px;  
-    margin-top: 30px;
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
 }
 
 .paintings-section p {

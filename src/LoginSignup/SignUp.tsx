@@ -148,7 +148,7 @@ const SignUp = () => {
       setOpen(true);
       setSeverity('success');
       setMessage(response.data.message || 'signup successfully!');
-      setTimeout(() => {navigate("/Login")}, 3000);
+      setTimeout(() => {navigate("/login")}, 3000);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMessage = error.response?.data || 'Error occured during signup!';
