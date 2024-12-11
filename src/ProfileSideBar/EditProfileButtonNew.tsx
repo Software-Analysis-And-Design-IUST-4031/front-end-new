@@ -326,13 +326,31 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
 
   /*const countries = [{
       name: 'Iran',
-      cities: ["Tehran", "Isfahan", "Mashhad", "Tabriz", "Semnan"]
+      cities: ["Tehran", "Isfahan", "Mashhad", "Tabriz", "Semnan", "Shiraz", "Bushehr"]
     }, {
       name: 'France',
-      cities: ["Paris", "Mars"]
+      cities: ["Paris", "Marseille", "Bordeuax", "Lyon"]
     }, {
       name: 'USA',
       cities: ["NewYork", "Texas", "MeryLand", "WanshinTon", "Nevada"]
+    }, {
+      name: 'Germany',
+      cities: ["Berlin", "Munich", "Frankfurt", "Hamburg"]
+    }, {
+      name: 'Brazil',
+      cities: ["Brazilia", "Sao Paulo", "Manaus", "Recife"]
+    }, {
+      name: 'Morocco',
+      cities: ["Rabat", "Fes", "Marrakesh", "Casablanaca", "Meknes"]
+    }, {
+      name: 'Turkey',
+      cities: ["Istanbul", "Izmir", "Bursa", "Ankara", "Mersin"]
+    }, {
+      name: 'China', 
+      cities: ["Beijin", "Chongqing", "Shanghai", "Guanzhou", "Changsha"]
+    }, {
+      name: 'Russia',
+      cities: ["Mossow", "Belgorod", "Saint Petersburg", "Samara", "Penza"]
     }
   ];*/
 
