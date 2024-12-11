@@ -118,8 +118,8 @@ const GalleriesContainer: React.FC = () => {
           setLoading(true);
           try
           {
-              const response = await axios.get('http://127.0.0.1:8000/api/galleries/');
-              const baseURL = 'http://127.0.0.1:8000';
+              const response = await axios.get('https://zaferuni.liara.run/api/galleries/');
+              const baseURL = 'https://zaferuni.liara.run/';
               response.data = response.data.map(
               (gallery : Gallery_intefrace) =>
                   ({
