@@ -1,10 +1,10 @@
 import { useState, useEffect, SyntheticEvent } from 'react';
 import Button from '@mui/material/Button';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '@mantine/core/styles.css';
 import './SignUp.css';
 import './auth.css';
-import axios from 'axios';
 import { EyeCheck, EyeOff } from 'tabler-icons-react';
 import { Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
 import AuthLayout from './AuthLayout';
@@ -143,21 +143,34 @@ const SignUp = () => {
         } 
       );
 
-      //const message = JSON.stringify(response.data) || 'signup successful!';
-      //alert(message);
       setOpen(true);
       setSeverity('success');
-      setMessage(response.data.message || 'signup successfully!');
-      setTimeout(() => {navigate("/login")}, 3000);
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data || 'Error occured during signup!';
+      setMessage('Signup successful! Redirecting to login...');
+      setIsSubmiting(false);
+      // Navigate immediately but let the success message be visible briefly
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+    } catch (error: any) {
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        const errorMessage = error.response.data || 'Error occurred during signup!';
         setSeverity('error');
         setMessage(errorMessage);
         setOpen(true);
-        setTimeout(() => {setIsSubmiting(false)}, 3000);
-        //setTimeout(() => {navigate("/Login")}, 3000);
+      } else if (error.request) {
+        // The request was made but no response was received
+        setSeverity('error');
+        setMessage('No response received from server');
+        setOpen(true);
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        setSeverity('error');
+        setMessage(error.message || 'An unexpected error occurred');
+        setOpen(true);
       }
+      setTimeout(() => {setIsSubmiting(false)}, 3000);
     }
   };
  
