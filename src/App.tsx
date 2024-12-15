@@ -12,6 +12,7 @@ import EmptyPage from './pages/EmptyPage';
 import BlogPage from './Blog/BlogPage';
 import BlogEditor from './Blog/BlogEditor';
 import Home from './mainpage/Home';
+import MessageInput from './chatpage/messageinput';
 
 export const ColorModeContext = createContext({ 
   toggleColorMode: () => {},
@@ -34,7 +35,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 // Layout component to handle navbar visibility
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const isPublicPage = ['/', '/login', '/signup' , '/Galleries' ].includes(location.pathname);
+  const isPublicPage = ['/', '/login', '/signup' , '/Galleries' ,  '/messageinput' ].includes(location.pathname);
   const isLandingPage = location.pathname === '/';
 
   return (
@@ -143,6 +144,7 @@ const App: React.FC = () => {
                 } />
                 <Route path="/Profile" element={<Navigate to="/profile" replace />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="/messageinput" element={<MessageInput />} />
               </Routes>
             </Layout>
           </Router>
