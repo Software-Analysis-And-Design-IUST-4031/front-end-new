@@ -1,43 +1,43 @@
 import React, { useState } from 'react';
-import { TextField, Button, Box , TextareaAutosize} from '@mui/material';
+import { TextField, Button, Box , TextareaAutosize } from '@mui/material';
 import { Typography } from 'tabler-icons-react';
+import { FiSend } from "react-icons/fi";
 
 
 
-// interface MessageInputProps 
-// {
-//     message : string ,
+interface MessageInputProps 
+{
+    handleSendMessage : (message : string) => void 
+}
 
-// }
-
-const MessageInput : React.FC = () => 
+const MessageInput : React.FC<MessageInputProps> = ({handleSendMessage}) => 
 {
     const [message , SetMessage] = useState('');
 
-    const handleSendMessage = () => 
-    {
-         
-        SetMessage('');
-    }
+    // const handleSendMessage = (message : string) => 
+    // {
+        
+    //     SetMessage('');
+    // }
     const height = 50 ;
     return (
-        <Box justifyContent = 'center'>
+        <Box justifyContent = 'center'
+            sx = {{
+                p : 4 , 
+            }}
+        >
             <Box sx = {{
                 display : 'flex' ,
                 flexDirection : 'column' ,
-                p : 4 , 
-                gap : '12px'
+                // p : 4 , 
+                // gap : '12px' , 
+                position : 'relative'
             }}>
-                {/* <Box 
-                    sx = {{
-                        display : 'flex' ,
-                        width: '100%',
-                    }}
-                > */}
+                
                     <TextareaAutosize
                         // maxRows={4}
                         // aria-label="maximum height"
-                        // minRows = {1}
+                        minRows = {1}
                         // fullWidth
                         // label = 'type a message ...'
                         value = {message}
@@ -47,6 +47,7 @@ const MessageInput : React.FC = () =>
                         style = {{
                             padding : '15px' ,
                             width : '100%' ,
+                            border: '1px solid #ccc',
                             // resize : none
                         }}
                         // InputProps={{
@@ -56,26 +57,24 @@ const MessageInput : React.FC = () =>
                         //     }
                         // }}
                     />
-                {/* </Box> */}
-                <Box  
-                    sx = {{
-                        justifyContent : 'center'
-                    }}
-                >
-                    <Button variant="contained" onClick = {handleSendMessage} 
-                        sx = {{
-                            height : {height},
-                            width : 120 ,  
+                
+                    <FiSend 
+                        
+                        style = {{
+                            position : 'absolute' , 
+                            bottom : '10px' , 
+                            right : '10px' , 
+                            cursor: 'pointer',
+                            fontSize: '24px',
+                            color: '#007BFF',
                         }}
-                    >
-                        click to send
-                    </Button>
-                </Box>
-                
-                
+                        onClick = {() => {
+                            handleSendMessage(message);
+                            SetMessage('');
+                        }}
+                    />
             </Box>
         </Box>
-
     )
 }
 
