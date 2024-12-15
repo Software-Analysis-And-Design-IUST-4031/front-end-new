@@ -28,7 +28,9 @@ const MessageList: React.FC<MessagesProps> = ({messages}) =>
     return (
         <Box
             sx = {{
-                flexDirection : 'column' , 
+                flexDirection : 'column' ,
+                display : 'flex' , 
+                gap : '10px' ,
             }}
         >
             {
