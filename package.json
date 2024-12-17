@@ -47,6 +47,7 @@
     "embla-carousel-react": "^7.1.0",
     "framer-motion": "^11.13.1",
     "is-hotkey": "^0.2.0",
+    "lodash": "^4.17.20",
     "lottie-react": "^2.4.0",
     "particles.js": "^2.0.0",
     "quill": "^2.0.3",

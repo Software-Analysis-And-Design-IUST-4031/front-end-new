@@ -12,6 +12,7 @@ import BlogPage from './Blog/BlogPage';
 import BlogEditor from './Blog/BlogEditor';
 import BlogPostDetail from './Blog/BlogPostDetail';
 import Home from './mainpage/Home';
+import CommentBox from './CommentBox';
 
 export const ColorModeContext = createContext({ 
   toggleColorMode: () => {},
@@ -115,7 +116,8 @@ const App: React.FC = () => {
           <Router>
             <Layout>
               <Routes>
-                <Route path="/" element={<LandingPage />} />
+                <Route path="/" element={<CommentBox />} />
+                <Route path="/commentbox" element={<CommentBox />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />
                 
@@ -126,7 +128,7 @@ const App: React.FC = () => {
                 <Route path="/:username/blog" element={<BlogPage />} />
                 <Route path="/:username/blog/:id" element={<BlogPostDetail />} />
                 <Route path="/:username/blog/new" element={<BlogEditor />} />
-                <Route path="/:username/profile" element={<UserpanelApp />} />
+                <Route path="/profile" element={<UserpanelApp />} />
                 
 
                 {/* Redirects */}
