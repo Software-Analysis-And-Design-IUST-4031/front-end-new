@@ -62,7 +62,7 @@ const Message : React.FC<MessageProps> = ({text , sender , id , date}) =>
                     {{
                         // backgroundColor : "red",
                         fontSize: '12px', 
-                        color: sender === 'me' ? '#aaa' : '#333', 
+                        color: '#aaa',  
                         textAlign : sender === 'me' ? 'right' : 'left' ,
                         mt: 1, 
                     }}
