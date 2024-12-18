@@ -3,15 +3,16 @@ import { TextField, Button, Box , TextareaAutosize } from '@mui/material';
 import Message from './message';
 
 
-interface Message {
+interface MessageProps {
     // id: number;
-    text: string;
-    sender: string ;
+    text: string,
+    sender: string ,
+    date : string , 
 }
 
 interface MessagesProps 
 {
-    messages : Message[];
+    messages : MessageProps[];
 }
 
 
@@ -39,6 +40,7 @@ const MessageList: React.FC<MessagesProps> = ({messages}) =>
                         <Message
                             text = {message.text} 
                             sender = {message.sender} 
+                            date = {message.date}
                             key = {index} 
                             id = {index}  
                         />

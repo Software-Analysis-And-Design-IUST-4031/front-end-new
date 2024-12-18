@@ -5,13 +5,14 @@ import { TextField, Button, Box , TextareaAutosize , Typography} from '@mui/mate
 
 interface MessageProps 
 {
+    date : string ,
     id : number , 
     text : string , 
     sender : string // it must be me or another_user ,
 }
 
 
-const Message : React.FC<MessageProps> = ({text , sender , id}) =>
+const Message : React.FC<MessageProps> = ({text , sender , id , date}) =>
 {
     return (
         <Box
@@ -25,7 +26,7 @@ const Message : React.FC<MessageProps> = ({text , sender , id}) =>
             <Box
                 sx = {{
                     bgcolor : sender === "me" ? 'black' : 'red', 
-                    color: sender === 'me' ? 'white' : 'black',
+                    color: sender === 'me' ? 'white' : 'white',
                     // maxwidth : '50%' ,
                     p : 1 , 
                     maxWidth : '50%' ,
@@ -43,7 +44,7 @@ const Message : React.FC<MessageProps> = ({text , sender , id}) =>
                         borderStyle: 'solid', // Makes the "borders" solid so it looks like a shape
                         borderWidth: sender === 'me' 
                           ? '10px 10px 10px 10px'  // Makes a triangle pointing **left**
-                          : '10px 10px 0 0', // Makes a triangle pointing **right**
+                          : '10px 10px 10px 10px', // Makes a triangle pointing **right**
                         borderColor: sender === 'me' 
                           ? `black transparent transparent transparent` 
                           : `red transparent transparent transparent`
@@ -55,8 +56,18 @@ const Message : React.FC<MessageProps> = ({text , sender , id}) =>
                         textAlign: sender === "me" ? 'right' : 'left'
                     }} 
                 >
-                    
                     {text} 
+                </Typography>
+                <Typography sx =
+                    {{
+                        // backgroundColor : "red",
+                        fontSize: '12px', 
+                        color: sender === 'me' ? '#aaa' : '#333', 
+                        textAlign : sender === 'me' ? 'right' : 'left' ,
+                        mt: 1, 
+                    }}
+                >
+                    {date}
                 </Typography>
             </Box>
         </Box>
