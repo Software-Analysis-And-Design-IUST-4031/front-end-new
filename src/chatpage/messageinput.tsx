@@ -24,6 +24,7 @@ const MessageInput : React.FC<MessageInputProps> = ({handleSendMessage}) =>
         <Box justifyContent = 'center'
             sx = {{
                 p : 4 , 
+                // widht : '100%',
             }}
         >
             <Box sx = {{

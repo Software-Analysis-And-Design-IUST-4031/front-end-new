@@ -19,7 +19,9 @@ const UserList: React.FC<UserListProps> = ({ users, activeUser, setActiveUser })
         borderRight: '1px solid #ccc', 
         overflowY: 'auto',
         height: '100vh',
-        ml : 0 
+        margin : 0 ,
+        widht : '100%',
+        backgroundColor : '#ccc'
      }}>
       {users.map((user) => (
         <User 
