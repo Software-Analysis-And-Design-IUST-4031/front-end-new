@@ -14,7 +14,13 @@ interface UserListProps {
 
 const UserList: React.FC<UserListProps> = ({ users, activeUser, setActiveUser }) => {
   return (
-    <Box style={{ width: '200px', border: '1px solid #ccc' }}>
+    <Box sx={{ 
+        // width: '250px', 
+        borderRight: '1px solid #ccc', 
+        overflowY: 'auto',
+        height: '100vh',
+        ml : 0 
+     }}>
       {users.map((user) => (
         <User 
           key={user.id} 

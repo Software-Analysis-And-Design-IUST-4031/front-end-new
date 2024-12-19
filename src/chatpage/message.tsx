@@ -20,7 +20,8 @@ const Message : React.FC<MessageProps> = ({text , sender , id , date}) =>
                 display : 'flex' ,
                 justifyContent : sender === "me" ?  "flex-end" : "flex-start",
                 maxWidth : '100%' , 
-                position : 'relative'
+                position : 'relative' ,
+                // m : 1.6 ,
             }}
         >
             <Box
@@ -47,7 +48,8 @@ const Message : React.FC<MessageProps> = ({text , sender , id , date}) =>
                           : '10px 10px 10px 10px', // Makes a triangle pointing **right**
                         borderColor: sender === 'me' 
                           ? `black transparent transparent transparent` 
-                          : `red transparent transparent transparent`
+                          : `red transparent transparent transparent` ,
+                        // ml : sender === 'me' ? 230 : 0 , 
                       }
                 }}
             >

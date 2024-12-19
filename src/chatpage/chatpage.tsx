@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextField, Button, Box , TextareaAutosize , Typography} from '@mui/material';
+import { TextField, Button, Box , TextareaAutosize , Typography , Grid} from '@mui/material';
 import MessageList from './messages';
 import MessageInput from './messageinput';
 import UserList from './users';
@@ -28,11 +28,25 @@ const ChatPage = () =>
     const [users, setUsers] = useState<UserProps[]>([
         { id: 1, name: 'John' }, 
         { id: 2, name: 'Sarah' },
-        { id: 3, name: 'David' }
+        { id: 3, name: 'David' },
+        { id: 4, name: 'David' },
+        { id: 5, name: 'David' },
+        { id: 6, name: 'David' },
+        { id: 7, name: 'David' },
+        { id: 8, name: 'David' },
+        { id: 9, name: 'David' },
+        { id: 10, name: 'David' },
+        { id: 11, name: 'David' },
+        { id: 12, name: 'David' },
+        { id: 13, name: 'David' },
+        { id: 14, name: 'David' },
+        { id: 15, name: 'David' },
+        { id: 16, name: 'David' },
+        { id: 17, name: 'David' },
     ]);
     const handleSendMessage = (message : string) =>
     {
-        if (activeUser === null)
+        if (activeUser === null || message === '')
         {
             return;
         } 
@@ -93,30 +107,39 @@ const ChatPage = () =>
 
 
     return (
-        <Box
-            sx = {{
-                diplay : 'flex' ,
-                flexDirection : 'column' ,
-            }}
-        >
+        // <Box
+        //     sx = {{
+        //         diplay : 'flex' ,
+        //         flexDirection : 'column' ,
+        //     }}
+        // >
+        <Grid container spacing={0}>
+            <Grid item xs = {3}>
+                <UserList 
+                    users={users} 
+                    activeUser={activeUser} 
+                    setActiveUser={setActiveUser} 
+                />
+            </Grid>
+            <Grid item xs = {9} sx = {{
+                backgroundColor: 'red' ,
+                overflowY: 'auto',
+                height: '100vh',
+            }}>
+                <MessageList
+                    messages={activeUser ? messages[activeUser.id] || [] : []}
+                />
 
-            <UserList 
-                users={users} 
-                activeUser={activeUser} 
-                setActiveUser={setActiveUser} 
-            />
-            <MessageList
-                messages={activeUser ? messages[activeUser.id] || [] : []}
-            />
 
-
-            {activeUser && (
-                <MessageInput handleSendMessage={handleSendMessage} />
-            )}
-            <MessageInput 
-                handleSendMessage = {handleSendMessage2}
-            /> 
-        </Box>
+                {activeUser && (
+                    <MessageInput handleSendMessage={handleSendMessage} />
+                )}
+                <MessageInput 
+                    handleSendMessage = {handleSendMessage2}
+                /> 
+            </Grid>
+       
+        </Grid>
     )
 }
 

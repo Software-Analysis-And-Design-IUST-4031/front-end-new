@@ -32,6 +32,7 @@ const MessageList: React.FC<MessagesProps> = ({messages}) =>
                 flexDirection : 'column' ,
                 display : 'flex' , 
                 gap : '15px' ,
+                padding : '25px'
             }}
         >
             {

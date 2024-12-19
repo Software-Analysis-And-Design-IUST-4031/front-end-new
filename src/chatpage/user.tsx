@@ -23,7 +23,7 @@ interface UserProps {
 const User: React.FC<UserProps> = ({name , id , isActive , onClick}) =>{
     return (
         <ListItem disablePadding sx = {{
-                maxWidth : 300,
+                width : '100%'
             }}
         >
             <ListItemButton onClick={onClick} sx = {{
