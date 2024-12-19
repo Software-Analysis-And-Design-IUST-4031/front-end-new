@@ -30,7 +30,7 @@ const User: React.FC<UserProps> = ({name , id , isActive , onClick}) =>{
                 gap : '8px',
                 alignItems: 'center', 
             }}>
-                <Avatar sx={{ bgcolor: isActive ? 'blue' : 'gray' }}>
+                <Avatar sx={{ bgcolor: isActive ? 'black' : 'gray' }}>
                     {name[0].toUpperCase()}
                 </Avatar>
                 <ListItemText primary= {name} />

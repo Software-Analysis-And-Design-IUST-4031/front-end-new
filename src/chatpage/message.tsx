@@ -26,7 +26,7 @@ const Message : React.FC<MessageProps> = ({text , sender , id , date}) =>
         >
             <Box
                 sx = {{
-                    bgcolor : sender === "me" ? '#00cc66' : 'red',
+                    bgcolor : sender === "me" ? '#00cc66' : '#ccc',
                     color: sender === 'me' ?  '#333': '#333', //'#fff'
                     // maxwidth : '50%' ,
                     p : 1 , 
@@ -48,7 +48,7 @@ const Message : React.FC<MessageProps> = ({text , sender , id , date}) =>
                           : '10px 10px 10px 10px', // Makes a triangle pointing **right**
                         borderColor: sender === 'me' 
                           ? `#00cc66 transparent transparent transparent` 
-                          : `red transparent transparent transparent` ,
+                          : `#ccc transparent transparent transparent` ,
                         // ml : sender === 'me' ? 230 : 0 , 
                       }
                 }}
@@ -64,7 +64,7 @@ const Message : React.FC<MessageProps> = ({text , sender , id , date}) =>
                     {{
                         // backgroundColor : "red",
                         fontSize: '12px', 
-                        color: sender === 'me' ? '#999' : '#999', //'#cce7ff'
+                        color: '#56705d', //'#cce7ff'
                         textAlign : sender === 'me' ? 'right' : 'left' ,
                         mt: 1, 
                     }}
