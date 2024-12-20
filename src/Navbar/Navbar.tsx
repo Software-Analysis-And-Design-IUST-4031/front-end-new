@@ -1,3 +1,4 @@
+import React from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
 import { 
   Tabs, 
@@ -7,13 +8,19 @@ import {
   alpha,
   useTheme,
   IconButton,
+  Button,
+  AppBar,
+  Toolbar,
+  Typography,
 } from '@mui/material';
 import { useColorMode } from '../App';
-import { useState } from 'react';
 import blackLogo from './Logos/black_on_trans.png';
 import whiteLogo from './Logos/white_on_trans.png';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { useAuth } from '../AuthContext';
+import { Menu as MenuIcon } from '@mui/icons-material';
 
 interface CustomTheme {
   bg: string;
@@ -93,13 +100,7 @@ const LogoContainer = styled(Box)(({ theme }) => ({
 }));
 
 const Logo = styled('img')({
-  height: '300px',
-  width: 'auto',
-  objectFit: 'contain',
-  display: 'block',
-  margin: 0,
-  padding: 0,
-  verticalAlign: 'top', 
+  height: '40px',
 });
 
 export default function AppNavbar() {
@@ -107,92 +108,53 @@ export default function AppNavbar() {
   const navigate = useNavigate();
   const theme = useTheme();
   const { mode, toggleColorMode } = useColorMode();
-  const [customTheme] = useState<CustomTheme>(() => {
-    try {
-      const savedTheme = localStorage.getItem('customTheme');
-      if (savedTheme) {
-        return JSON.parse(savedTheme);
-      }
-    } catch (error) {
-      console.error('Error reading theme from localStorage:', error);
-    }
-    return {
-      bg: mode === 'light' ? '#F7F8FA' : '#1E1E1E',
-      text: mode === 'light' ? '#333333' : '#FFFFFF'
-    };
-  });
+  const { isAuthenticated, username, logout } = useAuth();
 
-  const currentPath = location.pathname;
-  
-  // Only show navbar if user is authenticated
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  if (!isAuthenticated) {
-    return null;
-  }
+  // Remove or comment out debugging logs
+  // console.log('Debug Navbar Component:');
+  // console.log('Username from useAuth:', username);
+  // console.log('Current path:', location.pathname);
+  // console.log('Processed current path:', currentPath);
+
+  const currentPath = location.pathname.replace(`/${username}`, '');
+  console.log('Processed current path:', currentPath);
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
-    navigate(newValue);
+    const path = `/${username}${newValue}`;
+    navigate(path);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   return (
-    <Box sx={{ 
-      width: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      mt: '-20px',
-      p: 0,
-      position: 'relative',
-    }}>
-      <IconButton
-        onClick={toggleColorMode}
-        color="inherit"
-        sx={{
-          position: 'fixed',
-          top: 20,
-          right: 20,
-          backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-          '&:hover': {
-            backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
-          },
-          zIndex: 1300,
-        }}
-      >
-        {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-      </IconButton>
-
-      <LogoContainer onClick={() => navigate('/home')}>
-        <Logo 
-          src={mode === 'dark' ? whiteLogo : blackLogo} 
-          alt="Logo"
-        />
-      </LogoContainer>
-
-      <Box sx={{ 
-        maxWidth: 'md',
-        width: '100%',
-        backgroundColor: 'transparent',
-        borderRadius: 2,
-        p: 0,
-        mt: '-20px', 
-      }}>
-        <StyledTabs
-          value={currentPath}
-          onChange={handleChange}
-          centered
-          sx={{
-            '& .MuiTab-root:hover': {
-              backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-              borderRadius: '8px',
-            }
-          }}
-        >
-          <StyledTab label="Home" value="/home" />
-          <StyledTab label="Galleries" value="/galleries" />
-          <StyledTab label="Blog" value="/blog" />
-          <StyledTab label="Profile" value="/profile" />
-        </StyledTabs>
-      </Box>
-    </Box>
+    <AppBar position="fixed">
+      <Toolbar>
+        <IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
+          <MenuIcon />
+        </IconButton>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          Art Blog
+        </Typography>
+        {isAuthenticated ? (
+          <>
+            <Button color="inherit">{username}</Button>
+            <Button color="inherit" onClick={handleLogout}>
+              Logout <LogoutIcon />
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button color="inherit" onClick={() => navigate('/login')}>Login</Button>
+            <Button color="inherit" onClick={() => navigate('/signup')}>Signup</Button>
+          </>
+        )}
+        <IconButton sx={{ ml: 1 }} onClick={toggleColorMode} color="inherit">
+          {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+        </IconButton>
+      </Toolbar>
+    </AppBar>
   );
 }

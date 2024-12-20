@@ -23,8 +23,9 @@ import {
   ThumbDown,
   Send,
 } from '@mui/icons-material';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import { EditorState, convertToRaw } from 'draft-js';
+import { Editor as DraftEditor } from 'draft-js';
+import 'draft-js/dist/Draft.css';
 
 interface Comment {
   id: string;
@@ -79,7 +80,7 @@ const BlogPost: React.FC<BlogPostProps> = ({
   const [likesCount, setLikesCount] = useState(likes);
   const [userRatingValue, setUserRatingValue] = useState(userRating);
   const [comments, setComments] = useState<Comment[]>(initialComments);
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState<EditorState>(EditorState.createEmpty());
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -95,7 +96,10 @@ const BlogPost: React.FC<BlogPostProps> = ({
   };
 
   const handleCommentSubmit = () => {
-    if (!newComment.trim()) return;
+    if (!newComment.getCurrentContent().hasText()) return;
+
+    const contentState = newComment.getCurrentContent();
+    const rawContent = JSON.stringify(convertToRaw(contentState));
 
     const newCommentObj: Comment = {
       id: Date.now().toString(),
@@ -103,13 +107,13 @@ const BlogPost: React.FC<BlogPostProps> = ({
         name: 'Current User', // TODO: Get from auth context
         avatar: 'https://i.pravatar.cc/150?img=1', // TODO: Get from auth context
       },
-      content: newComment,
+      content: rawContent, // Storing raw content
       date: new Date().toLocaleDateString(),
       likes: 0,
     };
 
     setComments([...comments, newCommentObj]);
-    setNewComment('');
+    setNewComment(EditorState.createEmpty());
     // TODO: API call to save comment
   };
 
@@ -215,25 +219,20 @@ const BlogPost: React.FC<BlogPostProps> = ({
         </Typography>
 
         <Box sx={{ mb: 4 }}>
-          <ReactQuill
-            value={newComment}
-            onChange={setNewComment}
-            placeholder="Write a comment..."
-            modules={{
-              toolbar: [
-                ['bold', 'italic', 'underline'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                ['link'],
-                ['clean']
-              ],
-            }}
-          />
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            <DraftEditor
+              editorState={newComment}
+              onChange={setNewComment}
+              placeholder="Write a comment..."
+              // Add additional configurations or toolbars as needed
+            />
+          </Paper>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
             <Button
               variant="contained"
               endIcon={<Send />}
               onClick={handleCommentSubmit}
-              disabled={!newComment.trim()}
+              disabled={!newComment.getCurrentContent().hasText()}
             >
               Post Comment
             </Button>

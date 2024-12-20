@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 
 // Types
 interface RequestConfig {
@@ -81,12 +81,10 @@ interface RegisterResponse {
     message: string;
 }
 
-const BASE_URL = 'http://127.0.0.1:8000/api';
-
 const userService = {
     // Authentication
     async login(credentials: LoginCredentials): Promise<LoginResponse> {
-        const response = await axios.post<LoginResponse>(`${BASE_URL}/auth/login/`, credentials);
+        const response = await api.post<LoginResponse>('/auth/login/', credentials);
         if (response.data.token) {
             this.setAuthToken(response.data.token);
             localStorage.setItem('username', response.data.user.username);
@@ -96,22 +94,22 @@ const userService = {
 
     async logout(): Promise<void> {
         try {
-            await axios.post(`${BASE_URL}/auth/logout/`);
+            await api.post('/auth/logout/');
         } finally {
             localStorage.removeItem('token');
             localStorage.removeItem('username');
-            delete axios.defaults.headers.common['Authorization'];
+            delete api.defaults.headers.common['Authorization'];
         }
     },
 
     async register(data: RegistrationData): Promise<RegisterResponse> {
-        const response = await axios.post<RegisterResponse>(`${BASE_URL}/auth/register/`, data);
+        const response = await api.post<RegisterResponse>('/auth/register/', data);
         return response.data;
     },
 
     // User Profile Management
     async getUserDetails(username: string): Promise<UserProfile> {
-        const response = await axios.get<UserProfile>(`${BASE_URL}/users/${username}/profile/`);
+        const response = await api.get<UserProfile>(`/users/${username}/profile/`);
         return response.data;
     },
 
@@ -133,8 +131,8 @@ const userService = {
             }
         });
 
-        const response = await axios.put<UserProfile>(
-            `${BASE_URL}/users/${username}/profile/`,
+        const response = await api.put<UserProfile>(
+            `/users/${username}/profile/`,
             formData,
             config
         );
@@ -142,28 +140,28 @@ const userService = {
     },
 
     async updateUserFavorites(username: string, favoritesData: UserProfile): Promise<UserProfile> {
-        const response = await axios.put<UserProfile>(`${BASE_URL}/users/${username}/favorites/`, favoritesData);
+        const response = await api.put<UserProfile>(`/users/${username}/favorites/`, favoritesData);
         return response.data;
     },
 
     async getUserProfileDetails(username: string): Promise<UserProfile> {
-        const response = await axios.get<UserProfile>(`${BASE_URL}/users/${username}/profile/`);
+        const response = await api.get<UserProfile>(`/users/${username}/profile/`);
         return response.data;
     },
 
     async getUserFavorites(username: string): Promise<UserProfile> {
-        const response = await axios.get<UserProfile>(`${BASE_URL}/users/${username}/favorites/`);
+        const response = await api.get<UserProfile>(`/users/${username}/favorites/`);
         return response.data;
     },
 
     async getUserPaintings(username: string): Promise<Painting[]> {
-        const response = await axios.get<Painting[]>(`${BASE_URL}/users/${username}/paintings/`);
+        const response = await api.get<Painting[]>(`/users/${username}/paintings/`);
         return response.data;
     },
 
     async addPainting(username: string, formData: FormData): Promise<Painting> {
-        const response = await axios.post<Painting>(
-            `${BASE_URL}/users/${username}/paintings/`,
+        const response = await api.post<Painting>(
+            `/users/${username}/paintings/`,
             formData,
             {
                 headers: {
@@ -176,12 +174,12 @@ const userService = {
 
     // Utility function to set up auth token
     setAuthToken(token: string): void {
-        if (token) {
-            axios.defaults.headers.common['Authorization'] = `Token ${token}`;
-        } else {
-            delete axios.defaults.headers.common['Authorization'];
-        }
-    },
+       if (token) {
+         api.defaults.headers.common['Authorization'] = `Token ${token}`;
+       } else {
+         delete api.defaults.headers.common['Authorization'];
+       }
+     },
 
     // Initialize auth state from localStorage
     initializeAuth(): void {

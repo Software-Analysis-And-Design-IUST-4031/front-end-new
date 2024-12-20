@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, MantineProvider } from '@mantine/core';
+import { ThemeProvider, createTheme, Box } from '@mui/material';
+import { CssBaseline } from '@mui/material';
 import { useColorMode } from '../App';
 
 interface AuthLayoutProps {
@@ -10,25 +11,40 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   const { mode } = useColorMode();
   const isDark = mode === 'dark';
 
+  const muiTheme = createTheme({
+    palette: {
+      mode: isDark ? 'dark' : 'light',
+      primary: {
+        main: '#1976d2',
+      },
+      secondary: {
+        main: '#ff4081',
+      },
+      background: {
+        default: isDark ? '#121212' : '#f5f5f5',
+        paper: isDark ? '#1e1e1e' : '#ffffff',
+      },
+    },
+    typography: {
+      fontFamily: 'Roboto, sans-serif',
+    },
+  });
+
   return (
-    <MantineProvider>
+    <ThemeProvider theme={muiTheme}>
+      <CssBaseline />
       <Box
-        style={{
+        sx={{
           minHeight: '100vh',
-          width: '100%',
-          background: isDark 
-            ? 'linear-gradient(135deg, #1A1B1E 0%, #25262B 100%)'
-            : 'linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 0,
-          margin: 0
+          backgroundColor: isDark ? '#121212' : '#f5f5f5',
         }}
       >
         {children}
       </Box>
-    </MantineProvider>
+    </ThemeProvider>
   );
 };
 

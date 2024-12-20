@@ -28,8 +28,9 @@ import {
   Close
 } from '@mui/icons-material';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import { EditorState, convertToRaw } from 'draft-js';
+import { Editor as DraftEditor } from 'draft-js';
+import 'draft-js/dist/Draft.css';
 
 interface Comment {
   id: string;
@@ -49,7 +50,7 @@ const BlogPostDetail: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const post = location.state?.post;
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState<EditorState>(EditorState.createEmpty());
   const [comments, setComments] = useState<Comment[]>([]);
   const [upvotes, setUpvotes] = useState<number>(post?.votes || 0);
   const [downvotes, setDownvotes] = useState<number>(0);
@@ -126,30 +127,29 @@ const BlogPostDetail: React.FC = () => {
   };
 
   const handleCommentSubmit = () => {
-    try {
-      if (!comment.trim()) {
-        setSnackbar({ open: true, message: 'Comment cannot be empty', severity: 'error' });
-        return;
-      }
-
-      const newComment: Comment = {
-        id: Date.now().toString(),
-        author: {
-          name: 'Current User',
-          avatar: 'https://i.pravatar.cc/150?img=1',
-        },
-        content: comment,
-        date: new Date().toLocaleDateString(),
-        upvotes: 0,
-        downvotes: 0,
-      };
-
-      setComments([newComment, ...comments]);
-      setComment('');
-      setSnackbar({ open: true, message: 'Comment posted successfully', severity: 'success' });
-    } catch (err) {
-      setSnackbar({ open: true, message: 'Failed to post comment', severity: 'error' });
+    if (!comment.getCurrentContent().hasText()) {
+      setSnackbar({ open: true, message: 'Comment cannot be empty', severity: 'error' });
+      return;
     }
+
+    const contentState = comment.getCurrentContent();
+    const rawContent = JSON.stringify(convertToRaw(contentState));
+
+    const newComment: Comment = {
+      id: Date.now().toString(),
+      author: {
+        name: 'Current User',
+        avatar: 'https://i.pravatar.cc/150?img=1',
+      },
+      content: rawContent,
+      date: new Date().toLocaleDateString(),
+      upvotes: 0,
+      downvotes: 0,
+    };
+
+    setComments([newComment, ...comments]);
+    setComment(EditorState.createEmpty());
+    setSnackbar({ open: true, message: 'Comment posted successfully', severity: 'success' });
   };
 
   if (isLoading) {
@@ -606,62 +606,23 @@ const BlogPostDetail: React.FC = () => {
         </Typography>
 
         <Box sx={{ mb: 4 }}>
-          <Box sx={{ 
-            '.ql-container': {
-              borderBottomLeftRadius: '8px',
-              borderBottomRightRadius: '8px',
-              backgroundColor: customColors.cardBg,
-              border: `1px solid ${customColors.border}`,
-              borderTop: 'none',
-            },
-            '.ql-toolbar': {
-              borderTopLeftRadius: '8px',
-              borderTopRightRadius: '8px',
-              backgroundColor: customColors.cardBg,
-              border: `1px solid ${customColors.border}`,
-              borderBottom: 'none',
-            },
-            '.ql-editor': {
-              minHeight: '150px',
-              fontSize: '1rem',
-              lineHeight: '1.6',
-              color: customColors.text,
-              '&.ql-blank::before': {
-                color: `${customColors.accent} !important`,
-                fontStyle: 'normal !important',
-              }
-            }
-          }}>
-            <ReactQuill
-              value={comment}
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            <DraftEditor
+              editorState={comment}
               onChange={setComment}
-              modules={modules}
-              formats={formats}
               placeholder="Share your thoughts..."
-              theme="snow"
+              // Add additional configurations or toolbars as needed
             />
-          </Box>
-          
+          </Paper>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
             <Button
               variant="contained"
               onClick={handleCommentSubmit}
-              disabled={!comment.trim()}
+              disabled={!comment.getCurrentContent().hasText()}
               sx={{
-                bgcolor: customColors.accent,
+                bgcolor: '#0a95ff',
+                '&:hover': { bgcolor: '#0074cc' },
                 color: 'white',
-                px: 4,
-                py: 1.5,
-                borderRadius: 2,
-                textTransform: 'none',
-                fontSize: '1rem',
-                fontWeight: 500,
-                '&:hover': {
-                  bgcolor: customColors.secondary,
-                },
-                '&:disabled': {
-                  bgcolor: 'rgba(0,0,0,0.12)',
-                }
               }}
             >
               Post Comment

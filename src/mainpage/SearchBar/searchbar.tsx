@@ -1,24 +1,29 @@
-import { TextInput, TextInputProps, ActionIcon, useMantineTheme, rem } from '@mantine/core';
-import { IconSearch, IconArrowRight } from '@tabler/icons-react';
+import React from 'react';
+import { TextField, Button, Box } from '@mui/material';
 
-export function InputWithButton(props: TextInputProps) {
-  const theme = useMantineTheme();
+const SearchBar: React.FC = () => {
+  const handleSearch = () => {
+    // Implement your search functionality here
+    console.log('Search triggered');
+  };
 
   return (
-    <TextInput
-      radius="xl"
-      size="md"
-      placeholder="Search questions"
-      rightSectionWidth={42}
-      leftSection={<IconSearch style={{ width: rem(18), height: rem(18) }} stroke={1.5} />}
-      rightSection={
-        <ActionIcon size={32} radius="xl" color={theme.primaryColor} variant="filled">
-          <IconArrowRight style={{ width: rem(18), height: rem(18) }} stroke={1.5} />
-        </ActionIcon>
-      }
-      {...props}
-    />
+    <Box display="flex" alignItems="center" justifyContent="center" mt={4}>
+      <TextField 
+        label="Search" 
+        variant="outlined" 
+        placeholder="Search..." 
+        sx={{ width: '300px', mr: 2 }}
+      />
+      <Button 
+        variant="contained" 
+        color="primary" 
+        onClick={handleSearch}
+      >
+        Search
+      </Button>
+    </Box>
   );
-}
+};
 
-export default InputWithButton;
+export default SearchBar;

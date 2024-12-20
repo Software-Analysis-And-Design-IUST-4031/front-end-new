@@ -3,6 +3,15 @@ import './Themes.css';
 import ProfilePage from './userpanel/ProfilePage';
 import { useTheme } from '@mui/material';
 import { useColorMode } from './App';
+import { 
+  Button, 
+  TextField, 
+  Typography, 
+  Grid, 
+  Box, 
+  Avatar, 
+  Paper 
+} from '@mui/material';
 
 const UserpanelApp: React.FC = () => {
   const theme = useTheme();

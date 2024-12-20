@@ -1,42 +1,38 @@
 import React, { useState } from 'react';
-import { InputWithButton } from './searchbar' ;
-import { IconArrowRight } from '@tabler/icons-react';
-import { rem } from '@mantine/core';
-
+import { useNavigate } from 'react-router-dom';
+import { TextField, IconButton, InputAdornment, Box } from '@mui/material';
+import { ArrowRight } from '@mui/icons-material';
 
 export const SearchBar: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
+  const navigate = useNavigate();
 
   const handleSearch = () => {
     console.log('Searching for:', searchValue);
+    // Implement search navigation or functionality
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px' }}>
-      <InputWithButton
+    <Box sx={{ maxWidth: '400px', margin: '0 auto', padding: '20px' }}>
+      <TextField
+        fullWidth
         value={searchValue}
-        onChange={(e) => setSearchValue(e.currentTarget.value)}
+        onChange={(e) => setSearchValue(e.target.value)}
+        placeholder="Search questions"
         onKeyPress={(e) => {
           if (e.key === 'Enter') handleSearch();
         }}
-        rightSection={
-          <button
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            onClick={handleSearch}
-          >
-            <IconArrowRight style={{ width: rem(18), height: rem(18) }} stroke={1.5} />
-          </button>
-        }
-        placeholder="Search questions"
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton onClick={handleSearch} edge="end">
+                <ArrowRight />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
       />
-    </div>
+    </Box>
   );
 };
 

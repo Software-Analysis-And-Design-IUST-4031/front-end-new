@@ -23,47 +23,11 @@ import {
   FormatListNumbered,
   FormatQuote,
 } from '@mui/icons-material';
-import {
-  createEditor,
-  Descendant,
-  Element as SlateElement,
-  Editor,
-  Transforms,
-  BaseEditor,
-  Text,
-} from 'slate';
-import {
-  Slate,
-  Editable,
-  withReact,
-  useSlate,
-  ReactEditor,
-} from 'slate-react';
-import { withHistory, HistoryEditor } from 'slate-history';
+import { EditorState, convertToRaw } from 'draft-js';
+import { Editor as DraftEditor } from 'draft-js';
+import 'draft-js/dist/Draft.css';
 import { css } from '@emotion/css';
 import isHotkey from 'is-hotkey';
-
-// Custom types for Slate
-type CustomElement = {
-  type: 'paragraph' | 'code' | 'quote' | 'bulleted-list' | 'numbered-list' | 'list-item';
-  children: CustomText[];
-};
-
-type CustomText = {
-  text: string;
-  bold?: boolean;
-  italic?: boolean;
-  underline?: boolean;
-  code?: boolean;
-};
-
-declare module 'slate' {
-  interface CustomTypes {
-    Editor: BaseEditor & ReactEditor & HistoryEditor;
-    Element: CustomElement;
-    Text: CustomText;
-  }
-}
 
 const HOTKEYS = {
   'mod+b': 'bold',
@@ -90,41 +54,24 @@ const BlogEditor: React.FC = () => {
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [error, setError] = useState('');
-  const editor = withHistory(withReact(createEditor()));
-
-  // Initialize editor value
-  const [value, setValue] = useState<Descendant[]>(initialValue);
-
-  // Save content to localStorage whenever it changes
-  const handleChange = (newValue: Descendant[]) => {
-    setValue(newValue);
-    localStorage.setItem('content', JSON.stringify(newValue));
-  };
+  const [editorState, setEditorState] = useState<EditorState>(EditorState.createEmpty());
 
   const toggleMark = (format: string) => {
-    const marks = Editor.marks(editor) ?? {};
-    const isActive = marks[format as keyof Omit<CustomText, 'text'>] === true;
-    if (isActive) {
-      Editor.removeMark(editor, format);
-    } else {
-      Editor.addMark(editor, format, true);
-    }
+    const contentState = editorState.getCurrentContent();
+    const selectionState = contentState.getSelection();
+    const newContentState = Modifier.applyMark(contentState, selectionState, {
+      [format]: true,
+    });
+    setEditorState(newContentState);
   };
 
   // Custom components for the editor
   const ToolbarButton: React.FC<ToolbarButtonProps> = ({ format, icon, tooltip }) => {
-    const editor = useSlate();
-
-    const isBlockActive = (format: string) => {
-      const [match] = Editor.nodes(editor, {
-        match: n => !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === format,
-      }) ?? [false];
-      return !!match;
-    };
-
     const isMarkActive = (format: string) => {
-      const marks = Editor.marks(editor) ?? {};
-      return marks[format as keyof Omit<CustomText, 'text'>] === true;
+      const contentState = editorState.getCurrentContent();
+      const selectionState = contentState.getSelection();
+      const marks = contentState.getEditorState().getCurrentContent().getPlainText().marks;
+      return marks && marks.has(format);
     };
 
     return (
@@ -136,82 +83,23 @@ const BlogEditor: React.FC = () => {
             if (['bold', 'italic', 'underline', 'code'].includes(format)) {
               toggleMark(format);
             } else {
-              const isActive = isBlockActive(format);
-              Transforms.setNodes(
-                editor,
-                { type: isActive ? 'paragraph' : format as CustomElement['type'] },
-                { match: n => SlateElement.isElement(n) && Editor.isBlock(editor, n) }
-              );
+              const isActive = isMarkActive(format);
+              const contentState = editorState.getCurrentContent();
+              const selectionState = contentState.getSelection();
+              const newContentState = Modifier.applyInlineStyle(contentState, selectionState, {
+                [format]: isActive,
+              });
+              setEditorState(newContentState);
             }
           }}
           sx={{
-            color: (isBlockActive(format) || isMarkActive(format)) ? 'primary.main' : 'text.secondary',
+            color: isMarkActive(format) ? 'primary.main' : 'text.secondary',
           }}
         >
           {icon}
         </IconButton>
       </Tooltip>
     );
-  };
-
-  const renderElement = (props: any) => {
-    const { attributes, children, element } = props;
-    switch (element.type) {
-      case 'code':
-        return (
-          <pre {...attributes} style={{ 
-            backgroundColor: '#f6f8fa',
-            padding: '1rem',
-            borderRadius: '4px',
-            fontFamily: 'monospace',
-          }}>
-            <code>{children}</code>
-          </pre>
-        );
-      case 'quote':
-        return (
-          <blockquote
-            {...attributes}
-            style={{
-              borderLeft: '4px solid #ddd',
-              marginLeft: 0,
-              marginRight: 0,
-              paddingLeft: '1rem',
-              color: '#666',
-            }}
-          >
-            {children}
-          </blockquote>
-        );
-      case 'bulleted-list':
-        return <ul {...attributes}>{children}</ul>;
-      case 'numbered-list':
-        return <ol {...attributes}>{children}</ol>;
-      case 'list-item':
-        return <li {...attributes}>{children}</li>;
-      default:
-        return <p {...attributes}>{children}</p>;
-    }
-  };
-
-  const renderLeaf = (props: any) => {
-    const { attributes, children, leaf } = props;
-    let result = children;
-
-    if (leaf.bold) {
-      result = <strong>{result}</strong>;
-    }
-    if (leaf.italic) {
-      result = <em>{result}</em>;
-    }
-    if (leaf.underline) {
-      result = <u>{result}</u>;
-    }
-    if (leaf.code) {
-      result = <code style={{ backgroundColor: '#f6f8fa', padding: '0.2em 0.4em', borderRadius: '3px' }}>{result}</code>;
-    }
-
-    return <span {...attributes}>{result}</span>;
   };
 
   const suggestedTags = [
@@ -229,8 +117,11 @@ const BlogEditor: React.FC = () => {
       return;
     }
 
+    const contentState = editorState.getCurrentContent();
+    const rawContent = JSON.stringify(convertToRaw(contentState));
+
     // TODO: Submit the question to your backend
-    console.log({ title, content: value, tags });
+    console.log({ title, content: rawContent, tags });
     navigate('/blog');
   };
 
@@ -325,85 +216,20 @@ const BlogEditor: React.FC = () => {
         
         <Box sx={{ 
           mt: 2,
-          '& .ql-editor': {
+          '& .DraftEditor-root': {
             minHeight: '400px',
-            '& img': {
-              maxWidth: '100%',
-              height: 'auto !important',
-              display: 'block',
-              margin: '1rem 0',
-              clear: 'both',
-            },
-            '& p': {
-              marginBottom: '1rem',
-              position: 'relative',
-              zIndex: 1
-            }
-          },
-          '& .ql-container': {
-            fontSize: '1rem',
-            position: 'relative',
-            zIndex: 1
-          },
-          '& .ql-toolbar': {
-            position: 'sticky',
-            top: 0,
-            zIndex: 2,
-            backgroundColor: 'white',
-            borderColor: 'divider'
+            border: '1px solid #e0e0e0',
+            padding: '1rem',
+            borderRadius: '4px',
+            backgroundColor: '#fff',
           }
         }}>
-          <Paper 
-            variant="outlined" 
-            sx={{ 
-              minHeight: '300px',
-              backgroundColor: '#fff',
-              borderColor: 'divider',
-              '&:hover': {
-                borderColor: 'text.secondary',
-              },
-              '&:focus-within': {
-                borderColor: 'primary.main',
-                borderWidth: 2,
-              },
-            }}
-          >
-            <Box sx={{ p: 2 }}>
-              <style>{customStyles}</style>
-              <Slate 
-                editor={editor} 
-                value={value}
-                onChange={handleChange}
-              >
-                <Editable
-                  renderElement={renderElement}
-                  renderLeaf={renderLeaf}
-                  placeholder="Write your question here..."
-                  spellCheck
-                  onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
-                    for (const hotkey in HOTKEYS) {
-                      if (isHotkey(hotkey, event)) {
-                        event.preventDefault();
-                        const mark = HOTKEYS[hotkey as keyof typeof HOTKEYS];
-                        toggleMark(mark);
-                      }
-                    }
-                  }}
-                  style={{
-                    minHeight: '300px',
-                    fontSize: '1rem',
-                    lineHeight: '1.5',
-                    padding: '1rem',
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                    border: '1px solid #e0e0e0',
-                    borderRadius: '4px',
-                    backgroundColor: '#ffffff',
-                    cursor: 'text'
-                  }}
-                />
-              </Slate>
-            </Box>
-          </Paper>
+          <DraftEditor
+            editorState={editorState}
+            onChange={setEditorState}
+            placeholder="Write your question here..."
+            // Add custom styling or toolbars as needed
+          />
         </Box>
 
         <Typography variant="h6" gutterBottom>

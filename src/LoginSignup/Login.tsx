@@ -1,17 +1,21 @@
-import { useState, useEffect, SyntheticEvent } from 'react';
-import Button from '@mui/material/Button';
-import { Link, useNavigate } from 'react-router-dom';
-import '@mantine/core/styles.css';
-import './Login.css';
-import './auth.css';
-import axios from 'axios';
-import { EyeCheck, EyeOff } from 'tabler-icons-react';
-import { Text, Grid, Box, PasswordInput, TextInput } from '@mantine/core';
+import React, { useState, SyntheticEvent } from 'react';
+import { 
+  Button, 
+  Typography, 
+  Grid, 
+  Box, 
+  TextField, 
+  IconButton, 
+  InputAdornment, 
+  Alert, 
+  Snackbar 
+} from '@mui/material';
+import { Visibility, VisibilityOff, ArrowBack } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 import { useColorMode } from '../App';
-import { IconArrowLeft } from '@tabler/icons-react';
-import { Snackbar, Alert } from "@mui/material";
-import userService from '../services/userService'; // Import userService
+import { useAuth } from '../AuthContext';
+import axios from 'axios';
 
 interface LoginErrors {
   userName: string;
@@ -20,7 +24,7 @@ interface LoginErrors {
 }
 
 interface LoginResponse {
-  access: string;
+  token: string;
   user: {
     user_id: number;
     email: string;
@@ -33,37 +37,44 @@ interface LoginResponse {
   };
 }
 
-const Login = () => {
-  const [open, setOpen] = useState(false);
-  const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
-  const [message, setMessage] = useState('');
-  const [username, setUserName] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({ userName: '', password: '' }); 
-  const [isSubmiting, setIsSubmiting] = useState(false);
+const Login: React.FC = () => {
   const navigate = useNavigate();
   const { mode } = useColorMode();
   const isDark = mode === 'dark';
+  const { login: authLogin } = useAuth();
 
-  useEffect(() => {
-    return () => {
-      setIsSubmiting(false);
-    };
-  }, []);
+  // State Variables
+  const [open, setOpen] = useState(false);
+  const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
+  const [message, setMessage] = useState('');
+  const [userName, setUserName] = useState('');
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<LoginErrors>({
+    userName: '',
+    password: '',
+    api: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Password Visibility State
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+
+  // Handlers
   const handleAlertClose = (event: SyntheticEvent | Event, reason?: string) => {
-    if (reason === 'cliclaway') {
+    if (reason === 'clickaway') {
       return;
     }
     setOpen(false);
   }
+
+  const togglePasswordVisibility = (): void => setShowPassword(!showPassword);
 
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setUserName(value);
     setErrors((prevErrors) => ({
       ...prevErrors,
-      userName: value.trim() === '' ? 'username is required!' : '',
+      userName: value.trim() === '' ? 'Username is required!' : '',
     }));
   }
 
@@ -72,95 +83,89 @@ const Login = () => {
     setPassword(value);
     setErrors((prevErrors) => ({
       ...prevErrors,
-      password: value.trim() === '' ? 'password is required!' : '',
+      password: value.trim() === '' ? 'Password is required!' : '',
     }));
   }
 
+  // Form Submission Handler
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    
-    if (!username.trim() || !password.trim()) {
-      const newErrors = {
-        userName: username.trim() ? '' : 'Username is required!',
-        password: password.trim() ? '' : 'Password is required!'
+
+    // Validate Inputs
+    if (!userName.trim() || !password.trim()) {
+      const newErrors: LoginErrors = {
+        userName: userName.trim() ? '' : 'Username is required!',
+        password: password.trim() ? '' : 'Password is required!',
+        api: '',
       };
       setErrors(newErrors);
       return;
     }
-  
-    setIsSubmiting(true);
-    try {
-      const response = await axios.post<LoginResponse>('http://127.0.0.1:8000/api/user/login/', {
-        username: username,
-        password: password,
-      });
-  
-      // Store the token and properly initialize it
-      if (response.data.access) {
-        const token = response.data.access;
-        //const userId = response.data.user.user_id.toString();
-        localStorage.setItem('access_token', token);
-        localStorage.setItem('username', username);
-        axios.defaults.headers.common['Authorization'] = `Token ${token}`;
-        userService.setAuthToken(token); // Make sure token is properly set in userService
-      }
 
-      setSeverity('success');
-      //setMessage(`${response.data.user.user_id}`);
-      //setMessage('Login successful!');
-      //alert(JSON.stringify(response.config.data));
-      setMessage('Login successfully!');
-      setOpen(true);
-      
-      setTimeout(() => {
-        // Navigate to user-specific home route
-        navigate(`/${username}/home`);
-      }, 1500);
-      
-    } catch (error: unknown) {
-      if (error && typeof error === 'object' && 'response' in error) {
-        const errorMessage = (error as any).response?.data?.message || 'Error occurred during login!';
-        setSeverity('error');
-        setMessage(errorMessage);
+    setIsSubmitting(true);
+    try {
+      // API Call to login
+      const response = await axios.post<LoginResponse>('http://localhost:8000/api/user/login/', {
+        username: userName,
+        password: password
+      });
+
+      if (response.data.token) {
+        const token = response.data.token;
+        authLogin(token, response.data.user.username);
+
+        setSeverity('success');
+        setMessage('Login successful!');
         setOpen(true);
-      } else {
-        setSeverity('error');
-        setMessage('An unexpected error occurred');
-        setOpen(true);
-        /*setTimeout(() => {
-          // Navigate to user-specific home route
-          navigate(`/${username}/home`);
-        }, 1500);*/
+
+        // Navigate to user's home after a short delay
+        setTimeout(() => {
+          navigate(`/${response.data.user.username}/home`);
+        }, 1000);
       }
+    } catch (error: any) {
+      console.error('Login Error:', error);
+      setSeverity('error');
+      if (error.response && error.response.data && error.response.data.detail) {
+        setMessage(error.response.data.detail);
+      } else {
+        setMessage('An error occurred during login.');
+      }
+      setOpen(true);
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        api: 'Invalid username or password.'
+      }));
     } finally {
-      setIsSubmiting(false);
+      setIsSubmitting(false);
     }
-  };
+  }
 
   return (
     <AuthLayout>
       <Box
         style={{
           width: '100%',
-          maxWidth: '400px',
           backgroundColor: isDark ? '#25262B' : '#FFFFFF',
           borderRadius: '12px',
           padding: '2rem',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
           transition: 'all 0.3s ease',
-          position: 'relative'
+          position: 'relative',
+          margin: '20px'
         }}
       >
         <Button
           variant="text"
           onClick={() => navigate('/')}
-          startIcon={<IconArrowLeft size={20} />}
+          startIcon={<ArrowBack />}
           sx={{
             position: 'absolute',
             top: '1rem',
             left: '1rem',
             color: isDark ? '#909296' : '#495057',
             minWidth: 'auto',
+            padding: '8px',
             '&:hover': {
               backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
             }
@@ -169,99 +174,150 @@ const Login = () => {
           Back
         </Button>
 
-        <form className='login-form' onSubmit={handleSubmit}>
-          <h1 style={{ 
+        <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
+          <Typography variant="h5" component="h1" gutterBottom style={{ 
             textAlign: 'center', 
             marginBottom: '2rem',
-            color: isDark ? '#FFFFFF' : '#1A1B1E'
+            color: isDark ? '#FFFFFF' : '#1A1B1E',
+            fontSize: '24px',
+            fontWeight: 600
           }}>
             Login
-          </h1>
+          </Typography>
 
-          <Grid>
-            <Grid.Col span={12}>
-              <TextInput
+          <Grid container spacing={2}>
+            {/* Username Field */}
+            <Grid item xs={12}>
+              <TextField
+                required
                 label="Username"
                 placeholder="Enter your username"
-                value={username}
+                value={userName}
                 onChange={handleUsernameChange}
-                error={errors.userName}
-                styles={{
-                  input: {
+                error={!!errors.userName}
+                helperText={errors.userName}
+                disabled={isSubmitting}
+                fullWidth
+                sx={{
+                  mb: 3,
+                  '& .MuiOutlinedInput-root': {
                     backgroundColor: isDark ? '#1A1B1E' : '#FFFFFF',
-                    color: isDark ? '#FFFFFF' : '#1A1B1E',
-                    border: `1px solid ${isDark ? '#373A40' : '#CED4DA'}`
+                    '& fieldset': {
+                      borderColor: '#1976d2',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#228be6',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#1976d2',
+                    },
                   },
-                  label: {
-                    color: isDark ? '#FFFFFF' : '#1A1B1E',
-                    fontSize: '0.9rem',
-                    fontWeight: 500,
-                    marginBottom: '0.5rem'
-                  }
                 }}
               />
-            </Grid.Col>
+            </Grid>
 
-            <Grid.Col span={12} mt="md">
-              <PasswordInput
+            {/* Password Field */}
+            <Grid item xs={12}>
+              <TextField
+                required
                 label="Password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your password"
                 value={password}
                 onChange={handlePasswordChange}
-                error={errors.password}
-                styles={{
-                  input: {
-                    backgroundColor: isDark ? '#1A1B1E' : '#FFFFFF',
-                    color: isDark ? '#FFFFFF' : '#1A1B1E',
-                    border: `1px solid ${isDark ? '#373A40' : '#CED4DA'}`
-                  },
-                  label: {
-                    color: isDark ? '#FFFFFF' : '#1A1B1E',
-                    fontSize: '0.9rem',
-                    fontWeight: 500,
-                    marginBottom: '0.5rem'
-                  },
-                  innerInput: {
-                    color: isDark ? '#FFFFFF' : '#1A1B1E'
-                  }
-                }}
-                visibilityToggleIcon={({ reveal }) => 
-                  reveal ? <EyeOff size={20}/> : <EyeCheck size={20}/>
-                }
-              />
-            </Grid.Col>
-
-            <Grid.Col span={12} mt="xl">
-              <Button
-                type='submit'
-                variant='contained'
-                disabled={isSubmiting}
+                error={!!errors.password}
+                helperText={errors.password}
+                disabled={isSubmitting}
                 fullWidth
                 sx={{
-                  backgroundColor: isDark ? '#228BE6' : '#1A1B1E',
-                  color: '#FFFFFF',
-                  '&:hover': {
-                    backgroundColor: isDark ? '#1C7ED6' : '#373A40'
+                  mb: 3,
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: isDark ? '#1A1B1E' : '#FFFFFF',
+                    '& fieldset': {
+                      borderColor: '#1976d2',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#228be6',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#1976d2',
+                    },
                   },
-                  padding: '0.75rem',
-                  borderRadius: '8px',
-                  textTransform: 'none',
-                  fontSize: '1rem'
                 }}
-              > 
-                {isSubmiting ? 'Signing in...' : 'Login'}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={togglePasswordVisibility}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+
+            {/* Submit Button */}
+            <Grid item xs={12}>
+              <Button 
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={isSubmitting}
+                sx={{
+                  backgroundColor: '#1976d2',
+                  color: '#FFFFFF',
+                  height: '50px',
+                  '&:hover': {
+                    backgroundColor: '#115293'
+                  },
+                  '&:disabled': {
+                    backgroundColor: isDark ? '#373A40' : '#E9ECEF',
+                    color: isDark ? '#909296' : '#ADB5BD'
+                  }
+                }}
+              >
+                {isSubmitting ? 'Logging in...' : 'Login'}
               </Button>
-            </Grid.Col>
+            </Grid>
           </Grid>
         </form>
-      </Box>
-      <Snackbar open={open} autoHideDuration={5000} onClose={handleAlertClose} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
-          <Alert onClose={handleAlertClose} severity={severity} sx={{width: '235px', height: '90px', textAlign: 'center'}}>
+
+        {/* Signup Link */}
+        <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <Typography variant="body2">
+            Don't have an account? 
+            <Button 
+              color="primary" 
+              onClick={() => navigate('/signup')}
+              sx={{ ml: 1 }}
+            >
+              Sign Up
+            </Button>
+          </Typography>
+        </Box>
+
+        {/* Snackbar for Alerts */}
+        <Snackbar 
+          open={open} 
+          autoHideDuration={6000} 
+          onClose={handleAlertClose} 
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={handleAlertClose} 
+            severity={severity} 
+            sx={{ width: '100%' }}
+          >
             {message}
           </Alert>
         </Snackbar>
+      </Box>
     </AuthLayout>
   );
-};
+}
 
 export default Login;
