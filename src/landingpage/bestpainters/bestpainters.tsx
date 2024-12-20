@@ -5,62 +5,42 @@ import { Box, Pagination, CircularProgress } from '@mui/material';
 import axios from 'axios';
 
 interface Painter {
-    id: string;
-    imageUrl: string;
-    artist: string;
-    likes: number;
+    user_id: string;
+    username: string;
+    profile_picture: string;
+    total_likes: number;
 }
 
-const itemsPerPage = 3; 
-
-const mockSamples: Painter[] = [
-    {
-        id: '1',
-        imageUrl: 'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8',
-        artist: 'Vincent Van Gogh',
-        likes: 10,
-    },
-    {
-        id: '2',
-        imageUrl: 'https://images.unsplash.com/photo-1549289524-06cf8837ace5',
-        artist: 'Leonardo da Vinci',
-        likes: 50,
-    },
-    {
-        id: '3',
-        imageUrl: 'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8',
-        artist: 'Salvador Dalí',
-        likes: 15,
-    },
-];
+const itemsPerPage = 3;
 
 const Painter: React.FC = () => {
-    const [posts, setPosts] = useState<Painter[]>(mockSamples);
+    const [posts, setPosts] = useState<Painter[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
     const [loading, setLoading] = useState(false);
 
-    const totalPages = Math.ceil(posts.length / itemsPerPage);
+    const fetchPainters = async (page: number) => {
+        setLoading(true);
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/api/painters/', {
+                params: { page, itemsPerPage },
+            });
+            setPosts(response.data.painters);
+            setTotalPages(response.data.totalPages);
+        } catch (err) {
+            console.error('Error fetching painters', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
         setCurrentPage(page);
+        fetchPainters(page);
     };
 
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const currentPainter = posts.slice(startIndex, startIndex + itemsPerPage);
-
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const response = await axios.get('http://127.0.0.1:8000/api/paintings/');
-                setPosts(response.data);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
+        fetchPainters(currentPage);
     }, []);
 
     return (
@@ -73,7 +53,7 @@ const Painter: React.FC = () => {
             ) : (
                 <>
                     <div className="painter-grid">
-                        <PostCard posts={currentPainter} />
+                        <PostCard posts={posts} />
                     </div>
 
                     <Box mt={3} display="flex" justifyContent="center">

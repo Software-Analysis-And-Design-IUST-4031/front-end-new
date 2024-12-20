@@ -6,10 +6,10 @@ import { Box, Pagination, CircularProgress, Alert } from '@mui/material';
 import axios from 'axios';
 
 interface Painter{
-    id: string;
-    imageUrl: string;
-    artist: string;
-    likes: number;
+    user_id: string;
+    username: string;
+    profile_picture: string;
+    total_likes: number;
 }
 
 const itemsPerPage = 3;

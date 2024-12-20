@@ -9,10 +9,10 @@ import {
 import FavoriteIcon from '@mui/icons-material/Favorite';
 
 interface Post {
-  id: string;
-  imageUrl: string;
-  artist: string;
-  likes: number;
+  user_id: string;
+  username: string;
+  profile_picture: string;
+  total_likes: number;
 }
 
 interface CardProps {
@@ -72,14 +72,14 @@ const CardItem: React.FC<{ post: Post }> = ({ post }) => {
     <Grid item xs={12} sm={6} md={4}>
       <PostCard>
         <ImageContainer>
-          <PostImage src={post.imageUrl} alt={post.artist} />
+          <PostImage src={post.profile_picture} alt={post.username} />
         </ImageContainer>
 
         <PostInfo>
-          <PostTitle>{post.artist}</PostTitle>
+          <PostTitle>{post.username}</PostTitle>
           <LikeCount>
             <FavoriteIcon />
-            {post.likes}
+            {post.total_likes}
           </LikeCount>
         </PostInfo>
       </PostCard>
@@ -92,7 +92,7 @@ const Card: React.FC<CardProps> = ({ posts }) => {
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
         {posts.map((post) => (
-          <CardItem key={post.id} post={post} />
+          <CardItem key={post.user_id} post={post} />
         ))}
       </Grid>
     </Box>

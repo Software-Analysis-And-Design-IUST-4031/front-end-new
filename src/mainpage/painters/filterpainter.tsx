@@ -30,15 +30,6 @@ const Filter: React.FC<FilterProps> = ({ filters, handleFilterChange, mockPainte
                 onChange={(e) => handleFilterChange('search', e.target.value)}
                 className="filter-input"
             />
-
-            <Select
-                value={filters.artist ? { value: filters.artist, label: filters.artist } : null}
-                onChange={(selectedOption) => handleFilterChange('artist', selectedOption?.value || '')}
-                options={artistOptions}
-                placeholder="Search Artists"
-                isSearchable
-                className="filter-select"
-            />
         </div>
     );
 };
