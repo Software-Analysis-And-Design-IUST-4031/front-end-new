@@ -45,6 +45,7 @@ const ChatPage = () =>
         { id: 17, name: 'David' },
         { id: 18, name: 'David' },
         { id: 19, name: 'David' },
+        { id: 20, name: 'Davidggggggggggggggggggggggg' },
         // { id: 20, name: 'David' },
         
         
@@ -152,6 +153,7 @@ const ChatPage = () =>
             <Grid item sx = {{
                 // backgroundColor: 'red' ,
                 backgroundImage: `url(${urlImageBackGround})` ,
+                backgroundColor : 'red',
                 // backgroundBlendMode: 'lighten',
                 overflowY: 'auto',
                 height: '100vh',

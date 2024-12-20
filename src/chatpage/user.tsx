@@ -20,7 +20,20 @@ interface UserProps {
 //     isActive: true, 
 //     onClick: () => {console.log(1)},
 // }
+
+
 const User: React.FC<UserProps> = ({name , id , isActive , onClick}) =>{
+    const shortName = (name : string) =>
+    {
+        if (name.length < 10)
+        {
+            return name ;
+        }
+        else
+        {
+            return name.slice(0 , 15) + ' ...'
+        }
+    }
     return (
         <ListItem disablePadding sx = {{
                 width : '100%'
@@ -33,7 +46,7 @@ const User: React.FC<UserProps> = ({name , id , isActive , onClick}) =>{
                 <Avatar sx={{ bgcolor: isActive ? 'black' : 'gray' }}>
                     {name[0].toUpperCase()}
                 </Avatar>
-                <ListItemText primary= {name} />
+                <ListItemText primary= {shortName(name)} />
             </ListItemButton>
         </ListItem>
     )
