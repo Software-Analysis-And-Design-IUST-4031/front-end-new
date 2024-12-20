@@ -84,7 +84,9 @@ export const userService = {
 
   getUserPaintings: async (userId: string | number = '1'): Promise<{ paintings: BackendPainting[] }> => {
     try {
+      console.log('Fetching paintings for user:', userId);
       const response = await api.get(`/painting/user/${userId}/paintings/`);
+      console.log('Paintings response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching user paintings:', error);
@@ -93,12 +95,38 @@ export const userService = {
   },
 
   uploadPainting: async (data: FormData): Promise<BackendPainting> => {
-    const response = await api.post('/painting/', data, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+
+      console.log('Attempting to upload painting for user:', userId);
+      const response = await api.post(`/painting/user/${userId}/paintings/add/`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('Upload successful:', response.data);
+      
+      // Handle different response formats
+      if (response.data.painting) {
+        return response.data.painting;
+      } else if (response.data.id || response.data.painting_id) {
+        // If the painting is returned directly
+        return response.data;
+      }
+      
+      throw new Error('Invalid response format from server');
+    } catch (error: any) {
+      console.error('Upload error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers
+      });
+      throw new Error(error.response?.data?.message || error.message || 'Failed to upload painting');
+    }
   },
 
   likePainting: async (paintingId: number) => {
@@ -109,10 +137,38 @@ export const userService = {
   getUserLikes: async (userId: number): Promise<number[]> => {
     try {
       const response = await api.get(`/user/${userId}/detailFavorites/`);
-      return response.data;
+      // Ensure we always return an array of numbers
+      if (Array.isArray(response.data)) {
+        return response.data;
+      } else if (response.data && typeof response.data === 'object') {
+        // If the response is an object with a likes property
+        return Array.isArray(response.data.likes) ? response.data.likes : [];
+      }
+      return [];
     } catch (error) {
       console.error('Error fetching user likes:', error);
       return [];
+    }
+  },
+
+  deletePainting: async (paintingId: string | number): Promise<void> => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+
+      console.log('Attempting to delete painting:', { userId, paintingId });
+      // Updated to match the new backend endpoint
+      await api.delete(`/painting/${paintingId}/delete/`);
+      console.log('Painting deleted successfully');
+    } catch (error: any) {
+      console.error('Delete error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      throw new Error(error.response?.data?.message || error.message || 'Failed to delete painting');
     }
   }
 };

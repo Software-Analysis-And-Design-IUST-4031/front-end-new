@@ -20,6 +20,7 @@ import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import AddIcon from '@mui/icons-material/Add';
 import { useAuth } from '../../context/AuthContext';
 import { userService } from '../../services/userService';
+import { MEDIA_URL } from '../../services/api';
 import { Painting, BackendPainting, UserProfile } from '../../types';
 import Navbar from '../Navbar';
 import PaintingGrid from './PaintingGrid';
@@ -217,46 +218,131 @@ const ProfilePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'posts' | 'saved'>('posts');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [paintings, setPaintings] = useState<Painting[]>([]);
+  const [savedPaintings, setSavedPaintings] = useState<Painting[]>([]);
   const [isLoadingPaintings, setIsLoadingPaintings] = useState(true);
+  const [isLoadingSaved, setIsLoadingSaved] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const transformPaintings = (backendPaintings: BackendPainting[], userLikes: number[]): Painting[] => {
-    return backendPaintings.map(painting => ({
-      id: String(painting.painting_id),
-      imageUrl: painting.image,
-      title: painting.title,
-      description: painting.description,
-      price: painting.price ?? 0, // Use nullish coalescing
-      likes: 0, // This should be fetched from backend
-      isLiked: userLikes.includes(painting.painting_id),
-      isSaved: false, // This should be fetched from backend
-      createdAt: painting.creation_date
-    }));
+  const transformPaintings = (backendPaintings: BackendPainting[], userLikes: number[] = []): Painting[] => {
+    if (!Array.isArray(backendPaintings)) {
+      console.error('Invalid backendPaintings:', backendPaintings);
+      return [];
+    }
+
+    return backendPaintings.map(painting => {
+      // Construct the full image URL
+      const imageUrl = painting.image?.startsWith('http') 
+        ? painting.image 
+        : `${MEDIA_URL}${painting.image}`;
+
+      return {
+        id: String(painting.painting_id),
+        imageUrl,
+        title: painting.title || 'Untitled',
+        description: painting.description || '',
+        price: painting.price || 0,
+        likes: 0, // This will be updated when we implement the likes feature
+        isLiked: Array.isArray(userLikes) && userLikes.includes(painting.painting_id),
+        isSaved: false, // This will be updated when we implement the save feature
+        createdAt: painting.creation_date
+      };
+    });
   };
 
   const getInitials = (firstname: string, lastname: string) => {
     return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
   };
 
+  const handlePaintingAction = async (action: string, paintingId: string) => {
+    if (action === 'delete') {
+      try {
+        setIsDeleting(true);
+        await userService.deletePainting(paintingId);
+        
+        // Remove the deleted painting from the state
+        setPaintings(prevPaintings => prevPaintings.filter(p => p.id !== paintingId));
+      } catch (error) {
+        console.error('Error deleting painting:', error);
+      } finally {
+        setIsDeleting(false);
+      }
+    }
+    // Handle other actions like 'like', 'save', etc.
+  };
+
   useEffect(() => {
     const fetchPaintings = async () => {
-      if (!userId) return;
+      if (!userId) {
+        console.log('No userId available, skipping painting fetch');
+        return;
+      }
       
       try {
-        const [paintingsResponse, userLikes] = await Promise.all([
-          userService.getUserPaintings(userId),
-          userService.getUserLikes(userId)
-        ]);
-        console.log('Paintings response:', paintingsResponse);
-        setPaintings(transformPaintings(paintingsResponse.paintings, userLikes));
+        if (activeTab === 'posts') {
+          setIsLoadingPaintings(true);
+          console.log('Fetching paintings for userId:', userId);
+          const [paintingsResponse, userLikes] = await Promise.all([
+            userService.getUserPaintings(userId),
+            userService.getUserLikes(userId)
+          ]);
+          console.log('Paintings response:', paintingsResponse);
+          
+          if (!paintingsResponse.paintings) {
+            console.error('No paintings array in response:', paintingsResponse);
+            return;
+          }
+          
+          const transformedPaintings = transformPaintings(paintingsResponse.paintings, userLikes);
+          console.log('Transformed paintings:', transformedPaintings);
+          setPaintings(transformedPaintings);
+        } else {
+          setIsLoadingSaved(true);
+          // TODO: Implement saved paintings fetch when backend is ready
+          setSavedPaintings([]);
+        }
       } catch (error) {
         console.error('Error fetching paintings:', error);
       } finally {
         setIsLoadingPaintings(false);
+        setIsLoadingSaved(false);
       }
     };
 
     fetchPaintings();
-  }, [userId]);
+  }, [userId, activeTab]);
+
+  const handleUpload = async (data: FormData) => {
+    try {
+      if (!userId) {
+        console.error('No userId available for upload');
+        return;
+      }
+
+      console.log('Starting painting upload...');
+      const uploadedPainting = await userService.uploadPainting(data);
+      console.log('Painting uploaded successfully:', uploadedPainting);
+
+      // Fetch both updated paintings and likes after successful upload
+      const [paintingsResponse, userLikes] = await Promise.all([
+        userService.getUserPaintings(userId),
+        userService.getUserLikes(userId)
+      ]);
+      console.log('Updated paintings after upload:', paintingsResponse);
+
+      if (!paintingsResponse.paintings) {
+        console.error('No paintings array in response after upload:', paintingsResponse);
+        return;
+      }
+
+      const transformedPaintings = transformPaintings(paintingsResponse.paintings, userLikes);
+      console.log('Setting new paintings:', transformedPaintings);
+      setPaintings(transformedPaintings);
+      setUploadDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to upload painting:', error);
+      // TODO: Show error message to user
+    }
+  };
 
   if (isLoading) {
     return (
@@ -283,17 +369,6 @@ const ProfilePage: React.FC = () => {
       </Box>
     );
   }
-
-  const handleUpload = async (data: FormData) => {
-    try {
-      await userService.uploadPainting(data);
-      const updatedPaintingsResponse = await userService.getUserPaintings(userId!);
-      setPaintings(transformPaintings(updatedPaintingsResponse.paintings, []));
-      setUploadDialogOpen(false);
-    } catch (error) {
-      console.error('Failed to upload painting:', error);
-    }
-  };
 
   return (
     <MainContainer>
@@ -434,17 +509,39 @@ const ProfilePage: React.FC = () => {
           </UploadButton>
         </Box>
 
-        {isLoadingPaintings ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+        {(isLoadingPaintings && activeTab === 'posts') || (isLoadingSaved && activeTab === 'saved') ? (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            minHeight: '200px' 
+          }}>
             <CircularProgress />
           </Box>
+        ) : activeTab === 'saved' ? (
+          savedPaintings.length === 0 ? (
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center', 
+              justifyContent: 'center',
+              minHeight: '200px',
+              gap: 2,
+              color: 'text.secondary'
+            }}>
+              <Typography variant="h6">No saved paintings yet</Typography>
+              <Typography variant="body2">Your saved paintings will appear here</Typography>
+            </Box>
+          ) : (
+            <PaintingGrid 
+              paintings={savedPaintings} 
+              onAction={handlePaintingAction}
+            />
+          )
         ) : (
-          <PaintingGrid
-            paintings={paintings}
-            onAction={(action, id) => {
-              // Will be implemented with backend
-              console.log(action, id);
-            }}
+          <PaintingGrid 
+            paintings={paintings} 
+            onAction={handlePaintingAction}
           />
         )}
 

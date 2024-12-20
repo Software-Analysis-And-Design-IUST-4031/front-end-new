@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -157,21 +157,59 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
   const [uploading, setUploading] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    // Clean up previous preview URL to prevent memory leaks
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+
     const file = acceptedFiles[0];
-    setFile(file);
-    setPreview(URL.createObjectURL(file));
-  }, []);
+    if (file) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      if (!validTypes.includes(file.type)) {
+        console.error('Invalid file type:', file.type);
+        return;
+      }
+
+      setFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setPreview(previewUrl);
+    }
+  }, [preview]);
+
+  // Clean up preview URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/gif': ['.gif']
     },
     multiple: false,
+    maxSize: 5242880, // 5MB
   });
 
+  const handleRemoveImage = () => {
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+    setFile(null);
+    setPreview('');
+  };
+
   const handleSubmit = async () => {
-    if (!file || !title) return;
+    if (!file || !title) {
+      // TODO: Show error message to user
+      return;
+    }
 
     setUploading(true);
     try {
@@ -186,10 +224,20 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
       if (horizontalDepth) formData.append('horizontal_depth', horizontalDepth);
       if (verticalDepth) formData.append('vertical_depth', verticalDepth);
 
+      console.log('FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value instanceof File ? value.name : value}`);
+      }
+
       await onUpload(formData);
       handleClose();
-    } catch (error) {
-      console.error('Upload failed:', error);
+    } catch (error: any) {
+      console.error('Upload failed:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      // TODO: Show error message to user
     } finally {
       setUploading(false);
     }
@@ -207,11 +255,6 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
     setHorizontalDepth('');
     setVerticalDepth('');
     onClose();
-  };
-
-  const handleRemoveImage = () => {
-    setFile(null);
-    setPreview('');
   };
 
   return (
