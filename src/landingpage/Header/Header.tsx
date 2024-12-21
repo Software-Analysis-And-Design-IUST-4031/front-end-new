@@ -1,175 +1,185 @@
+import React from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
 import { 
   Tabs, 
   Tab, 
   Box,
   styled,
-  alpha,
   useTheme,
+  IconButton,
+  Tooltip,
+  Container,
+  AppBar,
 } from '@mui/material';
 import { useColorMode } from './../../App';
-import { useState } from 'react';
-import blackLogo from './black_on_trans.png';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import whiteLogo from './black_on_trans.png';
-
-interface CustomTheme {
-  bg: string;
-  text: string;
-}
+import blackLogo from './black_on_trans.png';
 
 const StyledTabs = styled(Tabs)(({ theme }) => ({
   '& .MuiTabs-indicator': {
     height: 3,
-    borderRadius: '3px 3px 0 0',
-    backgroundColor: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    backgroundColor: theme.palette.mode === 'dark' ? '#fff' : '#000',
+    borderRadius: '3px',
   },
-  margin: 0,
-  padding: 0,
-  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.20)}`,  // Reduced the alpha value for a lighter border
   '& .MuiTabs-flexContainer': {
-    gap: theme.spacing(2),
+    justifyContent: 'center',
   },
+  width: '100%',
+  marginTop: '-8px',
 }));
 
 const StyledTab = styled(Tab)(({ theme }) => ({
   textTransform: 'none',
   fontWeight: 500,
-  fontSize: '0.95rem',
-  minHeight: 48,
-  marginRight: theme.spacing(4),
+  fontSize: '1.1rem',
+  padding: '16px 32px',
+  minHeight: 56,
   color: theme.palette.mode === 'dark' ? '#E4E6EB' : '#44546F',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  position: 'relative',
-  overflow: 'hidden',
-  '&.Mui-selected': {
-    color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
-    fontWeight: 600,
-    '&::after': {
-      transform: 'scaleX(1)',
-      opacity: 0.1,
-    },
-  },
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '100%',
-    background: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
-    opacity: 0,
-    transform: 'scaleX(0)',
-    transformOrigin: 'left',
-    transition: 'transform 0.3s ease, opacity 0.3s ease',
-    borderRadius: '8px',
-    zIndex: -1,
-  },
   '&:hover': {
-    color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
-    opacity: 1,
-    '&::after': {
-      transform: 'scaleX(1)',
-      opacity: 0.1,
-    },
+    color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+    backgroundColor: 'transparent',
+    transform: 'translateY(-2px)',
+    transition: 'transform 0.2s ease-in-out',
+  },
+  '&.Mui-selected': {
+    color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+    fontWeight: 600,
+  },
+  '&.MuiTab-root': {
+    minWidth: 140,
   },
 }));
 
 const LogoContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
+  justifyContent: 'center',
   alignItems: 'center',
-  cursor: 'pointer',
-  transition: 'opacity 0.2s ease',
   padding: 0,
-  margin: 0,
-  marginTop: '-40px', 
-  marginBottom: '-40px', 
-  '&:hover': {
-    opacity: 0.8,
-  },
+  width: '100%',
+  marginTop: '-40px',
 }));
 
-const Logo = styled('img')({
-  height: '300px',
-  width: 'auto',
-  objectFit: 'contain',
-  display: 'block',
-  margin: 0,
-  padding: 0,
-  verticalAlign: 'top', 
-});
+const Logo = styled('img')(() => ({
+  height: '240px',
+  cursor: 'pointer',
+  transition: 'transform 0.3s ease-in-out, filter 0.3s ease-in-out',
+  '&:hover': {
+    transform: 'scale(1.05)',
+    filter: 'brightness(1.1)',
+  },
+  marginBottom: '-35px',
+}));
 
-export default function AppNavbar() {
+const ActionButton = styled(IconButton)(({ theme }) => ({
+  color: theme.palette.mode === 'dark' ? '#E4E6EB' : '#44546F',
+  '&:hover': {
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+    color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+    transform: 'translateY(-2px)',
+  },
+  transition: 'all 0.2s ease-in-out',
+  padding: theme.spacing(1),
+  marginLeft: theme.spacing(1),
+}));
+
+const NavbarContainer = styled(Container)(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  position: 'relative',
+  padding: theme.spacing(0, 3),
+  marginBottom: 0,
+}));
+
+const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const theme = useTheme();
-  const { mode } = useColorMode();
-  const [customTheme] = useState<CustomTheme>(() => {
-    try {
-      const savedTheme = localStorage.getItem('customTheme');
-      if (savedTheme) {
-        return JSON.parse(savedTheme);
-      }
-    } catch (error) {
-      console.error('Error reading theme from localStorage:', error);
-    }
-    return {
-      bg: mode === 'light' ? '#F7F8FA' : '#1E1E1E',
-      text: mode === 'light' ? '#333333' : '#FFFFFF'
-    };
-  });
+  const { toggleColorMode } = useColorMode();
 
-  const currentPath = location.pathname;
-  
-  // Only show navbar if user is not authenticated
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  if (isAuthenticated) {
-    return null; // Optionally, navigate to a home/dashboard page or show user-specific navbar.
-  }
+  // Extract current path to determine the active tab
+  const currentPath = location.pathname.split('/')[1];
+
+  const navItems = [
+    { label: 'Sign Up', value: 'signup' },
+    { label: 'Log In', value: 'login' },
+  ];
+
+  const isValidPath = navItems.some((item) => item.value === currentPath);
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
-    navigate(newValue);
+    navigate(`/${newValue}`);
   };
 
   return (
-    <Box sx={{ 
-      width: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      mt: '-20px',
-      p: 0,
-    }}>
-      <LogoContainer onClick={() => navigate('/home')}>
-        <Logo 
-          src={mode === 'dark' ? whiteLogo : blackLogo} 
-          alt="Logo"
-        />
-      </LogoContainer>
-
-      <Box sx={{ 
-        maxWidth: 'md',
-        width: '100%',
-        backgroundColor: 'transparent',
-        borderRadius: 2,
-        p: 0,
-        mt: '-20px', 
-      }}>
-        <StyledTabs
-          value={currentPath}
-          onChange={handleChange}
-          centered
-          sx={{
-            '& .MuiTab-root:hover': {
-              backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-              borderRadius: '8px',
-            }
-          }}
-        >
-          <StyledTab label="Login" value="/login" />
-          <StyledTab label="Sign Up" value="/signup" />
-        </StyledTabs>
-      </Box>
+    <Box sx={{ width: '100%', mt: -2 }}>
+      <AppBar 
+        position="static" 
+        color="transparent" 
+        elevation={0}
+        sx={{ 
+          borderBottom: 1, 
+          borderColor: 'divider',
+          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#fff',
+          pt: 0,
+          pb: 1,
+          boxShadow: theme.palette.mode === 'dark' 
+            ? '0 4px 12px rgba(0,0,0,0.3)' 
+            : '0 4px 12px rgba(0,0,0,0.05)',
+        }}
+      >
+        <NavbarContainer maxWidth="lg">
+          <LogoContainer>
+            <Logo 
+              src={theme.palette.mode === 'dark' ? whiteLogo : blackLogo}
+              alt="ZAFERUNI" 
+              onClick={() => navigate('/')}
+            />
+          </LogoContainer>
+          
+          <Box sx={{ 
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            position: 'relative',
+            mb: 2,
+          }}>
+            <StyledTabs 
+              value={isValidPath ? currentPath : false}
+              onChange={handleChange}
+              aria-label="navigation tabs"
+              centered
+            >
+              {navItems.map((item) => (
+                <StyledTab 
+                  key={item.value}
+                  label={item.label} 
+                  value={item.value}
+                />
+              ))}
+            </StyledTabs>
+            
+            <Box sx={{ 
+              position: 'absolute',
+              right: 0,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              <Tooltip title={theme.palette.mode === 'dark' ? 'Light mode' : 'Dark mode'}>
+                <ActionButton onClick={toggleColorMode} size="small">
+                  {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+                </ActionButton>
+              </Tooltip>
+            </Box>
+          </Box>
+        </NavbarContainer>
+      </AppBar>
     </Box>
   );
-}
+};
+
+export default Navbar;

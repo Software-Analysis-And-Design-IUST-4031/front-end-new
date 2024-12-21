@@ -8,10 +8,12 @@ interface Painting {
     painting_id: string;
     title: string;
     description: string;
-    image: string ;
+    image: string;
     creation_date: string;
-    price: number ;
+    price: number;
 }
+
+const baseURL = 'https://zaferuni.liara.run';
 
 const BestPaintings: React.FC = () => {
     const [posts, setPosts] = useState<Painting[]>([]);
@@ -26,11 +28,17 @@ const BestPaintings: React.FC = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('https://zaferuni.liara.run/api/painting/paintings/sorted-by-likes/', {
+            const response = await axios.get(`${baseURL}/api/painting/paintings/sorted-by-likes/`, {
                 params: { page: currentPage, limit: 4 },
             });
 
-            setPosts(response.data.paintings);
+            // Correct image URLs
+            const paintingsWithImages = response.data.paintings.map((painting: Painting) => ({
+                ...painting,
+                image: `${baseURL}${painting.image}`,
+            }));
+
+            setPosts(paintingsWithImages);
             setTotalPages(response.data.pagination.totalPages);
         } catch (err) {
             console.error('Error fetching data', err);
@@ -45,7 +53,7 @@ const BestPaintings: React.FC = () => {
 
     return (
         <section className="paintings-section">
-            <h2>Paintings</h2>
+            <h2>Best Paintings</h2>
 
             {loading ? (
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">

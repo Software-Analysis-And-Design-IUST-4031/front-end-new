@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Header from './Header/Header';
+import Navbar from './Header/Header';
 import DescriptionSection from './description/description';
 import Footer from './footer/footer';
 import MyLottieAnimation1 from './animation/Animation1';
@@ -26,7 +26,7 @@ const LandingPage: React.FC = () => {
         <MyLottieAnimation1 />
       ) : (
         <>
-          <Header />
+          <Navbar />
           <DescriptionSection />
           <MyLottieAnimation2 />
           <Painter />

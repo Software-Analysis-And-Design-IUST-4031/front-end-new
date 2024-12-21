@@ -11,27 +11,19 @@
 }
 
 .painter-section h2 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     color: #333;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     font-weight: bold;
 }
 
-.painter-grid {
-    display: flex;
-    justify-content: center; 
-    max-width: 1200px;
-    margin: 30px auto;
-    padding: 0 20px;
-}
-
 .painter-section p {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: #000000;
-    max-width: 600px;
+    max-width: 500px;
     margin: 0 auto;
-    line-height: 1.6;
-    padding: 0 10px;
+    line-height: 1.5;
+    padding: 0 5px;
 }
 
 .painter-list {
@@ -39,5 +31,5 @@
     justify-content: center;
     gap: 5px;
     flex-wrap: wrap;
-    margin-top: 30px;
+    margin-top: 20px;
 }

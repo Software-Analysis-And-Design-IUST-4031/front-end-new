@@ -17,13 +17,6 @@
     font-weight: bold;
 }
 
-.painter-grid {
-    display: flex;
-    justify-content: center; 
-    max-width: 1200px;
-    margin: 30px auto;
-    padding: 0 20px;
-}
 
 .painter-section p {
     font-size: 1.2rem;
