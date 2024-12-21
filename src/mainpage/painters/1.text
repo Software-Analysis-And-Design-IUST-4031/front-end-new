@@ -1,0 +1,33 @@
+{
+        id: '1',
+        imageUrl: 'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8',
+        artist: 'Vincent Van Gogh',
+        likes: 10,
+    },
+    {
+        id: '2',
+        imageUrl: 'https://images.unsplash.com/photo-1549289524-06cf8837ace5',
+        artist: 'Leonardo da Vinci',
+        likes: 50,
+    },
+    {
+        id: '3',
+        imageUrl: 'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8',
+        artist: 'Salvador Dalí',
+        likes: 15,
+    },
+
+
+interface Painter {
+    id: string;
+    imageUrl: string;
+    artist: string;
+    likes: number;
+}
+
+import React, { useState, useEffect } from 'react';
+import Filter from '../paintings/filter'; // Assuming you have a Filter component for common filtering
+import './painters.css';
+import PostCard from '../../landingpage/bestpainters/cardpainters';
+import { Box, Pagination, CircularProgress, Alert } from '@mui/material';
+import axios from 'axios';

@@ -1,54 +1,48 @@
-/* Header.css */
-body {
-    margin: 0;
-}
-
 .header {
-    position: sticky;
-    top: 0;
-    width: 100%;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 40px;
-    background-color: #000000;
-    text-align: left;
-    z-index: 1000;
-    border-bottom: 1px solid #333;
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 20px;
+    width: 100%; 
     box-sizing: border-box;
-}
-
-.header-title {
-    margin: 0;
-    font-family: 'Pacifico', cursive;
-    color: white;
-}
-
-.header-buttons {
+  }
+  
+  .header-logo {
+    width: 180px;
+    height: auto; 
+    object-fit: contain;
+    margin-bottom: 20px; 
+  }
+  
+  .header-buttons {
     display: flex;
-    gap: 10px;
-}
-
-.button {
+    gap: 20px; 
+  }
+  
+  button {
     padding: 10px 20px;
     font-size: 16px;
-    cursor: pointer;
-    border: none;
+    font-weight: 600;
     border-radius: 5px;
-    transition: background-color 0.3s;
-    font-family: 'Pacifico', cursive;
-}
-
-.button-primary {
-    background-color: #ffffff;
-    color: rgb(0, 0, 0);
-}
-
-.button-secondary {
-    background-color: #6C757D;
+    border: none;
+    background-color: #0057b7;
     color: white;
-}
-
-.button:hover {
-    opacity: 0.9;
-}
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #003c8f;
+    transform: translateY(-2px);
+  }
+  
+  button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 87, 183, 0.4);
+  }
+  
+  button:active {
+    transform: translateY(0);
+  }
+  

@@ -1,0 +1,43 @@
+.painter-section {
+    background-color: #f9f9f9;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 30px;
+    margin-bottom: 100px;
+    margin-right: 50px;
+    margin-left: 50px;
+    padding: 20px;
+}
+
+.painter-section h2 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.painter-grid {
+    display: flex;
+    justify-content: center; 
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.painter-section p {
+    font-size: 1.2rem;
+    color: #000000;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+    padding: 0 10px;
+}
+
+.painter-list {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+}

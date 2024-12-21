@@ -1,6 +1,7 @@
-import React, { useState, useMemo, createContext, useContext } from 'react';
+import React, { useState, useMemo, createContext, useContext, useEffect } from 'react';
 import { createTheme, ThemeProvider, CssBaseline, PaletteMode } from '@mui/material';
-import { Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
+import { NextUIProvider } from "@nextui-org/react";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import UserpanelApp from './UserpanelApp';
 import AppNavbar from './Navbar/Navbar';
 import GalleriesContainer from './components_galleries/GalleriesContainer';
@@ -10,71 +11,49 @@ import LandingPage from './landingpage/landingpage';
 import EmptyPage from './pages/EmptyPage';
 import BlogPage from './Blog/BlogPage';
 import BlogEditor from './Blog/BlogEditor';
-import BlogPostDetail from './Blog/BlogPostDetail';
 import Home from './mainpage/Home';
 
-import { AuthProvider, useAuth } from './AuthContext';
-
-// **1. Define and Export ColorModeContext**
-export const ColorModeContext = createContext<{
-  toggleColorMode: () => void;
-  mode: PaletteMode;
-}>({
+export const ColorModeContext = createContext({ 
   toggleColorMode: () => {},
-  mode: 'light',
+  mode: 'light' as PaletteMode 
 });
 
-// **2. Export useColorMode Hook**
 export const useColorMode = () => useContext(ColorModeContext);
 
-// **3. Layout Component to Handle Navbar Visibility**
-const Layout = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Layout component to handle navbar visibility
+const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const isPublicPage = ['/', '/login', '/signup', '/landing'].includes(location.pathname);
+  const isPublicPage = ['/', '/login', '/signup' , '/Galleries' ].includes(location.pathname);
+  const isLandingPage = location.pathname === '/';
 
   return (
     <div className="min-h-screen bg-[#FAFBFC] relative w-full">
-      {!isLoading && isAuthenticated && !isPublicPage && <AppNavbar />}
-      <main className={`w-full ${!isLoading && isAuthenticated && !isPublicPage ? 'pt-8' : ''}`}>
-        <Outlet />
+      {!isPublicPage && <AppNavbar />}
+      <main className={`w-full min-h-screen ${!isPublicPage ? 'pt-8' : ''}`}>
+        {children}
       </main>
     </div>
   );
 };
 
-// **4. ProtectedRoute Component**
-const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
-
-  if (isLoading) {
-    return null; // Or a loading spinner
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  return children;
-};
-
-// **5. AuthWrapper Component to Prevent Access to Login/Signup if Authenticated**
-const AuthWrapper: React.FC<{ children: JSX.Element }> = ({ children }) => {
-  const { isAuthenticated, isLoading, username } = useAuth();
-
-  if (isLoading) {
-    return null; // Or a loading spinner
-  }
-
-  if (isAuthenticated && username) {
-    return <Navigate to={`/${username}/home`} replace />;
-  }
-
-  return children;
-};
-
 const App: React.FC = () => {
+  // Remove the authentication clearing
+  // useEffect(() => {
+  //   localStorage.removeItem('isAuthenticated');
+  //   localStorage.removeItem('access_token');
+  // }, []);
+
   const [mode, setMode] = useState<PaletteMode>(() => {
     const savedMode = localStorage.getItem('themeMode');
     return (savedMode as PaletteMode) || 'light';
@@ -106,82 +85,70 @@ const App: React.FC = () => {
             main: '#ff4081',
           },
           background: {
-            default: isDarkMode(mode) ? '#121212' : '#f5f5f5',
-            paper: isDarkMode(mode) ? '#1e1e1e' : '#ffffff',
+            default: mode === 'light' ? '#ffffff' : '#121212',
+            paper: mode === 'light' ? '#ffffff' : '#1e1e1e',
           },
         },
         typography: {
           fontFamily: 'Roboto, sans-serif',
+          button: {
+            textTransform: 'none',
+          },
+        },
+        components: {
+          MuiCard: {
+            styleOverrides: {
+              root: {
+                backgroundColor: mode === 'light' ? '#fff' : '#1e1e1e',
+              },
+            },
+          },
         },
       }),
     [mode]
   );
 
-  // Helper function to determine dark mode
-  const isDarkMode = (mode: PaletteMode) => mode === 'dark';
-
   return (
-    <AuthProvider>
+    <NextUIProvider>
       <ColorModeContext.Provider value={colorMode}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/landing" element={<LandingPage />} />
-            
-            {/* Login Route */}
-            <Route path="/login" element={
-              <AuthWrapper>
-                <Login />
-              </AuthWrapper>
-            } />
-            
-            {/* Signup Route */}
-            <Route path="/signup" element={
-              <AuthWrapper>
-                <SignUp />
-              </AuthWrapper>
-            } />
-
-            {/* Protected Routes */}
-            <Route path="/:username/home" element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            } />
-            <Route path="/:username/galleries" element={
-              <ProtectedRoute>
-                <GalleriesContainer />
-              </ProtectedRoute>
-            } />
-            <Route path="/:username/blog" element={
-              <ProtectedRoute>
-                <BlogPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/:username/blog/:id" element={
-              <ProtectedRoute>
-                <BlogPostDetail />
-              </ProtectedRoute>
-            } />
-            <Route path="/:username/blog/new" element={
-              <ProtectedRoute>
-                <BlogEditor />
-              </ProtectedRoute>
-            } />
-            <Route path="/:username/profile" element={
-              <ProtectedRoute>
-                <UserpanelApp />
-              </ProtectedRoute>
-            } />
-
-            {/* Catch-all Redirect */}
-            <Route path="*" element={<Navigate to="/landing" replace />} />
-          </Routes>
+          <Router>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/LandingPage" element={<Navigate to="/" replace />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/HomePage" element={<Home />} />
+                <Route path="/Login" element={<Navigate to="/login" replace />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/SignUp" element={<Navigate to="/signup" replace />} />
+                <Route path="/home" element={
+                    <EmptyPage />
+                } />
+                <Route path="/Home" element={<Navigate to="/home" replace />} />
+                <Route path="/galleries" element={
+                    <GalleriesContainer />
+                } />
+                <Route path="/Galleries" element={<Navigate to="/galleries" replace />} />
+                <Route path="/blog" element={
+                    <BlogPage />
+                } />
+                <Route path="/Blog" element={<Navigate to="/blog" replace />} />
+                <Route path="/blog/new" element={
+                    <BlogEditor />
+                } />
+                <Route path="/profile" element={
+                    <UserpanelApp />
+                } />
+                <Route path="/Profile" element={<Navigate to="/profile" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Layout>
+          </Router>
         </ThemeProvider>
       </ColorModeContext.Provider>
-    </AuthProvider>
+    </NextUIProvider>
   );
 };
 
