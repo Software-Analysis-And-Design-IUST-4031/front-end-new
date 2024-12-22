@@ -25,7 +25,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CloseIcon from '@mui/icons-material/Close';
 import { userService } from '../../services/userService';
-import LikeCounter from './LikeCounter';
+import LikeButton from './LikeCounter';
 interface Painting {
   id: string;
   imageUrl: string;
@@ -330,8 +330,9 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                         onClick={(e) => handleActionClick(e, 'like', painting.id)}
                         size="small"
                       >
-                        {painting.isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                        <LikeCounter paintingId={parseInt(painting.id)}/>
+                        {/* {painting.isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />} */}
+                        <LikeButton paintingId={parseInt(painting.id)} />
+                        {/* <LikeCounter paintingId={parseInt(painting.id)}/> */}
                         {/* {parseInt(painting.id)} */}
 
                       </ActionButton>

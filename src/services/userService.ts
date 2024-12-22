@@ -150,6 +150,10 @@ export const userService = {
     }
   },
 
+  toggleLikePainting: async (paintingId: number): Promise<void> => {
+    await api.post(`/painting/paintings/${paintingId}/Unlike/`);
+  },
+
 
 
   getUserLikes: async (userId: number): Promise<number[]> => {
