@@ -7,7 +7,7 @@ type UpdateProfileData = Omit<Partial<UserProfile>, 'profile_picture'> & {
 
 type LikeResponse = {
   painting_id: number;
-  like_count : number; 
+  likes_count : number; 
 };
 
 export const userService = {
@@ -139,11 +139,16 @@ export const userService = {
     return response.data;
   },
 
-  // GetlikePainting: async (paintingId: number) : Promise<number>=> {
-  //   const response : any = api.get<LikeResponse>(`/painting/${paintingId}/likes/`);
-  //   const like_count : number = response.data.like_count;
-  //   return like_count ;
-  // },
+  GetlikePainting: async (paintingId: number): Promise<number> => {
+    try {
+      const response = await api.get<LikeResponse>(`/painting/paintings/${paintingId}/likes/`);
+      const like_counts = response.data.likes_count;
+      return like_counts;
+    } catch (error) {
+      console.error('Failed to fetch like count:', error);
+      throw new Error('Could not fetch like count');
+    }
+  },
 
 
 
