@@ -155,20 +155,26 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
   const [horizontalDepth, setHorizontalDepth] = useState('');
   const [verticalDepth, setVerticalDepth] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string>('');
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    // Clean up previous preview URL to prevent memory leaks
-    if (preview) {
-      URL.revokeObjectURL(preview);
-    }
-
+    setError(''); // Clear any previous errors
     const file = acceptedFiles[0];
     if (file) {
       // Validate file type
       const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
       if (!validTypes.includes(file.type)) {
-        console.error('Invalid file type:', file.type);
+        setError(`Invalid file type. Please upload a JPEG, PNG, or GIF file.`);
         return;
+      }
+
+
+      if (file.size > 5242880) {
+        setError('File is too large. Maximum size is 5MB.');
+        return;
+      }
+      if (preview) {
+        URL.revokeObjectURL(preview);
       }
 
       setFile(file);
@@ -177,7 +183,7 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
     }
   }, [preview]);
 
-  // Clean up preview URL when component unmounts
+  // Clean up preview URL when component unmounts or dialog closes
   useEffect(() => {
     return () => {
       if (preview) {
@@ -195,6 +201,8 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
     },
     multiple: false,
     maxSize: 5242880, // 5MB
+    noClick: false, // Enable click to open file dialog
+    noKeyboard: false, // Enable keyboard navigation
   });
 
   const handleRemoveImage = () => {
@@ -214,15 +222,15 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', file); // Changed back to 'image' to match backend
       formData.append('title', title);
-      formData.append('description', description);
-      if (price) formData.append('price', price);
-      if (year) formData.append('year', year);
+      if (description) formData.append('description', description);
+      if (price) formData.append('price', price.toString());
+      if (year) formData.append('year', year.toString());
       if (style) formData.append('style', style);
       if (material) formData.append('material', material);
-      if (horizontalDepth) formData.append('horizontal_depth', horizontalDepth);
-      if (verticalDepth) formData.append('vertical_depth', verticalDepth);
+      if (horizontalDepth) formData.append('horizontal_depth', horizontalDepth.toString());
+      if (verticalDepth) formData.append('vertical_depth', verticalDepth.toString());
 
       console.log('FormData contents:');
       for (let [key, value] of formData.entries()) {
@@ -271,27 +279,25 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
       </DialogHeader>
 
       <DialogContent sx={{ p: 3 }}>
+        {error && (
+          <Typography color="error" sx={{ mb: 2 }}>
+            {error}
+          </Typography>
+        )}
         <form id="painting-upload-form" noValidate autoComplete="off">
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               {!preview ? (
-                <Box component="label" htmlFor="painting-image-upload">
-                  <DropzoneBox {...getRootProps()}>
-                    <input
-                      {...getInputProps()}
-                      id="painting-image-upload"
-                      name="image"
-                      aria-label="Upload painting image"
-                    />
-                    <CloudUploadIcon sx={{ fontSize: 64, mb: 2, color: 'text.secondary' }} />
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
-                      {isDragActive ? 'Drop the image here' : 'Drag & drop an image here'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      or click to select a file
-                    </Typography>
-                  </DropzoneBox>
-                </Box>
+                <DropzoneBox {...getRootProps()}>
+                  <input {...getInputProps()} />
+                  <CloudUploadIcon sx={{ fontSize: 64, mb: 2, color: 'text.secondary' }} />
+                  <Typography variant="h6" color="text.secondary" gutterBottom>
+                    {isDragActive ? 'Drop the image here' : 'Drag & drop an image here'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    or click to select a file
+                  </Typography>
+                </DropzoneBox>
               ) : (
                 <PreviewBox>
                   <PreviewImage src={preview} alt="Painting preview" />

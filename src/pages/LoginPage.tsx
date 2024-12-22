@@ -51,8 +51,8 @@ const LoginPage: React.FC = () => {
       console.log('Setting auth context...');
       login(response.access, response.username, response.user_id);
       
-      console.log('Navigating to profile...');
-      navigate('/profile', { replace: true });
+      console.log('Navigating to home...');
+      navigate('/home', { replace: true });
     } catch (err: any) {
       console.error("Login error:", err);
       const errorMessage = err.response?.data?.message || err.message || "Invalid username or password";

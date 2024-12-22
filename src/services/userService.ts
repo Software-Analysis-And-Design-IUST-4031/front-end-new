@@ -1,6 +1,12 @@
 import api from './api';
 import { UserProfile, BackendPainting, LoginResponse } from '../types';
 
+interface LoginResponseData {
+  access: string;
+  refresh: string;
+  message?: string;
+}
+
 type UpdateProfileData = Omit<Partial<UserProfile>, 'profile_picture'> & {
   profile_picture?: File;
 };
@@ -8,21 +14,18 @@ type UpdateProfileData = Omit<Partial<UserProfile>, 'profile_picture'> & {
 export const userService = {
   login: async (username: string, password: string): Promise<LoginResponse> => {
     try {
-      const response = await api.post('/user/login/', { username, password });
+      const response = await api.post<LoginResponseData>('/user/login/', { username, password });
       console.log('Login response:', response.data);
       
-      const { access, refresh, message } = response.data;
+      const { access, refresh } = response.data;
       if (!access || !refresh) {
         throw new Error('Missing access or refresh token in response');
       }
-
-      // Decode the JWT token to get user_id
       const tokenParts = access.split('.');
       if (tokenParts.length !== 3) {
         throw new Error('Invalid token format');
       }
 
-      // Decode the payload (second part of the token)
       const payload = JSON.parse(atob(tokenParts[1]));
       console.log('Decoded token payload:', payload);
 
@@ -36,7 +39,7 @@ export const userService = {
         refresh,
         user_id: Number(user_id),
         username,
-        message
+        message: response.data.message || 'Login successful'
       };
     } catch (error: any) {
       console.error('Login error details:', {
@@ -49,13 +52,8 @@ export const userService = {
   },
 
   getUserProfile: async (userId: number): Promise<UserProfile> => {
-    try {
-      const response = await api.get(`/user/${userId}/detail/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      throw error;
-    }
+    const response = await api.get<UserProfile>(`/user/${userId}/detail/`);
+    return response.data;
   },
 
   updateUserProfile: async (userId: number, data: UpdateProfileData) => {
@@ -69,7 +67,7 @@ export const userService = {
         }
       }
     });
-    const response = await api.patch(`/user/${userId}/updateEditProfile/`, formData, {
+    const response = await api.put(`/user/${userId}/updateEditProfile/`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -78,54 +76,57 @@ export const userService = {
   },
 
   updateUserFavorites: async (userId: number, data: Partial<UserProfile>) => {
-    const response = await api.patch(`/user/${userId}/updateFavorites/`, data);
+    const response = await api.put(`/user/${userId}/updateFavorites/`, data);
     return response.data;
   },
 
   getUserPaintings: async (userId: string | number = '1'): Promise<{ paintings: BackendPainting[] }> => {
-    try {
-      console.log('Fetching paintings for user:', userId);
-      const response = await api.get(`/painting/user/${userId}/paintings/`);
-      console.log('Paintings response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching user paintings:', error);
-      throw error;
-    }
+    const response = await api.get<{ paintings: BackendPainting[] }>(`/painting/user/${userId}/paintings/`);
+    return response.data;
   },
 
   uploadPainting: async (data: FormData): Promise<BackendPainting> => {
     try {
       const userId = localStorage.getItem('userId');
       if (!userId) {
-        throw new Error('User ID not found');
+        throw new Error('No user ID found');
       }
 
-      console.log('Attempting to upload painting for user:', userId);
-      const response = await api.post(`/painting/user/${userId}/paintings/add/`, data, {
+      const formDataEntries = Object.fromEntries(data.entries());
+      console.log('Uploading painting with data:', {
+        ...formDataEntries,
+        image: formDataEntries.image instanceof File ? {
+          name: (formDataEntries.image as File).name,
+          type: (formDataEntries.image as File).type,
+          size: (formDataEntries.image as File).size,
+          lastModified: (formDataEntries.image as File).lastModified
+        } : formDataEntries.image
+      });
+      
+      const response = await api.post<BackendPainting>(`/painting/user/${userId}/paintings/add/`, data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log('Upload successful:', response.data);
       
-      // Handle different response formats
-      if (response.data.painting) {
-        return response.data.painting;
-      } else if (response.data.id || response.data.painting_id) {
-        // If the painting is returned directly
-        return response.data;
-      }
-      
-      throw new Error('Invalid response format from server');
-    } catch (error: any) {
-      console.error('Upload error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        headers: error.response?.headers
+      console.log('Upload response details:', {
+        data: response.data,
+        status: response.status,
+        statusText: response.statusText,
+        headers: {
+          contentType: response.headers['content-type'],
+          location: response.headers['location']
+        }
       });
-      throw new Error(error.response?.data?.message || error.message || 'Failed to upload painting');
+
+      if (!response.data) {
+        throw new Error('No data received from server');
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Error uploading painting:', error);
+      throw error;
     }
   },
 
@@ -135,32 +136,15 @@ export const userService = {
   },
 
   getUserLikes: async (userId: number): Promise<number[]> => {
-    try {
-      const response = await api.get(`/user/${userId}/detailFavorites/`);
-      // Ensure we always return an array of numbers
-      if (Array.isArray(response.data)) {
-        return response.data;
-      } else if (response.data && typeof response.data === 'object') {
-        // If the response is an object with a likes property
-        return Array.isArray(response.data.likes) ? response.data.likes : [];
-      }
-      return [];
-    } catch (error) {
-      console.error('Error fetching user likes:', error);
-      return [];
-    }
+    const response = await api.get<number[]>(`/user/${userId}/detailFavorites/`);
+    return response.data;
   },
 
-  deletePainting: async (paintingId: string | number): Promise<void> => {
+  async deletePainting(paintingId: string | number): Promise<void> {
     try {
-      const userId = localStorage.getItem('userId');
-      if (!userId) {
-        throw new Error('User ID not found');
-      }
-
-      console.log('Attempting to delete painting:', { userId, paintingId });
-      // Updated to match the new backend endpoint
-      await api.delete(`/painting/${paintingId}/delete/`);
+      console.log('Attempting to delete painting:', { paintingId });
+      // Using the correct backend endpoint pattern
+      await api.delete(`/painting/paintings/${paintingId}/delete/`);
       console.log('Painting deleted successfully');
     } catch (error: any) {
       console.error('Delete error details:', {

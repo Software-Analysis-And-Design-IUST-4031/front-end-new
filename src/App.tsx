@@ -5,11 +5,15 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import HomePage from './pages/HomePage';
-import BlogPage from './pages/BlogPage';
+import BlogPage from './components/Blog/BlogPage';
+import BlogPost from './components/Blog/BlogPost';
+import BlogEditor from './components/Blog/BlogEditor';
 import GalleriesPage from './pages/GalleriesPage';
 import ProfilePage from './components/UserPanel/ProfilePage';
 import { AuthProvider } from './context/AuthContext';
-import { ColorModeProvider } from './context/ColorModeContext';
+import { ColorModeProvider, useColorMode } from './context/ColorModeContext';
+
+export { useColorMode };
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -23,10 +27,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 function App() {
   return (
-    <ColorModeProvider>
-      <CssBaseline />
-      <AuthProvider>
-        <Router>
+    <Router>
+      <ColorModeProvider>
+        <CssBaseline />
+        <AuthProvider>
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -48,6 +52,30 @@ function App() {
               } 
             />
             <Route 
+              path="/blog/:id" 
+              element={
+                <ProtectedRoute>
+                  <BlogPost />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/blog/create" 
+              element={
+                <ProtectedRoute>
+                  <BlogEditor />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/blog/edit/:id" 
+              element={
+                <ProtectedRoute>
+                  <BlogEditor />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/galleries" 
               element={
                 <ProtectedRoute>
@@ -64,9 +92,9 @@ function App() {
               } 
             />
           </Routes>
-        </Router>
-      </AuthProvider>
-    </ColorModeProvider>
+        </AuthProvider>
+      </ColorModeProvider>
+    </Router>
   );
 }
 

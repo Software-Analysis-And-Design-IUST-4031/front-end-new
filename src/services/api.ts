@@ -22,7 +22,11 @@ api.interceptors.request.use((config) => {
   
   if (token) {
     const finalToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-    config.headers.Authorization = finalToken;
+    if (config.headers) {
+      config.headers.Authorization = finalToken;
+    } else {
+      config.headers = { Authorization: finalToken };
+    }
   }
   return config;
 }, (error) => {

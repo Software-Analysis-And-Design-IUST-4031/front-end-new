@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+// For development, always use localhost
+const baseURL = 'http://localhost:8000/api';
+
 const axiosInstance = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   }
@@ -14,7 +17,9 @@ axiosInstance.interceptors.request.use(
     if (!exemptRoutes.includes(config.url || '')) {
       const token = localStorage.getItem('token');
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        // Ensure headers object exists
+        config.headers = config.headers || {};
+        config.headers['Authorization'] = `Bearer ${token}`;
       }
     }
     console.log('Request:', config);
@@ -42,4 +47,4 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export default axiosInstance; 
+export default axiosInstance;

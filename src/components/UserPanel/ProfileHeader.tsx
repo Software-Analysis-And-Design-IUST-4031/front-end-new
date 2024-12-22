@@ -114,7 +114,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   };
 
   const handleAvatarClick = () => {
-    // Will implement file upload when connecting to backend
+
     console.log('Avatar click - will implement file upload');
   };
 

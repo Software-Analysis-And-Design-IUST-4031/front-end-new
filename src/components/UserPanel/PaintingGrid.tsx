@@ -24,18 +24,7 @@ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import ShareIcon from '@mui/icons-material/Share';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CloseIcon from '@mui/icons-material/Close';
-
-interface Painting {
-  id: string;
-  imageUrl: string;
-  title: string;
-  description: string;
-  price: number;
-  likes: number;
-  isLiked: boolean;
-  isSaved: boolean;
-  createdAt: string;
-}
+import { Painting } from '../../types';
 
 interface PaintingGridProps {
   paintings: Painting[];
@@ -272,12 +261,13 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const handleImageError = (paintingId: string) => {
+    console.error(`Image failed to load for painting ${paintingId}`);
     setImageErrors(prev => ({ ...prev, [paintingId]: true }));
   };
 
   const getImageUrl = (painting: Painting) => {
     if (imageErrors[painting.id]) {
-      return 'https://via.placeholder.com/400x400?text=Image+Not+Available';
+      return 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy02ODM6Qj9DQDY1NT9GPzE/RU1NW2NbYFRkZGQ+Smxsb2v/2wBDARUXFx4aHiUeHiVrOjQ6a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2v/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=';
     }
     return painting.imageUrl;
   };
@@ -319,7 +309,7 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                       {painting.title}
                     </PaintingTitle>
                     <PaintingPrice variant="subtitle1">
-                      ${painting.price}
+                      {painting.price ? `$${painting.price}` : 'Price not set'}
                     </PaintingPrice>
                   </Box>
                   <ActionButtonsContainer>

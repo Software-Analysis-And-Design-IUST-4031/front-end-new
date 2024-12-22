@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
-import { ThemeProvider, createTheme } from '@mui/material';
+import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import { ThemeProvider, createTheme, CircularProgress, Box } from '@mui/material';
+import { userService } from '../services/userService';
+import { useLocation } from 'react-router-dom';
 
 interface ColorModeContextType {
   toggleColorMode: () => void;
@@ -12,16 +14,75 @@ export const ColorModeContext = createContext<ColorModeContextType>({
 });
 
 export const ColorModeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [mode, setMode] = useState<'light' | 'dark'>('light');
+  const location = useLocation();
+  const isLandingPage = location.pathname === '/';
+  const isPublicPage = ['/', '/login', '/signup'].includes(location.pathname);
+  const [isLoading, setIsLoading] = useState(!isPublicPage);
+  const [mode, setMode] = useState<'light' | 'dark'>('light'); // Default to light
+
+  // Load theme from backend on mount (only for non-public pages)
+  useEffect(() => {
+    const loadTheme = async () => {
+      if (isPublicPage) {
+        setIsLoading(false);
+        return;
+      }
+      
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        try {
+          const userProfile = await userService.getUserProfile(Number(userId));
+          if (userProfile.Dark_light_theme) {
+            setMode(userProfile.Dark_light_theme);
+          }
+        } catch (error) {
+          console.error('Error loading theme:', error);
+          // If there's an error, use light theme
+          setMode('light');
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setIsLoading(false);
+      }
+    };
+    loadTheme();
+  }, [isPublicPage]);
+
+  // Effect to handle theme for landing page
+  useEffect(() => {
+    if (isLandingPage) {
+      const savedTheme = localStorage.getItem('landingPageTheme');
+      if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+        setMode(savedTheme);
+      } else {
+        setMode('light');
+      }
+    } else if (isPublicPage) {
+      setMode('light'); // Always light for login/signup
+    }
+  }, [isLandingPage, isPublicPage]);
 
   const colorMode = useMemo(
     () => ({
       toggleColorMode: () => {
-        setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+        if (isLandingPage) {
+          const newMode = mode === 'light' ? 'dark' : 'light';
+          setMode(newMode);
+          localStorage.setItem('landingPageTheme', newMode);
+        } else if (!isPublicPage) {
+          const newMode = mode === 'light' ? 'dark' : 'light';
+          setMode(newMode);
+          const userId = localStorage.getItem('userId');
+          if (userId) {
+            userService.updateUserProfile(Number(userId), { Dark_light_theme: newMode })
+              .catch(error => console.error('Error updating theme:', error));
+          }
+        }
       },
       mode,
     }),
-    [mode],
+    [mode, isLandingPage, isPublicPage]
   );
 
   const theme = useMemo(
@@ -29,27 +90,42 @@ export const ColorModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createTheme({
         palette: {
           mode,
-          primary: {
-            main: '#1976d2',
-          },
+          ...(mode === 'dark' ? {
+            background: {
+              default: '#121212',
+              paper: '#1E1E1E',
+            },
+            text: {
+              primary: '#fff',
+              secondary: 'rgba(255, 255, 255, 0.7)',
+            },
+          } : {
+            background: {
+              default: '#ffffff',
+              paper: '#fff',
+            },
+          }),
+        },
+        typography: {
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
         },
       }),
-    [mode],
+    [mode]
   );
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <ColorModeContext.Provider value={colorMode}>
-      <ThemeProvider theme={theme}>
-        {children}
-      </ThemeProvider>
+      <ThemeProvider theme={theme}>{children}</ThemeProvider>
     </ColorModeContext.Provider>
   );
 };
 
-export const useColorMode = () => {
-  const context = useContext(ColorModeContext);
-  if (context === undefined) {
-    throw new Error('useColorMode must be used within a ColorModeProvider');
-  }
-  return context;
-};
+export const useColorMode = () => useContext(ColorModeContext);

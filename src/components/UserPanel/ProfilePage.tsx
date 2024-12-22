@@ -21,7 +21,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { useAuth } from '../../context/AuthContext';
 import { userService } from '../../services/userService';
 import { MEDIA_URL } from '../../services/api';
-import { Painting, BackendPainting, UserProfile } from '../../types';
+import { UserProfile, BackendPainting, Painting } from '../../types';
 import Navbar from '../Navbar';
 import PaintingGrid from './PaintingGrid';
 import ThemeCustomizer from './ThemeCustomizer';
@@ -223,30 +223,58 @@ const ProfilePage: React.FC = () => {
   const [isLoadingSaved, setIsLoadingSaved] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const transformPaintings = (backendPaintings: BackendPainting[], userLikes: number[] = []): Painting[] => {
+  const transformPaintings = (backendPaintings: BackendPainting[]): Painting[] => {
     if (!Array.isArray(backendPaintings)) {
       console.error('Invalid backendPaintings:', backendPaintings);
       return [];
     }
 
     return backendPaintings.map(painting => {
-      // Construct the full image URL
-      const imageUrl = painting.image?.startsWith('http') 
-        ? painting.image 
-        : `${MEDIA_URL}${painting.image}`;
+      if (!painting) {
+        console.error('Invalid painting object:', painting);
+        return null;
+      }
+
+      // Construct the image URL
+      let imageUrl = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy02ODM6Qj9DQDY1NT9GPzE/RU1NW2NbYFRkZGQ+Smxsb2v/2wBDARUXFx4aHiUeHiVrOjQ6a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2v/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='; // Default gray image
+      if (painting.image) {
+        // Check if it's a base64 image
+        if (painting.image.startsWith('data:')) {
+          imageUrl = painting.image;
+        } else {
+          // Remove any leading slashes and 'media/' from the path
+          const cleanPath = painting.image.replace(/^\/?(media\/)?/, '');
+          imageUrl = painting.image.startsWith('http') 
+            ? painting.image 
+            : `${MEDIA_URL}/media/${cleanPath}`;
+        }
+      }
+
+      console.log('Processing painting:', {
+        original: painting,
+        transformedImageUrl: imageUrl,
+        mediaUrl: MEDIA_URL,
+        originalImage: painting.image,
+        cleanedPath: painting.image ? painting.image.replace(/^\/?(media\/)?/, '') : null
+      });
 
       return {
-        id: String(painting.painting_id),
+        id: String(painting.painting_id || ''),
         imageUrl,
         title: painting.title || 'Untitled',
         description: painting.description || '',
-        price: painting.price || 0,
-        likes: 0, // This will be updated when we implement the likes feature
-        isLiked: Array.isArray(userLikes) && userLikes.includes(painting.painting_id),
-        isSaved: false, // This will be updated when we implement the save feature
-        createdAt: painting.creation_date
+        price: painting.price || '',
+        year: String(painting.year || ''),
+        style: painting.style || '',
+        material: painting.material || '',
+        horizontalDepth: painting.horizontal_depth || '',
+        verticalDepth: painting.vertical_depth || '',
+        likes: painting.likes || 0,
+        isLiked: painting.is_liked || false,
+        isSaved: false,
+        createdAt: painting.creation_date || new Date().toISOString()
       };
-    });
+    }).filter(Boolean) as Painting[];
   };
 
   const getInitials = (firstname: string, lastname: string) => {
@@ -267,7 +295,7 @@ const ProfilePage: React.FC = () => {
         setIsDeleting(false);
       }
     }
-    // Handle other actions like 'like', 'save', etc.
+
   };
 
   useEffect(() => {
@@ -287,12 +315,13 @@ const ProfilePage: React.FC = () => {
           ]);
           console.log('Paintings response:', paintingsResponse);
           
-          if (!paintingsResponse.paintings) {
-            console.error('No paintings array in response:', paintingsResponse);
+          if (!paintingsResponse.paintings || !Array.isArray(paintingsResponse.paintings)) {
+            console.error('Invalid paintings data:', paintingsResponse);
+            setPaintings([]);
             return;
           }
           
-          const transformedPaintings = transformPaintings(paintingsResponse.paintings, userLikes);
+          const transformedPaintings = transformPaintings(paintingsResponse.paintings);
           console.log('Transformed paintings:', transformedPaintings);
           setPaintings(transformedPaintings);
         } else {
@@ -329,18 +358,18 @@ const ProfilePage: React.FC = () => {
       ]);
       console.log('Updated paintings after upload:', paintingsResponse);
 
-      if (!paintingsResponse.paintings) {
+      if (!paintingsResponse.paintings || !Array.isArray(paintingsResponse.paintings)) {
         console.error('No paintings array in response after upload:', paintingsResponse);
         return;
       }
 
-      const transformedPaintings = transformPaintings(paintingsResponse.paintings, userLikes);
+      const transformedPaintings = transformPaintings(paintingsResponse.paintings);
       console.log('Setting new paintings:', transformedPaintings);
       setPaintings(transformedPaintings);
       setUploadDialogOpen(false);
     } catch (error) {
       console.error('Failed to upload painting:', error);
-      // TODO: Show error message to user
+
     }
   };
 

@@ -66,7 +66,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
   });
   const [colorPickerOpen, setColorPickerOpen] = useState<'background' | 'text' | null>(null);
 
-  // These will be replaced with actual theme data from the backend
+
   const presetThemes = {
     modern: [
       { name: 'Clean White', background: '#ffffff', text: '#000000' },
