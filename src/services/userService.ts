@@ -154,7 +154,13 @@ export const userService = {
     await api.post(`/painting/paintings/${paintingId}/Unlike/`);
   },
 
-
+  Getstatuslikepainting: async (paintingId: number, userId: number): Promise<boolean> => {
+    const response = await api.get<{ user_id: number; painting_id: number; liked: boolean }>(
+      `/painting/user/${userId}/paintings/${paintingId}/liked/`
+    );
+    return response.data.liked; // Extract and return the `like` status directly
+  },
+  
 
   getUserLikes: async (userId: number): Promise<number[]> => {
     try {
