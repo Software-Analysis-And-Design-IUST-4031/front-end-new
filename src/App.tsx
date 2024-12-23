@@ -10,7 +10,7 @@ import GalleriesPage from './pages/GalleriesPage';
 import ProfilePage from './components/UserPanel/ProfilePage';
 import { AuthProvider } from './context/AuthContext';
 import { ColorModeProvider } from './context/ColorModeContext';
-
+import ChatPage from './chatpage/chatpage';
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const token = localStorage.getItem('token');
   
@@ -63,6 +63,11 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            <Route path = "/chatpage" element = {
+              <ProtectedRoute>
+                <ChatPage/>
+              </ProtectedRoute>
+            } />
           </Routes>
         </Router>
       </AuthProvider>
