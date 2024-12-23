@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Filter from './filter';
-import './paintings.css'
+import './paintings.css';
 import PostCard from '../../landingpage/bestpaintings/card';
 import { Box, Pagination, CircularProgress } from '@mui/material';
-import axios from 'axios';
 
 interface Painting {
     id: string;
@@ -22,7 +20,7 @@ const itemsPerPage = 4;
 
 const Paintings: React.FC = () => {
     const [posts, setPosts] = useState<Painting[]>([]);
-    const [filters, setFilters] = useState({ style: '', artist: '', year: '', search: '' });
+    const [search, setSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(false);
 
@@ -91,20 +89,12 @@ const Paintings: React.FC = () => {
         fetchData();
     }, []);
 
-    const handleFilterChange = (key: string, value: string) => {
-        setFilters({ ...filters, [key]: value });
-        setCurrentPage(1);
-    };
-
     const filteredPaintings = posts.filter((painting) => {
-        const matchesStyle = !filters.style || painting.style === filters.style;
-        const matchesArtist = !filters.artist || painting.artist === filters.artist;
-        const matchesYear = !filters.year || painting.year.toString() === filters.year;
-        const matchesSearch =
-            !filters.search ||
-            painting.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-            painting.artist.toLowerCase().includes(filters.search.toLowerCase());
-        return matchesStyle && matchesArtist && matchesYear && matchesSearch;
+        const searchLower = search.toLowerCase();
+        return (
+            painting.title.toLowerCase().includes(searchLower) ||
+            painting.artist.toLowerCase().includes(searchLower)
+        );
     });
 
     const totalPages = Math.ceil(filteredPaintings.length / itemsPerPage);
@@ -117,8 +107,19 @@ const Paintings: React.FC = () => {
 
     return (
         <section className="paintings-section">
-
-            <Filter filters={filters} handleFilterChange={handleFilterChange} mockPaintings={posts} />
+            {/* Search Input */}
+            <div className="filters-container">
+                <input
+                    type="text"
+                    placeholder="Search "
+                    value={search}
+                    onChange={(e) => {
+                        setSearch(e.target.value);
+                        setCurrentPage(1); // Reset to the first page when searching
+                    }}
+                    className="filter-input"
+                />
+            </div>
 
             {loading ? (
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
