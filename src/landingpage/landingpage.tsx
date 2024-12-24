@@ -32,6 +32,7 @@ const LandingPage: React.FC = () => {
           <Painter />
           <Features />
           <BestPaintings />
+          <Footer />
         </>
       )}
     </div>

@@ -9,10 +9,9 @@ const MainPage: React.FC = () => {
     <>
       
       <Title/>
-      <Paitings/>
-      <Mygif1 />
       <Painter />
-      
+      <Mygif1 />
+      <Paitings/>
     </>
   );
 };
