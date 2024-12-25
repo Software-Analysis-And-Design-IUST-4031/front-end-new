@@ -9,7 +9,7 @@ import axios from 'axios';
 const Gallery = lazy(() => import('./gallery'));
 
 interface GalleryInterface {
-  profile_picture: string;
+  cover_image: string;
   description: string;
   gallery_name: string;
   number_of_paintings: number;
@@ -79,7 +79,9 @@ const GalleriesPage: any = () => {
             (gallery : GalleryInterface) =>
                 ({
                     ...gallery , 
-                    profile_picture : `${baseURL}${gallery.profile_picture}`,
+                    cover_image : `${baseURL}${gallery.cover_image}`,
+                    gallery_name: gallery.gallery_name || "Untitled Gallery", 
+                    description: gallery.description || "No description available", 
                 })
             );
         setData(response.data);
