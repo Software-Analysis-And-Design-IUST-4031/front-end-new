@@ -1,5 +1,6 @@
 import api from './api';
 import { UserProfile, BackendPainting, LoginResponse } from '../types';
+import { countries as mockCountries, getCitiesForCountry as getMockCities } from '../data/locationData';
 
 interface LoginResponseData {
   access: string;
@@ -7,9 +8,41 @@ interface LoginResponseData {
   message?: string;
 }
 
-type UpdateProfileData = Omit<Partial<UserProfile>, 'profile_picture'> & {
-  profile_picture?: File;
-};
+export interface UpdateProfileData {
+  profile_picture?: File | null;
+  firstname?: string;
+  lastname?: string;
+  nickname?: string;
+  email?: string;
+  phone_number?: string;
+  date_of_birth?: string;
+  country?: string;
+  city?: string;
+  is_gallery?: boolean;
+  Theme?: string;
+  Dark_light_theme?: string;
+  favorite_painter?: string;
+  favorite_painting?: string;
+  favorite_painting_style?: string;
+  favorite_painting_technique?: string;
+  favorite_painting_to_own?: string;
+  biography?: string;
+}
+
+interface LikeResponse {
+  likes_count: number;
+  message?: string;
+  error?: string;
+}
+
+// Add interfaces for the API responses
+interface CountriesResponse {
+  countries: string[];
+}
+
+interface CitiesResponse {
+  cities: string[];
+}
 
 export const userService = {
   login: async (username: string, password: string): Promise<LoginResponse> => {
@@ -56,23 +89,17 @@ export const userService = {
     return response.data;
   },
 
-  updateUserProfile: async (userId: number, data: UpdateProfileData) => {
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (key === 'profile_picture' && value instanceof File) {
-          formData.append(key, value);
-        } else {
-          formData.append(key, String(value));
-        }
-      }
-    });
-    const response = await api.put(`/user/${userId}/updateEditProfile/`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+  async updateUserProfile(userId: number, data: FormData): Promise<void> {
+    try {
+      await api.put(`/user/${userId}/updateEditProfile/`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      throw error.response?.data?.error || error.message || 'Failed to update profile';
+    }
   },
 
   updateUserFavorites: async (userId: number, data: Partial<UserProfile>) => {
@@ -92,47 +119,85 @@ export const userService = {
         throw new Error('No user ID found');
       }
 
+      // Log FormData contents for debugging
       const formDataEntries = Object.fromEntries(data.entries());
       console.log('Uploading painting with data:', {
         ...formDataEntries,
         image: formDataEntries.image instanceof File ? {
           name: (formDataEntries.image as File).name,
           type: (formDataEntries.image as File).type,
-          size: (formDataEntries.image as File).size,
-          lastModified: (formDataEntries.image as File).lastModified
+          size: (formDataEntries.image as File).size
         } : formDataEntries.image
       });
-      
-      const response = await api.post<BackendPainting>(`/painting/user/${userId}/paintings/add/`, data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      console.log('Upload response details:', {
-        data: response.data,
-        status: response.status,
-        statusText: response.statusText,
-        headers: {
-          contentType: response.headers['content-type'],
-          location: response.headers['location']
+
+      const response = await api.post<BackendPainting>(
+        `/painting/user/${userId}/paintings/add/`, 
+        data,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         }
-      });
+      );
 
       if (!response.data) {
         throw new Error('No data received from server');
       }
 
       return response.data;
-    } catch (error) {
-      console.error('Error uploading painting:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('Error uploading painting:', {
+        error,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      throw error.response?.data?.error || error.message || 'Failed to upload painting';
     }
   },
 
   likePainting: async (paintingId: number) => {
-    const response = await api.post(`/painting/${paintingId}/like/`);
-    return response.data;
+    try {
+      const response = await api.post<LikeResponse>(`/painting/paintings/${paintingId}/like/`);
+      return response.data;
+    } catch (err: any) {
+      throw err;
+    }
+  },
+
+  unlikePainting: async (paintingId: number): Promise<LikeResponse> => {
+    try {
+      const response = await api.post<LikeResponse>(`/painting/paintings/${paintingId}/unlike/`);
+      return response.data;
+    } catch (err: any) {
+      throw err;
+    }
+  },
+
+  GetlikePainting: async (paintingId: number) => {
+    try {
+      const response = await api.get<LikeResponse>(`/painting/paintings/${paintingId}/likes/`);
+      return (response.data as LikeResponse).likes_count || 0;
+    } catch (error) {
+      console.error('Error getting painting likes:', error);
+      return 0;
+    }
+  },
+
+  toggleLikePainting: async (paintingId: number, isCurrentlyLiked: boolean): Promise<LikeResponse> => {
+    try {
+      const response = isCurrentlyLiked 
+        ? await userService.unlikePainting(paintingId)
+        : await userService.likePainting(paintingId);
+      return response;
+    } catch (err: any) {
+      // If the error is because the painting is already in the desired state,
+      // get the current likes count and return it
+      if (err.response?.status === 400) {
+        const currentLikes = await userService.GetlikePainting(paintingId);
+        return { likes_count: currentLikes };
+      }
+      throw err;
+    }
   },
 
   getUserLikes: async (userId: number): Promise<number[]> => {
@@ -143,16 +208,76 @@ export const userService = {
   async deletePainting(paintingId: string | number): Promise<void> {
     try {
       console.log('Attempting to delete painting:', { paintingId });
-      // Using the correct backend endpoint pattern
-      await api.delete(`/painting/paintings/${paintingId}/delete/`);
-      console.log('Painting deleted successfully');
+      const userId = localStorage.getItem('userId');
+      
+      if (!userId) {
+        throw new Error('User ID not found. Please log in again.');
+      }
+
+      const response = await api.delete(`/painting/user/${userId}/paintings/delete/${paintingId}/`);
+      
+      if (response.status !== 204 && response.status !== 200) {
+        throw new Error('Failed to delete painting. Please try again.');
+      }
     } catch (error: any) {
       console.error('Delete error details:', {
         message: error.message,
         response: error.response?.data,
         status: error.response?.status
       });
-      throw new Error(error.response?.data?.message || error.message || 'Failed to delete painting');
+      
+      // Handle specific error cases
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to delete this painting.');
+      } else if (error.response?.status === 404) {
+        throw new Error('Painting not found. It may have been already deleted.');
+      } else if (error.response?.status === 401) {
+        throw new Error('Please log in again to delete this painting.');
+      }
+      
+      throw error.response?.data?.error || error.message || 'Failed to delete painting. Please try again.';
+    }
+  },
+
+  async getCountries(): Promise<string[]> {
+    try {
+      // Try to get countries from backend
+      const response = await api.get<any>('/country/countries/');
+      const backendCountries = Array.isArray(response.data) ? response.data : [];
+      
+      // If backend returns no data, use mock data
+      if (backendCountries.length === 0) {
+        console.log('Using mock country data');
+        return mockCountries.map(c => c.label);
+      }
+      
+      return backendCountries;
+    } catch (error) {
+      console.error('Error fetching countries:', error);
+      // Fallback to mock data on error
+      console.log('Using mock country data due to error');
+      return mockCountries.map(c => c.label);
+    }
+  },
+
+  async getCitiesForCountry(country: string): Promise<string[]> {
+    try {
+      // Try to get cities from backend
+      const response = await api.get<any>(`/country/cities/${encodeURIComponent(country)}/`);
+      const backendCities = Array.isArray(response.data) ? response.data : [];
+      
+      // If backend returns no data, use mock data
+      if (backendCities.length === 0) {
+        console.log('Using mock city data');
+        return getMockCities(country);
+      }
+      
+      return backendCities;
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+      // Fallback to mock data on error
+      console.log('Using mock city data due to error');
+      return getMockCities(country);
     }
   }
 };

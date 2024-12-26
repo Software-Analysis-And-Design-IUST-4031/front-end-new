@@ -25,144 +25,94 @@ interface PostCardProps {
   post: Post;
 }
 
-const StyledCard = styled(motion(Card))`
-  position: relative;
-  width: 280px;
-  height: 320px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-radius: 30px;
-  overflow: hidden;
-  background: ${({ theme }) => 
-    theme.palette.mode === 'dark' 
-      ? 'linear-gradient(169deg, rgba(45,45,45,0.8) 0%, rgba(25,25,25,0.9) 100%)'
-      : 'linear-gradient(169deg, rgba(255,255,255,0.9) 0%, rgba(245,245,245,0.95) 100%)'
-  };
-  backdrop-filter: blur(10px);
-  box-shadow: ${({ theme }) =>
-    theme.palette.mode === 'dark'
-      ? '0 8px 32px rgba(0, 0, 0, 0.3)'
-      : '0 8px 32px rgba(0, 0, 0, 0.1)'
-  };
-  transition: transform 0.3s ease-in-out;
-
-  &:hover {
-    transform: translateY(-10px);
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-    background: ${({ theme }) =>
-      theme.palette.mode === 'dark'
-        ? 'linear-gradient(45deg, rgba(100,100,100,0.1), rgba(150,150,150,0.1))'
-        : 'linear-gradient(45deg, rgba(255,255,255,0.4), rgba(255,255,255,0.2))'
-    };
-    border-radius: 30px;
-  }
-`;
-
-const AvatarWrapper = styled(Box)`
-  position: relative;
-  margin-top: 30px;
-  z-index: 1;
-`;
-
-const StyledAvatar = styled(Avatar)`
-  width: 160px;
-  height: 160px;
-  border: 5px solid ${({ theme }) => 
-    theme.palette.mode === 'dark' 
-      ? 'rgba(255,255,255,0.1)'
-      : 'rgba(255,255,255,0.8)'
-  };
-  box-shadow: ${({ theme }) =>
-    theme.palette.mode === 'dark'
-      ? '0 8px 32px rgba(0, 0, 0, 0.3)'
-      : '0 8px 32px rgba(100, 100, 100, 0.2)'
-  };
-  transition: all 0.3s ease;
-
-  ${StyledCard}:hover & {
-    transform: scale(1.05);
-    border-color: ${({ theme }) => theme.palette.primary.main};
-  }
-`;
-
-const StyledBadge = styled(Badge)`
-  .MuiBadge-badge {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: ${({ theme }) =>
-      theme.palette.mode === 'dark'
-        ? 'linear-gradient(45deg, #FFD700, #FFA500)'
-        : 'linear-gradient(45deg, #FFD700, #FF8C00)'
-    };
-    border: 3px solid ${({ theme }) => theme.palette.background.paper};
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-`;
-
-const UsernameWrapper = styled(Box)`
-  margin-top: 24px;
-  text-align: center;
-  z-index: 1;
-  padding: 0 20px;
-`;
-
-const StatsWrapper = styled(Box)`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 16px;
-  padding: 12px 24px;
-  background: ${({ theme }) =>
-    theme.palette.mode === 'dark'
-      ? 'rgba(255,255,255,0.05)'
-      : 'rgba(0,0,0,0.03)'
-  };
-  border-radius: 20px;
-`;
-
-const StatItem = styled(Box)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-`;
-
-const cardVariants = {
-  hidden: { 
-    opacity: 0,
-    y: 20,
+const StyledCard = styled(motion(Card))(({ theme }) => ({
+  position: 'relative',
+  width: 280,
+  height: 320,
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  borderRadius: 30,
+  overflow: 'hidden',
+  background: theme.palette.mode === 'dark' 
+    ? 'linear-gradient(169deg, rgba(45,45,45,0.8) 0%, rgba(25,25,25,0.9) 100%)'
+    : 'linear-gradient(169deg, rgba(255,255,255,0.9) 0%, rgba(245,245,245,0.95) 100%)',
+  backdropFilter: 'blur(10px)',
+  boxShadow: theme.palette.mode === 'dark'
+    ? '0 8px 32px rgba(0, 0, 0, 0.3)'
+    : '0 8px 32px rgba(0, 0, 0, 0.1)',
+  transition: 'transform 0.3s ease-in-out',
+  '&:hover': {
+    transform: 'translateY(-10px)',
   },
-  visible: { 
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.4,
-      ease: "easeOut"
-    }
-  }
-};
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '100%',
+    background: theme.palette.mode === 'dark'
+      ? 'linear-gradient(45deg, rgba(100,100,100,0.1), rgba(150,150,150,0.1))'
+      : 'linear-gradient(45deg, rgba(255,255,255,0.4), rgba(255,255,255,0.2))',
+    borderRadius: 30,
+  },
+}));
 
-function PostCard({ post }: PostCardProps) {
+const AvatarWrapper = styled(Box)({
+  position: 'relative',
+  marginTop: 30,
+  zIndex: 1,
+});
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    width: 44,
+    height: 44,
+    borderRadius: '50%',
+    background: theme.palette.mode === 'dark'
+      ? 'linear-gradient(45deg, #FFD700, #FFA500)'
+      : 'linear-gradient(45deg, #FFD700, #FF8C00)',
+    border: `3px solid ${theme.palette.background.paper}`,
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  },
+}));
+
+const UsernameWrapper = styled(Box)({
+  marginTop: 24,
+  textAlign: 'center',
+  zIndex: 1,
+  padding: '0 20px',
+});
+
+const StatsWrapper = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 16,
+  marginTop: 24,
+  zIndex: 1,
+});
+
+const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const theme = useTheme();
   const [imageLoaded, setImageLoaded] = useState(false);
-  const defaultImage = '/path/to/default/avatar.jpg';
-  const imageUrl = post.profile_picture || defaultImage;
+  const [imageError, setImageError] = useState(false);
+  const imageUrl = post.profile_picture ? `http://127.0.0.1:8000${post.profile_picture}` : '';
+
+  const handleImageError = () => {
+    setImageError(true);
+    setImageLoaded(true);
+  };
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
 
   return (
     <StyledCard
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
     >
       <AvatarWrapper>
         <AnimatePresence mode="wait">
@@ -184,18 +134,34 @@ function PostCard({ post }: PostCardProps) {
 
         <StyledBadge
           overlap="circular"
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           badgeContent={
-            <Tooltip title="Premium Artist" arrow placement="top">
-              <WorkspacePremiumIcon sx={{ fontSize: 24, color: '#000' }} />
+            <Tooltip title="Top Artist" placement="top">
+              <WorkspacePremiumIcon 
+                sx={{ 
+                  fontSize: 24,
+                  color: theme.palette.mode === 'dark' ? '#000' : '#FFF',
+                }} 
+              />
             </Tooltip>
           }
         >
-          <StyledAvatar
+          <Avatar
             src={imageUrl}
             alt={post.username}
-            onLoad={() => setImageLoaded(true)}
-          />
+            sx={{
+              width: 120,
+              height: 120,
+              border: '4px solid',
+              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+              fontSize: '2.5rem',
+            }}
+            onError={handleImageError}
+            onLoad={handleImageLoad}
+          >
+            {post.username.substring(0, 2).toUpperCase()}
+          </Avatar>
         </StyledBadge>
       </AvatarWrapper>
 
@@ -203,55 +169,41 @@ function PostCard({ post }: PostCardProps) {
         <Typography
           variant="h5"
           sx={{
-            fontWeight: 700,
+            fontWeight: 600,
             color: theme.palette.mode === 'dark' ? '#fff' : '#000',
             textShadow: theme.palette.mode === 'dark' 
-              ? '0 2px 4px rgba(0,0,0,0.3)'
-              : 'none',
-            mb: 1
+              ? '0 2px 4px rgba(0,0,0,0.5)'
+              : '0 2px 4px rgba(0,0,0,0.1)',
           }}
         >
           {post.username}
         </Typography>
-        <Typography
-          variant="body2"
-          sx={{
-            color: theme.palette.mode === 'dark' 
-              ? 'rgba(255,255,255,0.7)' 
-              : 'rgba(0,0,0,0.6)',
-            fontWeight: 500
-          }}
-        >
-          Digital Artist
-        </Typography>
       </UsernameWrapper>
 
       <StatsWrapper>
-        <StatItem>
+        <Box sx={{ textAlign: 'center' }}>
           <Typography
             variant="h6"
             sx={{
               fontWeight: 700,
-              color: theme.palette.primary.main
+              color: theme.palette.mode === 'dark' ? '#FFD700' : '#FF8C00',
             }}
           >
             {post.total_likes}
           </Typography>
           <Typography
-            variant="caption"
+            variant="body2"
             sx={{
-              color: theme.palette.mode === 'dark' 
-                ? 'rgba(255,255,255,0.7)' 
-                : 'rgba(0,0,0,0.6)',
-              fontWeight: 500
+              color: theme.palette.text.secondary,
+              fontWeight: 500,
             }}
           >
-            Likes
+            Total Likes
           </Typography>
-        </StatItem>
+        </Box>
       </StatsWrapper>
     </StyledCard>
   );
-}
+};
 
 export default PostCard;

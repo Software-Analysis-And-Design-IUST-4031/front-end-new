@@ -1,26 +1,27 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  Box,
+  Button,
   Container,
   TextField,
-  Button,
   Typography,
-  Box,
-  Alert,
   InputAdornment,
   IconButton,
-  Paper,
   CircularProgress,
+  Paper,
   Link,
-  Stack
+  Stack,
+  Alert,
+  Grid,
 } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import axiosInstance from "../api/axiosConfig";
-import AuthNavbar from "../components/AuthNavbar";
 import { useAuth } from "../context/AuthContext";
-import whiteLogo from '../assets/white_on_trans.png';
-import signupBg from '../assets/Signup.png';
-import { userService } from '../services/userService';
+import blackLogo from "../assets/black_on_trans.png";
+import signupBg from "../assets/Signup.png";
+import { userService } from "../services/userService";
 
 const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
@@ -65,7 +66,9 @@ const SignUpPage: React.FC = () => {
 
     // Username validation
     if (!validateUsername(username)) {
-      setError("Username must be at least 3 characters long and can only contain letters, numbers, and underscores.");
+      setError(
+        "Username must be at least 3 characters long and can only contain letters, numbers, and underscores."
+      );
       return;
     }
 
@@ -94,11 +97,11 @@ const SignUpPage: React.FC = () => {
         username,
         email,
         password,
-        confirm_password: confirmPassword
+        confirm_password: confirmPassword,
       });
 
       console.log("Signup Response:", response.data);
-      
+
       // Login automatically after successful registration
       const loginResponse = await userService.login(username, password);
       console.log("Login Response:", loginResponse);
@@ -112,29 +115,53 @@ const SignUpPage: React.FC = () => {
       }
     } catch (err: any) {
       console.error("Signup Error:", err);
-      
+
       if (err.response?.data) {
         const errorData = err.response.data;
         let errorMessage = "";
 
         // Handle array of errors for each field
         if (errorData.username) {
-          errorMessage += `Username: ${Array.isArray(errorData.username) ? errorData.username[0] : errorData.username}. `;
+          errorMessage += `Username: ${
+            Array.isArray(errorData.username)
+              ? errorData.username[0]
+              : errorData.username
+          }. `;
         }
         if (errorData.email) {
-          errorMessage += `Email: ${Array.isArray(errorData.email) ? errorData.email[0] : errorData.email}. `;
+          errorMessage += `Email: ${
+            Array.isArray(errorData.email)
+              ? errorData.email[0]
+              : errorData.email
+          }. `;
         }
         if (errorData.password) {
-          errorMessage += `Password: ${Array.isArray(errorData.password) ? errorData.password[0] : errorData.password}. `;
+          errorMessage += `Password: ${
+            Array.isArray(errorData.password)
+              ? errorData.password[0]
+              : errorData.password
+          }. `;
         }
         if (errorData.confirm_password) {
-          errorMessage += `Confirm Password: ${Array.isArray(errorData.confirm_password) ? errorData.confirm_password[0] : errorData.confirm_password}. `;
+          errorMessage += `Confirm Password: ${
+            Array.isArray(errorData.confirm_password)
+              ? errorData.confirm_password[0]
+              : errorData.confirm_password
+          }. `;
         }
         if (errorData.firstname) {
-          errorMessage += `First Name: ${Array.isArray(errorData.firstname) ? errorData.firstname[0] : errorData.firstname}. `;
+          errorMessage += `First Name: ${
+            Array.isArray(errorData.firstname)
+              ? errorData.firstname[0]
+              : errorData.firstname
+          }. `;
         }
         if (errorData.lastname) {
-          errorMessage += `Last Name: ${Array.isArray(errorData.lastname) ? errorData.lastname[0] : errorData.lastname}. `;
+          errorMessage += `Last Name: ${
+            Array.isArray(errorData.lastname)
+              ? errorData.lastname[0]
+              : errorData.lastname
+          }. `;
         }
 
         // If no specific field errors, check for general error
@@ -143,7 +170,10 @@ const SignUpPage: React.FC = () => {
         }
 
         // If still no error message, use a generic one
-        setError(errorMessage || "Registration failed. Please try different username/email.");
+        setError(
+          errorMessage ||
+            "Registration failed. Please try different username/email."
+        );
       } else {
         setError("An error occurred during registration. Please try again.");
       }
@@ -173,304 +203,306 @@ const SignUpPage: React.FC = () => {
   };
 
   return (
-    <Box 
-      sx={{ 
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         backgroundImage: `url(${signupBg})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        overflowY: "auto",
-        backgroundColor: "#ffffff",
-        height: "100vh",
-        width: "100vw"
+        position: "relative",
       }}
     >
-      <Box
+      <IconButton
+        onClick={() => navigate("/")}
         sx={{
-          minHeight: "100vh",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          position: "relative",
+          position: "absolute",
+          top: 20,
+          left: 20,
+          color: "white",
+          backgroundColor: "rgba(0,0,0,0.5)",
+          "&:hover": {
+            backgroundColor: "rgba(0,0,0,0.7)",
+            transform: "scale(1.1)",
+          },
+          transition: "all 0.2s ease-in-out",
         }}
       >
+        <ArrowBackIcon />
+      </IconButton>
+
+      <Container component="main" maxWidth="sm">
         <Box
-          component="img"
-          src={whiteLogo}
-          alt="Logo"
-          onClick={() => navigate('/')}
           sx={{
-            height: "240px",
-            width: "auto",
-            position: "absolute",
-            top: "-40px",
-            left: "-40px",
-            cursor: "pointer",
-            transition: "transform 0.2s ease-in-out",
-            "&:hover": {
-              transform: "scale(1.02)",
-            },
-            zIndex: 20
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            mt: 4,
+            mb: 4,
+            backgroundColor: "background.paper",
+            borderRadius: 4,
+            p: 3,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+            maxWidth: "400px",
+            width: "100%",
+            margin: "0 auto",
           }}
-        />
-        <Box
-          sx={{ width: "100%", position: "absolute", top: 0, zIndex: 10 }}
         >
-          <AuthNavbar color="white" />
-        </Box>
-        <Container maxWidth="xs" sx={{ mt: "40px" }}>
           <Box
-            component="form"
-            onSubmit={(e) => e.preventDefault()}
             sx={{
-              width: '100%',
-              maxWidth: '400px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 3,
-              mt: 4,
-              px: 4,
-              py: 4,
-              bgcolor: 'rgba(255, 255, 255, 0.98)',
-              borderRadius: '20px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+              width: "180px",
+              height: "180px",
+              position: "relative",
+              mb: 0.5,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
             }}
           >
-            <Typography
-              component="h1"
-              variant="h4"
-              sx={{
-                fontWeight: 600,
-                color: 'text.primary',
-                mb: 2,
-              }}
-            >
-              Create Account
-            </Typography>
-            {error && (
-              <Alert 
-                severity="error" 
-                sx={{ 
-                  mb: 3,
-                  '& .MuiAlert-icon': {
-                    color: '#d32f2f'
-                  }
-                }}
-              >
-                {error}
-              </Alert>
-            )}
-            <Stack direction="row" spacing={2}>
-              <TextField
-                label="First Name"
-                variant="outlined"
-                fullWidth
-                value={form.firstname}
-                onChange={(e) =>
-                  setForm({ ...form, firstname: e.target.value })
-                }
-                disabled={loading}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: '#f8f8f8',
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      bgcolor: '#f0f0f0'
-                    }
-                  }
-                }}
-              />
-              <TextField
-                label="Last Name"
-                variant="outlined"
-                fullWidth
-                value={form.lastname}
-                onChange={(e) =>
-                  setForm({ ...form, lastname: e.target.value })
-                }
-                disabled={loading}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: '#f8f8f8',
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      bgcolor: '#f0f0f0'
-                    }
-                  }
-                }}
-              />
-            </Stack>
-            <TextField
-              label="Username"
-              variant="outlined"
-              fullWidth
-              value={form.username}
-              onChange={(e) =>
-                setForm({ ...form, username: e.target.value })
-              }
-              disabled={loading}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  bgcolor: '#f8f8f8',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    bgcolor: '#f0f0f0'
-                  }
-                }
+            <img
+              src={blackLogo}
+              alt="Logo"
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                objectFit: "contain",
+                padding: "5px",
               }}
             />
-            <TextField
-              label="Email"
-              variant="outlined"
-              fullWidth
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              disabled={loading}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  bgcolor: '#f8f8f8',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    bgcolor: '#f0f0f0'
-                  }
-                }
-              }}
-            />
-            <TextField
-              label="Password"
-              variant="outlined"
-              type={showPassword ? "text" : "password"}
-              fullWidth
-              value={form.password}
-              onChange={(e) =>
-                setForm({ ...form, password: e.target.value })
-              }
-              disabled={loading}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  bgcolor: '#f8f8f8',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    bgcolor: '#f0f0f0'
-                  }
-                }
-              }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <TextField
-              label="Confirm Password"
-              variant="outlined"
-              type={showConfirmPassword ? "text" : "password"}
-              fullWidth
-              value={form.confirmPassword}
-              onChange={(e) =>
-                setForm({ ...form, confirmPassword: e.target.value })
-              }
-              disabled={loading}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  bgcolor: '#f8f8f8',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    bgcolor: '#f0f0f0'
-                  }
-                }
-              }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle confirm password visibility"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                      edge="end"
-                    >
-                      {showConfirmPassword ? (
-                        <VisibilityOff />
-                      ) : (
-                        <Visibility />
-                      )}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleSignUp}
-              disabled={loading}
-              sx={{ 
-                mt: 1,
-                py: 1.5,
-                bgcolor: 'black',
-                color: 'white',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                '&:hover': {
-                  bgcolor: 'rgba(0, 0, 0, 0.8)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                },
-                '&.Mui-disabled': {
-                  bgcolor: 'rgba(0, 0, 0, 0.3)',
-                }
-              }}
-            >
-              {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : "Sign Up"}
-            </Button>
-            <Box sx={{ textAlign: 'center', mt: 2 }}>
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: 'rgba(0, 0, 0, 0.6)',
-                  '& a': {
-                    color: 'black',
-                    textDecoration: 'none',
-                    fontWeight: 500,
-                    '&:hover': {
-                      textDecoration: 'underline'
-                    }
-                  }
-                }}
-              >
-                Already have an account?{' '}
-                <Link 
-                  component="button"
-                  onClick={() => navigate('/login')}
-                  sx={{ 
-                    color: 'black',
-                    textDecoration: 'none',
-                    fontWeight: 500,
-                    '&:hover': {
-                      textDecoration: 'underline'
-                    }
-                  }}
-                >
-                  Login
-                </Link>
-              </Typography>
-            </Box>
           </Box>
-        </Container>
-      </Box>
+
+          <Typography component="h1" variant="h5" sx={{ mb: 0.5 }}>
+            Sign Up
+          </Typography>
+
+          {error && (
+            <Typography color="error" sx={{ mb: 0.5, textAlign: "center" }}>
+              {error}
+            </Typography>
+          )}
+
+          <Stack direction="row" spacing={1} sx={{ mb: 0.5 }}>
+            <TextField
+              label="First Name"
+              variant="outlined"
+              margin="dense"
+              required
+              fullWidth
+              value={form.firstname}
+              onChange={(e) => setForm({ ...form, firstname: e.target.value })}
+              disabled={loading}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#f8f8f8",
+                  transition: "all 0.2s",
+                  "&:hover": {
+                    bgcolor: "#f0f0f0",
+                  },
+                },
+              }}
+            />
+            <TextField
+              label="Last Name"
+              variant="outlined"
+              margin="dense"
+              required
+              fullWidth
+              value={form.lastname}
+              onChange={(e) => setForm({ ...form, lastname: e.target.value })}
+              disabled={loading}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#f8f8f8",
+                  transition: "all 0.2s",
+                  "&:hover": {
+                    bgcolor: "#f0f0f0",
+                  },
+                },
+              }}
+            />
+          </Stack>
+
+          <TextField
+            fullWidth
+            label="Username"
+            variant="outlined"
+            margin="dense"
+            required
+            value={form.username}
+            onChange={(e) => setForm({ ...form, username: e.target.value })}
+            disabled={loading}
+            sx={{
+              mb: 0.5,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "rgba(0, 0, 0, 0.23)",
+                },
+                "&:hover fieldset": {
+                  borderColor: "primary.main",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "primary.main",
+                },
+              },
+            }}
+          />
+
+          <TextField
+            fullWidth
+            label="Email"
+            variant="outlined"
+            margin="dense"
+            required
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            disabled={loading}
+            sx={{
+              mb: 0.5,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "rgba(0, 0, 0, 0.23)",
+                },
+                "&:hover fieldset": {
+                  borderColor: "primary.main",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "primary.main",
+                },
+              },
+            }}
+          />
+
+          <TextField
+            fullWidth
+            label="Password"
+            variant="outlined"
+            margin="dense"
+            required
+            type={showPassword ? "text" : "password"}
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            disabled={loading}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={handleClickShowPassword}
+                    onMouseDown={handleMouseDownPassword}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              mb: 0.5,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "rgba(0, 0, 0, 0.23)",
+                },
+                "&:hover fieldset": {
+                  borderColor: "primary.main",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "primary.main",
+                },
+              },
+            }}
+          />
+
+          <TextField
+            fullWidth
+            label="Confirm Password"
+            variant="outlined"
+            margin="dense"
+            required
+            type={showConfirmPassword ? "text" : "password"}
+            value={form.confirmPassword}
+            onChange={(e) =>
+              setForm({ ...form, confirmPassword: e.target.value })
+            }
+            disabled={loading}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={handleClickShowConfirmPassword}
+                    edge="end"
+                  >
+                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              mb: 0.5,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "rgba(0, 0, 0, 0.23)",
+                },
+                "&:hover fieldset": {
+                  borderColor: "primary.main",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "primary.main",
+                },
+              },
+            }}
+          />
+
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleSignUp}
+            disabled={loading}
+            sx={{
+              mt: 0.5,
+              mb: 0.5,
+              py: 0.75,
+              fontSize: "0.95rem",
+              fontWeight: 600,
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              color: "white",
+              boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+              transition: "all 0.3s ease-in-out",
+              "&:hover": {
+                background: "linear-gradient(45deg, #2196F3 60%, #21CBF3 90%)",
+                transform: "scale(1.02)",
+              },
+            }}
+          >
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Sign Up"
+            )}
+          </Button>
+
+          <Grid container justifyContent="center">
+            <Grid item>
+              <Link
+                component="button"
+                variant="body2"
+                onClick={() => navigate("/login")}
+                sx={{
+                  color: "primary.main",
+                  textDecoration: "none",
+                  "&:hover": {
+                    textDecoration: "underline",
+                  },
+                }}
+              >
+                {"Already have an account? Sign In"}
+              </Link>
+            </Grid>
+          </Grid>
+        </Box>
+      </Container>
     </Box>
   );
 };

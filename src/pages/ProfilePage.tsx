@@ -1,10 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Container, Typography, CircularProgress, Alert } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import { useAuth } from '../context/AuthContext';
-import { userService } from '../services/userService';
-import { BackendPainting } from '../types';
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Container,
+  Typography,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import { useAuth } from "../context/AuthContext";
+import { userService } from "../services/userService";
+import { BackendPainting } from "../types";
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,23 +22,23 @@ const ProfilePage: React.FC = () => {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      navigate('/login', { replace: true });
+      navigate("/login", { replace: true });
     }
   }, [isLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!userId) return;
-      
+
       setIsLoadingData(true);
       setError(null);
-      
+
       try {
         const paintingsData = await userService.getUserPaintings(userId);
         setPaintings(paintingsData.paintings);
       } catch (err) {
-        console.error('Error fetching user data:', err);
-        setError('Failed to load some user data. Please try again later.');
+        console.error("Error fetching user data:", err);
+        setError("Failed to load some user data. Please try again later.");
       } finally {
         setIsLoadingData(false);
       }
@@ -45,24 +51,28 @@ const ProfilePage: React.FC = () => {
 
   if (isLoading || isLoadingData) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh' 
-      }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      bgcolor: 'background.default'
-    }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        bgcolor: "background.default",
+      }}
+    >
       <Navbar />
       <Container maxWidth="lg" sx={{ flexGrow: 1, py: 3 }}>
         {error && (
@@ -70,11 +80,13 @@ const ProfilePage: React.FC = () => {
             {error}
           </Alert>
         )}
-        
+
         <Typography variant="h4" component="h1" gutterBottom>
-          {userProfile?.firstname ? `Welcome, ${userProfile.firstname}!` : 'Profile'}
+          {userProfile?.firstname
+            ? `Welcome, ${userProfile.firstname}!`
+            : "Profile"}
         </Typography>
-        
+
         {userProfile ? (
           <Box>
             <Typography variant="body1" gutterBottom>
@@ -88,16 +100,34 @@ const ProfilePage: React.FC = () => {
                 Biography: {userProfile.biography}
               </Typography>
             )}
-            
+
             <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
               Your Paintings ({paintings.length})
             </Typography>
             {paintings.length > 0 ? (
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 2 }}>
-                {paintings.map(painting => (
-                  <Box key={painting.painting_id} sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                    <Typography variant="subtitle1">{painting.title}</Typography>
-                    <Typography variant="body2">{painting.description}</Typography>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+                  gap: 2,
+                }}
+              >
+                {paintings.map((painting) => (
+                  <Box
+                    key={painting.painting_id}
+                    sx={{
+                      p: 2,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      borderRadius: 1,
+                    }}
+                  >
+                    <Typography variant="subtitle1">
+                      {painting.title}
+                    </Typography>
+                    <Typography variant="body2">
+                      {painting.description}
+                    </Typography>
                   </Box>
                 ))}
               </Box>

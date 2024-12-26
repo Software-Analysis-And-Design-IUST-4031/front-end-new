@@ -100,17 +100,18 @@ const Navbar = () => {
           >
             <Box
               component="img"
-              src={colorMode.mode === 'dark' ? whiteLogo : blackLogo}
-              alt="ZAFERUNI"
-              onClick={() => navigate('/')}
+              src={theme.palette.mode === 'dark' ? whiteLogo : blackLogo}
+              alt="Logo"
               sx={{
-                height: 40,
+                height: '100px',  
+                width: 'auto',
                 cursor: 'pointer',
-                transition: 'transform 0.2s',
+                transition: 'transform 0.2s ease-in-out',
                 '&:hover': {
                   transform: 'scale(1.05)',
                 },
               }}
+              onClick={() => navigate('/')}
             />
             
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

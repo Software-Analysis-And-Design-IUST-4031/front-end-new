@@ -5,7 +5,6 @@ import {
   Typography,
   Box,
   Button,
-  TextField,
   Paper,
   IconButton,
   CircularProgress,
@@ -14,6 +13,7 @@ import {
   alpha,
   Tooltip,
   Divider,
+  styled,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -21,9 +21,26 @@ import {
   Delete as DeleteIcon,
   Save as SaveIcon,
   Preview as PreviewIcon,
+  Send as SendIcon,
 } from '@mui/icons-material';
+import MUIRichTextEditor from '../RichTextEditor/MUIRichTextEditor';
+import { convertFromRaw, convertToRaw } from 'draft-js';
+import draftToHtml from 'draftjs-to-html';
+import { stateFromHTML } from 'draft-js-import-html';
 import blogService from '../../services/blogService';
 import Navbar from '../Navbar';
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  color: theme.palette.text.primary,
+  backgroundColor: theme.palette.mode === 'dark' ? alpha('#fff', 0.1) : alpha('#000', 0.1),
+  '&:hover': {
+    backgroundColor: theme.palette.mode === 'dark' ? alpha('#fff', 0.2) : alpha('#000', 0.2),
+  },
+  textTransform: 'none',
+  borderRadius: theme.shape.borderRadius,
+  padding: theme.spacing(1, 3),
+  transition: theme.transitions.create(['background-color', 'box-shadow']),
+}));
 
 const BlogEditor: React.FC = () => {
   const theme = useTheme();
@@ -31,6 +48,7 @@ const BlogEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [editorContent, setEditorContent] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -45,52 +63,58 @@ const BlogEditor: React.FC = () => {
         setLoading(true);
         const blog = await blogService.getBlog(Number(id));
         setTitle(blog.title);
+        
+        // Convert HTML to Draft.js content
+        const contentState = stateFromHTML(blog.content);
+        const rawContent = convertToRaw(contentState);
+        setEditorContent(JSON.stringify(rawContent));
         setContent(blog.content);
+
         if (blog.image) {
           setImagePreview(blog.image);
         }
-      } catch (err) {
-        console.error('Error fetching blog:', err);
-        setError('Failed to load blog post. Please try again later.');
+      } catch (error) {
+        console.error('Error fetching blog:', error);
+        setError('Failed to load blog post');
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) {
-      fetchBlog();
-    }
+    fetchBlog();
   }, [id]);
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handleEditorChange = (contentJson: string) => {
+    try {
+      const contentState = convertFromRaw(JSON.parse(contentJson));
+      const contentHTML = draftToHtml(convertToRaw(contentState));
+      setContent(contentHTML);
+      setEditorContent(contentJson);
+    } catch (error) {
+      console.error('Error converting editor content:', error);
     }
   };
 
-  const handleRemoveImage = () => {
-    setImage(null);
-    setImagePreview(null);
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim() || !content.trim()) {
-      setError('Title and content are required');
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!title.trim()) {
+      setError('Title is required');
       return;
     }
 
     try {
       setLoading(true);
       const formData = new FormData();
-      formData.append('title', title.trim());
-      formData.append('content', content.trim());
+      formData.append('title', title);
+      formData.append('content', content);
       if (image) {
         formData.append('image', image);
       }
@@ -102,235 +126,137 @@ const BlogEditor: React.FC = () => {
       }
 
       navigate('/blog');
-    } catch (err) {
-      console.error('Error saving blog:', err);
-      setError('Failed to save blog post. Please try again later.');
+    } catch (error) {
+      console.error('Error saving blog:', error);
+      setError('Failed to save blog post');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleBack = () => {
-    if (window.confirm('Are you sure you want to leave? Any unsaved changes will be lost.')) {
-      navigate('/blog');
-    }
+  const handleDeleteImage = () => {
+    setImage(null);
+    setImagePreview(null);
   };
 
-  if (loading && !title && !content) {
+  if (loading) {
     return (
-      <>
-        <Navbar />
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
-          <CircularProgress size={40} />
-        </Box>
-      </>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <CircularProgress />
+      </Box>
     );
   }
 
   return (
     <>
       <Navbar />
-      <Box 
-        sx={{ 
-          background: theme.palette.mode === 'dark' 
-            ? `linear-gradient(to bottom, ${alpha(theme.palette.common.black, 0.3)}, transparent)`
-            : `linear-gradient(to bottom, ${alpha(theme.palette.common.black, 0.03)}, transparent)`,
-          pt: 6,
-          pb: 4,
-        }}
-      >
-        <Container maxWidth="lg">
-          <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton
-              onClick={() => navigate('/blog')}
-              sx={{
-                bgcolor: theme.palette.mode === 'dark' 
-                  ? alpha(theme.palette.common.white, 0.05)
-                  : alpha(theme.palette.common.black, 0.02),
-                '&:hover': {
-                  bgcolor: theme.palette.mode === 'dark' 
-                    ? alpha(theme.palette.common.white, 0.1)
-                    : alpha(theme.palette.common.black, 0.05),
-                  transform: 'translateX(-2px)',
-                },
-                transition: 'all 0.3s ease-in-out',
-              }}
-            >
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        <Paper sx={{ p: 3 }}>
+          <Box display="flex" alignItems="center" mb={3}>
+            <IconButton onClick={() => navigate('/blog')} sx={{ mr: 2 }}>
               <ArrowBackIcon />
             </IconButton>
-            <Typography 
-              variant="h4" 
-              component="h1"
-              sx={{ 
-                fontWeight: 800,
-                letterSpacing: -1,
-                color: theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.common.black,
-              }}
-            >
-              {id ? 'Edit Post' : 'Create New Post'}
+            <Typography variant="h4" component="h1">
+              {id ? 'Edit Blog Post' : 'Create New Blog Post'}
             </Typography>
-            <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
-              <Button
-                startIcon={<PreviewIcon />}
-                onClick={() => setPreviewMode(!previewMode)}
-                sx={{
-                  borderRadius: '20px',
-                  px: 3,
-                  bgcolor: theme.palette.mode === 'dark' 
-                    ? alpha(theme.palette.common.white, 0.05)
-                    : alpha(theme.palette.common.black, 0.02),
-                  color: theme.palette.mode === 'dark' 
-                    ? theme.palette.common.white 
-                    : theme.palette.common.black,
-                  '&:hover': {
-                    bgcolor: theme.palette.mode === 'dark' 
-                      ? alpha(theme.palette.common.white, 0.1)
-                      : alpha(theme.palette.common.black, 0.05),
-                  },
-                }}
-              >
-                {previewMode ? 'Edit' : 'Preview'}
-              </Button>
-              <Button
-                startIcon={<SaveIcon />}
+            <Box sx={{ flexGrow: 1 }} />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Tooltip title={previewMode ? "Edit" : "Preview"}>
+                <IconButton onClick={() => setPreviewMode(!previewMode)}>
+                  <PreviewIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Save Draft">
+                <IconButton onClick={handleSubmit} disabled={loading}>
+                  <SaveIcon />
+                </IconButton>
+              </Tooltip>
+              <StyledButton
+                variant="contained"
                 onClick={handleSubmit}
-                disabled={!title.trim() || !content.trim()}
-                sx={{
-                  borderRadius: '20px',
-                  px: 3,
-                  bgcolor: theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.common.black,
-                  color: theme.palette.mode === 'dark' ? theme.palette.common.black : theme.palette.common.white,
-                  '&:hover': {
-                    bgcolor: theme.palette.mode === 'dark' 
-                      ? alpha(theme.palette.common.white, 0.9)
-                      : alpha(theme.palette.common.black, 0.8),
-                    transform: 'translateY(-2px)',
-                  },
-                  transition: 'all 0.3s ease-in-out',
-                  '&.Mui-disabled': {
-                    bgcolor: theme.palette.mode === 'dark'
-                      ? alpha(theme.palette.common.white, 0.1)
-                      : alpha(theme.palette.common.black, 0.1),
-                  },
-                }}
+                disabled={loading}
+                startIcon={<SendIcon />}
+                sx={{ ml: 1 }}
               >
-                Save Post
-              </Button>
+                {id ? 'Update Post' : 'Publish Post'}
+              </StyledButton>
             </Box>
           </Box>
 
-          {error && (
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mb: 4,
-                borderRadius: 2,
-              }}
-              onClose={() => setError(null)}
-            >
-              {error}
-            </Alert>
-          )}
-
-          <Paper 
-            elevation={0}
-            sx={{ 
-              p: 4,
-              borderRadius: '28px',
-              backgroundColor: theme.palette.mode === 'dark'
-                ? alpha(theme.palette.common.white, 0.05)
-                : alpha(theme.palette.common.black, 0.02),
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${
-                theme.palette.mode === 'dark'
-                  ? alpha(theme.palette.common.white, 0.1)
-                  : alpha(theme.palette.common.black, 0.05)
-              }`,
+          <Typography variant="h6" gutterBottom>
+            Title
+          </Typography>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '8px',
+              marginBottom: '16px',
+              fontSize: '1.1rem',
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: '4px',
+              backgroundColor: 'transparent',
+              color: 'inherit',
             }}
-          >
-            {previewMode ? (
-              <Box>
-                <Typography 
-                  variant="h3" 
-                  gutterBottom
-                  sx={{ 
-                    fontWeight: 800,
-                    color: theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.common.black,
-                  }}
-                >
-                  {title || 'Untitled Post'}
-                </Typography>
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    whiteSpace: 'pre-wrap',
-                    lineHeight: 1.8,
-                    color: theme.palette.mode === 'dark'
-                      ? alpha(theme.palette.common.white, 0.9)
-                      : alpha(theme.palette.common.black, 0.9),
-                  }}
-                >
-                  {content || 'No content yet...'}
-                </Typography>
-              </Box>
-            ) : (
-              <Box>
-                <TextField
-                  fullWidth
-                  label="Title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  sx={{
-                    mb: 3,
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '20px',
-                      backgroundColor: theme.palette.mode === 'dark'
-                        ? alpha(theme.palette.common.white, 0.05)
-                        : alpha(theme.palette.common.black, 0.02),
-                      '&:hover': {
-                        backgroundColor: theme.palette.mode === 'dark'
-                          ? alpha(theme.palette.common.white, 0.08)
-                          : alpha(theme.palette.common.black, 0.04),
-                      },
-                      '& fieldset': {
-                        borderColor: theme.palette.mode === 'dark'
-                          ? alpha(theme.palette.common.white, 0.1)
-                          : alpha(theme.palette.common.black, 0.1),
-                      },
-                    },
-                  }}
+          />
+
+          <Typography variant="h6" gutterBottom>
+            Image
+          </Typography>
+          <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<ImageIcon />}
+            >
+              Upload Image
+              <input
+                type="file"
+                hidden
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+            </Button>
+            {imagePreview && (
+              <>
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  style={{ height: 50, objectFit: 'cover' }}
                 />
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={12}
-                  label="Content"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '20px',
-                      backgroundColor: theme.palette.mode === 'dark'
-                        ? alpha(theme.palette.common.white, 0.05)
-                        : alpha(theme.palette.common.black, 0.02),
-                      '&:hover': {
-                        backgroundColor: theme.palette.mode === 'dark'
-                          ? alpha(theme.palette.common.white, 0.08)
-                          : alpha(theme.palette.common.black, 0.04),
-                      },
-                      '& fieldset': {
-                        borderColor: theme.palette.mode === 'dark'
-                          ? alpha(theme.palette.common.white, 0.1)
-                          : alpha(theme.palette.common.black, 0.1),
-                      },
-                    },
-                  }}
-                />
-              </Box>
+                <IconButton onClick={handleDeleteImage} color="error">
+                  <DeleteIcon />
+                </IconButton>
+              </>
             )}
-          </Paper>
-        </Container>
-      </Box>
+          </Box>
+
+          <Divider sx={{ my: 3 }} />
+
+          <Typography variant="h6" gutterBottom>
+            Content
+          </Typography>
+          <Box sx={{ 
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: '4px',
+            backgroundColor: theme.palette.mode === 'dark' ? alpha('#000', 0.1) : alpha('#fff', 0.9),
+            minHeight: '400px'
+          }}>
+            <MUIRichTextEditor
+              value={editorContent}
+              onChange={handleEditorChange}
+              readOnly={previewMode}
+            />
+          </Box>
+        </Paper>
+      </Container>
     </>
   );
 };

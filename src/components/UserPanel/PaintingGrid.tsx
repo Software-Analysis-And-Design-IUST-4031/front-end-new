@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Grid,
   Box,
@@ -16,15 +16,18 @@ import {
   Fade,
   CircularProgress,
   alpha,
-} from '@mui/material';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import BookmarkIcon from '@mui/icons-material/Bookmark';
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import ShareIcon from '@mui/icons-material/Share';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import CloseIcon from '@mui/icons-material/Close';
-import { Painting } from '../../types';
+  Snackbar,
+} from "@mui/material";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import ShareIcon from "@mui/icons-material/Share";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CloseIcon from "@mui/icons-material/Close";
+import { Painting } from "../../types";
+import LikeButton from "./LikeCounter";
+import { useSnackbar } from "notistack";
 
 interface PaintingGridProps {
   paintings: Painting[];
@@ -32,263 +35,303 @@ interface PaintingGridProps {
 }
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
-  position: 'relative',
-  width: '100%',
-  paddingTop: '100%',
+  position: "relative",
+  width: "100%",
+  paddingTop: "100%",
   borderRadius: theme.shape.borderRadius * 2,
-  overflow: 'hidden',
-  cursor: 'pointer',
-  transition: 'all 0.3s ease',
-  backgroundColor: theme.palette.mode === 'dark' ? '#1A1A1A' : '#FFFFFF',
-  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: theme.palette.mode === 'dark' 
-      ? '0 8px 24px rgba(0,0,0,0.4)'
-      : '0 8px 24px rgba(0,0,0,0.1)',
-    '& .overlay': {
+  overflow: "hidden",
+  cursor: "pointer",
+  transition: "all 0.3s ease",
+  backgroundColor: theme.palette.mode === "dark" ? "#1A1A1A" : "#FFFFFF",
+  border: `1px solid ${
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"
+  }`,
+  "&:hover": {
+    transform: "translateY(-4px)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 8px 24px rgba(0,0,0,0.4)"
+        : "0 8px 24px rgba(0,0,0,0.1)",
+    "& .overlay": {
       opacity: 1,
     },
-    '& img': {
-      transform: 'scale(1.05)',
+    "& img": {
+      transform: "scale(1.05)",
     },
   },
 }));
 
 const ImageContainer = styled(Box)({
-  position: 'absolute',
+  position: "absolute",
   top: 0,
   left: 0,
-  width: '100%',
-  height: '100%',
-  overflow: 'hidden',
+  width: "100%",
+  height: "100%",
+  overflow: "hidden",
 });
 
-const PaintingImage = styled('img')({
-  position: 'absolute',
+const PaintingImage = styled("img")({
+  position: "absolute",
   top: 0,
   left: 0,
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
-  transition: 'transform 0.5s ease',
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+  transition: "transform 0.5s ease",
 });
 
 const Overlay = styled(Box)(({ theme }) => ({
-  position: 'absolute',
+  position: "absolute",
   top: 0,
   left: 0,
   right: 0,
   bottom: 0,
-  background: theme.palette.mode === 'dark'
-    ? 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)'
-    : 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%)',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'space-between',
+  background:
+    theme.palette.mode === "dark"
+      ? "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)"
+      : "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%)",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
   padding: theme.spacing(2),
   opacity: 0,
-  transition: 'opacity 0.3s ease',
+  transition: "opacity 0.3s ease",
 }));
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
-  color: '#fff',
-  backgroundColor: 'rgba(255,255,255,0.1)',
-  backdropFilter: 'blur(4px)',
-  transition: 'all 0.2s ease',
-  '&:hover': {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    transform: 'scale(1.1)',
+  color: "#fff",
+  backgroundColor: "rgba(255,255,255,0.1)",
+  backdropFilter: "blur(4px)",
+  transition: "all 0.2s ease",
+  "&:hover": {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    transform: "scale(1.1)",
   },
-  '&.liked': {
+  "&.liked": {
     color: theme.palette.error.main,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: "rgba(255,255,255,0.2)",
   },
-  '&.saved': {
+  "&.saved": {
     color: theme.palette.primary.main,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: "rgba(255,255,255,0.2)",
   },
 }));
 
 const PaintingTitle = styled(Typography)(({ theme }) => ({
-  color: '#fff',
+  color: "#fff",
   fontWeight: 600,
-  textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+  textShadow: "0 2px 4px rgba(0,0,0,0.2)",
   marginBottom: theme.spacing(1),
 }));
 
 const PaintingPrice = styled(Typography)(({ theme }) => ({
-  color: '#fff',
+  color: "#fff",
   fontWeight: 500,
   opacity: 0.9,
-  textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+  textShadow: "0 2px 4px rgba(0,0,0,0.2)",
 }));
 
 const ActionButtonsContainer = styled(Box)(({ theme }) => ({
-  display: 'flex',
+  display: "flex",
   gap: theme.spacing(1),
-  transform: 'translateY(20px)',
+  transform: "translateY(20px)",
   opacity: 0,
-  transition: 'all 0.3s ease',
-  '.overlay:hover &': {
-    transform: 'translateY(0)',
+  transition: "all 0.3s ease",
+  ".overlay:hover &": {
+    transform: "translateY(0)",
     opacity: 1,
   },
 }));
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialog-paper': {
+  "& .MuiDialog-paper": {
     borderRadius: theme.shape.borderRadius * 2,
-    backgroundColor: theme.palette.mode === 'dark' ? '#1A1A1A' : '#FFFFFF',
-    overflow: 'hidden',
+    backgroundColor: theme.palette.mode === "dark" ? "#1A1A1A" : "#FFFFFF",
+    overflow: "hidden",
   },
-  '& .MuiDialogTitle-root': {
-    backgroundColor: theme.palette.mode === 'dark' ? '#242424' : '#F8F8F8',
-    borderBottom: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+  "& .MuiDialogTitle-root": {
+    backgroundColor: theme.palette.mode === "dark" ? "#242424" : "#F8F8F8",
+    borderBottom: `1px solid ${
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.1)"
+        : "rgba(0,0,0,0.1)"
+    }`,
   },
 }));
 
 const CloseButton = styled(IconButton)(({ theme }) => ({
-  position: 'absolute',
+  position: "absolute",
   right: theme.spacing(2),
   top: theme.spacing(2),
-  color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+  color: theme.palette.mode === "dark" ? "#fff" : "#000",
 }));
 
 const DeleteDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialog-paper': {
+  "& .MuiDialog-paper": {
     borderRadius: theme.shape.borderRadius * 3,
-    backgroundColor: theme.palette.mode === 'dark' ? '#000000' : '#FFFFFF',
-    border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
+    backgroundColor: theme.palette.mode === "dark" ? "#000000" : "#FFFFFF",
+    border: `1px solid ${
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.1)"
+        : "rgba(0,0,0,0.05)"
+    }`,
     padding: theme.spacing(3),
-    minWidth: '400px',
-    backdropFilter: 'blur(10px)',
-    boxShadow: theme.palette.mode === 'dark' 
-      ? '0 8px 32px rgba(0, 0, 0, 0.6)'
-      : '0 8px 32px rgba(0, 0, 0, 0.1)',
+    minWidth: "400px",
+    backdropFilter: "blur(10px)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 8px 32px rgba(0, 0, 0, 0.6)"
+        : "0 8px 32px rgba(0, 0, 0, 0.1)",
   },
-  '& .MuiBackdrop-root': {
-    backgroundColor: theme.palette.mode === 'dark' 
-      ? 'rgba(0, 0, 0, 0.9)'
-      : 'rgba(255, 255, 255, 0.8)',
-    backdropFilter: 'blur(6px)',
+  "& .MuiBackdrop-root": {
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(0, 0, 0, 0.9)"
+        : "rgba(255, 255, 255, 0.8)",
+    backdropFilter: "blur(6px)",
   },
 }));
 
 const DeleteDialogTitle = styled(DialogTitle)(({ theme }) => ({
-  color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
-  fontSize: '1.75rem',
+  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  fontSize: "1.75rem",
   fontWeight: 700,
-  textAlign: 'center',
+  textAlign: "center",
   paddingBottom: theme.spacing(1.5),
-  marginBottom: theme.spacing(2)
+  marginBottom: theme.spacing(2),
 }));
 
 const DeleteDialogContent = styled(DialogContent)(({ theme }) => ({
-  color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)',
-  textAlign: 'center',
+  color:
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.7)",
+  textAlign: "center",
   padding: theme.spacing(4, 3),
-  fontSize: '1.1rem',
+  fontSize: "1.1rem",
   lineHeight: 1.6,
 }));
 
 const DeleteDialogActions = styled(DialogActions)(({ theme }) => ({
-  justifyContent: 'center',
+  justifyContent: "center",
   gap: theme.spacing(2),
   padding: theme.spacing(2, 3, 3),
 }));
 
 const DialogButton = styled(Button)(({ theme }) => ({
-  minWidth: '130px',
-  height: '48px',
-  fontSize: '1.1rem',
+  minWidth: "130px",
+  height: "48px",
+  fontSize: "1.1rem",
   fontWeight: 600,
-  textTransform: 'none',
+  textTransform: "none",
   borderRadius: theme.shape.borderRadius * 3,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:active': {
-    transform: 'scale(0.96)',
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  "&:active": {
+    transform: "scale(0.96)",
   },
 }));
 
 const NoButton = styled(DialogButton)(({ theme }) => ({
-  color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
-  backgroundColor: 'transparent',
-  border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'}`,
-  '&:hover': {
-    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-    border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'}`,
-    transform: 'translateY(-2px)',
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 5px 15px rgba(255,255,255,0.1)'
-      : '0 5px 15px rgba(0,0,0,0.1)',
+  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  backgroundColor: "transparent",
+  border: `2px solid ${
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)"
+  }`,
+  "&:hover": {
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.1)"
+        : "rgba(0,0,0,0.05)",
+    border: `2px solid ${
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.3)"
+        : "rgba(0,0,0,0.3)"
+    }`,
+    transform: "translateY(-2px)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 5px 15px rgba(255,255,255,0.1)"
+        : "0 5px 15px rgba(0,0,0,0.1)",
   },
 }));
 
 const YesButton = styled(DialogButton)(({ theme }) => ({
-  color: '#FFFFFF',
+  color: "#FFFFFF",
   backgroundColor: theme.palette.error.main,
   border: `2px solid ${theme.palette.error.main}`,
-  '&:hover': {
+  "&:hover": {
     backgroundColor: theme.palette.error.dark,
     border: `2px solid ${theme.palette.error.dark}`,
-    transform: 'translateY(-2px)',
-    boxShadow: '0 5px 15px rgba(255,59,48,0.3)',
+    transform: "translateY(-2px)",
+    boxShadow: "0 5px 15px rgba(255,59,48,0.3)",
   },
 }));
 
-const WarningIcon = styled('div')(({ theme }) => ({
-  width: '64px',
-  height: '64px',
-  margin: '0 auto',
+const WarningIcon = styled("div")(({ theme }) => ({
+  width: "64px",
+  height: "64px",
+  margin: "0 auto",
   marginBottom: theme.spacing(3),
-  borderRadius: '50%',
-  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,59,48,0.15)' : 'rgba(255,59,48,0.1)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  borderRadius: "50%",
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "rgba(255,59,48,0.15)"
+      : "rgba(255,59,48,0.1)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
   border: `2px solid ${theme.palette.error.main}`,
-  '& svg': {
-    fontSize: '32px',
+  "& svg": {
+    fontSize: "32px",
     color: theme.palette.error.main,
   },
 }));
 
 const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
   const theme = useTheme();
-  const [selectedPainting, setSelectedPainting] = useState<Painting | null>(null);
-  const [deleteConfirmation, setDeleteConfirmation] = useState<Painting | null>(null);
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const { enqueueSnackbar } = useSnackbar();
+  const [selectedPainting, setSelectedPainting] = useState<Painting | null>(
+    null
+  );
+  const [paintingToDelete, setPaintingToDelete] = useState<Painting | null>(
+    null
+  );
+  const [loading, setLoading] = useState(false);
 
-  const handleImageError = (paintingId: string) => {
-    console.error(`Image failed to load for painting ${paintingId}`);
-    setImageErrors(prev => ({ ...prev, [paintingId]: true }));
+  const handlePaintingClick = (painting: Painting) => {
+    setSelectedPainting(painting);
   };
 
-  const getImageUrl = (painting: Painting) => {
-    if (imageErrors[painting.id]) {
-      return 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy02ODM6Qj9DQDY1NT9GPzE/RU1NW2NbYFRkZGQ+Smxsb2v/2wBDARUXFx4aHiUeHiVrOjQ6a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2v/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=';
-    }
-    return painting.imageUrl;
+  const handleClose = () => {
+    setSelectedPainting(null);
   };
 
-  const handleActionClick = (e: React.MouseEvent, action: string, paintingId: string) => {
-    e.stopPropagation();
-    if (action === 'delete') {
-      const paintingToDelete = paintings.find(p => p.id === paintingId);
-      if (paintingToDelete) {
-        setDeleteConfirmation(paintingToDelete);
-      }
+  const handleAction = async (actionType: string, painting: Painting) => {
+    if (actionType === "delete") {
+      setPaintingToDelete(painting);
     } else {
-      onAction(action, paintingId);
+      onAction(actionType, painting.id);
     }
   };
 
-  const handleConfirmDelete = () => {
-    if (deleteConfirmation) {
-      onAction('delete', deleteConfirmation.id);
-      setDeleteConfirmation(null);
+  const handleConfirmDelete = async () => {
+    if (!paintingToDelete) return;
+
+    setLoading(true);
+    try {
+      await onAction("delete", paintingToDelete.id);
+      setPaintingToDelete(null);
+      enqueueSnackbar("Painting deleted successfully", { variant: "success" });
+    } catch (error: any) {
+      console.error("Error deleting painting:", error);
+      enqueueSnackbar(error.message || "Failed to delete painting", {
+        variant: "error",
+      });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setPaintingToDelete(null);
   };
 
   return (
@@ -296,58 +339,85 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
       <Grid container spacing={3}>
         {paintings.map((painting) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={painting.id}>
-            <StyledPaper onClick={() => setSelectedPainting(painting)}>
+            <StyledPaper
+              elevation={0}
+              onClick={() => handlePaintingClick(painting)}
+            >
               <ImageContainer>
-                <PaintingImage 
-                  src={getImageUrl(painting)} 
-                  alt={painting.title}
-                  onError={() => handleImageError(painting.id)}
-                />
+                <PaintingImage src={painting.imageUrl} alt={painting.title} />
                 <Overlay className="overlay">
-                  <Box>
-                    <PaintingTitle variant="h6">
-                      {painting.title}
-                    </PaintingTitle>
-                    <PaintingPrice variant="subtitle1">
-                      {painting.price ? `$${painting.price}` : 'Price not set'}
-                    </PaintingPrice>
-                  </Box>
-                  <ActionButtonsContainer>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
+                  >
                     <Tooltip title={painting.isLiked ? "Unlike" : "Like"}>
                       <ActionButton
-                        className={painting.isLiked ? 'liked' : ''}
-                        onClick={(e) => handleActionClick(e, 'like', painting.id)}
-                        size="small"
+                        className={painting.isLiked ? "liked" : ""}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAction("like", painting);
+                        }}
                       >
-                        {painting.isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                          }}
+                        >
+                          <LikeButton paintingId={parseInt(painting.id)} />
+                          <Typography variant="caption" sx={{ color: "#fff" }}>
+                            {painting.likes}
+                          </Typography>
+                        </Box>
                       </ActionButton>
                     </Tooltip>
                     <Tooltip title={painting.isSaved ? "Unsave" : "Save"}>
                       <ActionButton
-                        className={painting.isSaved ? 'saved' : ''}
-                        onClick={(e) => handleActionClick(e, 'save', painting.id)}
-                        size="small"
+                        className={painting.isSaved ? "saved" : ""}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAction("save", painting);
+                        }}
                       >
-                        {painting.isSaved ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+                        {painting.isSaved ? (
+                          <BookmarkIcon />
+                        ) : (
+                          <BookmarkBorderIcon />
+                        )}
                       </ActionButton>
                     </Tooltip>
                     <Tooltip title="Share">
                       <ActionButton
-                        onClick={(e) => handleActionClick(e, 'share', painting.id)}
-                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAction("share", painting);
+                        }}
                       >
                         <ShareIcon />
                       </ActionButton>
                     </Tooltip>
                     <Tooltip title="Delete">
                       <ActionButton
-                        onClick={(e) => handleActionClick(e, 'delete', painting.id)}
-                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAction("delete", painting);
+                        }}
                       >
                         <DeleteOutlineIcon />
                       </ActionButton>
                     </Tooltip>
-                  </ActionButtonsContainer>
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" sx={{ color: "#fff", mb: 1 }}>
+                      {painting.title}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "rgba(255,255,255,0.8)" }}
+                    >
+                      {painting.description}
+                    </Typography>
+                  </Box>
                 </Overlay>
               </ImageContainer>
             </StyledPaper>
@@ -355,88 +425,98 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
         ))}
       </Grid>
 
-      <StyledDialog
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={!!paintingToDelete}
+        onClose={handleCancelDelete}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <WarningIcon>
+              <DeleteOutlineIcon />
+            </WarningIcon>
+            <Typography variant="h6">Delete Painting</Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete "{paintingToDelete?.title}"? This
+            action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <DialogButton
+            variant="outlined"
+            onClick={handleCancelDelete}
+            disabled={loading}
+          >
+            Cancel
+          </DialogButton>
+          <DialogButton
+            variant="contained"
+            color="error"
+            onClick={handleConfirmDelete}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : "Delete"}
+          </DialogButton>
+        </DialogActions>
+      </Dialog>
+
+      {/* Painting Detail Dialog */}
+      <Dialog
         open={!!selectedPainting}
-        onClose={() => setSelectedPainting(null)}
+        onClose={handleClose}
         maxWidth="md"
         fullWidth
       >
         {selectedPainting && (
           <>
             <DialogTitle>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <Typography variant="h6">{selectedPainting.title}</Typography>
-                <Typography variant="h6">${selectedPainting.price}</Typography>
-                <CloseButton onClick={() => setSelectedPainting(null)}>
+                <IconButton onClick={handleClose}>
                   <CloseIcon />
-                </CloseButton>
+                </IconButton>
               </Box>
             </DialogTitle>
             <DialogContent>
-              <Box sx={{ width: '100%', paddingTop: '75%', position: 'relative', mb: 2 }}>
-                <Box
-                  component="img"
-                  src={getImageUrl(selectedPainting)}
+              <Box
+                sx={{
+                  position: "relative",
+                  width: "100%",
+                  paddingTop: "75%",
+                  mb: 2,
+                }}
+              >
+                <img
+                  src={selectedPainting.imageUrl}
                   alt={selectedPainting.title}
-                  sx={{
-                    position: 'absolute',
+                  style={{
+                    position: "absolute",
                     top: 0,
                     left: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                    borderRadius: 1,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
                   }}
                 />
               </Box>
-              <Typography variant="body1">{selectedPainting.description}</Typography>
+              <Typography variant="body1">
+                {selectedPainting.description}
+              </Typography>
             </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setSelectedPainting(null)}>Close</Button>
-            </DialogActions>
           </>
         )}
-      </StyledDialog>
-
-      <DeleteDialog
-        open={!!deleteConfirmation}
-        onClose={() => setDeleteConfirmation(null)}
-        aria-labelledby="delete-dialog-title"
-      >
-        <DeleteDialogTitle id="delete-dialog-title">
-          Delete Painting
-        </DeleteDialogTitle>
-        <DeleteDialogContent>
-          <WarningIcon>
-            <DeleteOutlineIcon />
-          </WarningIcon>
-          Are you sure you want to delete
-          <Box component="span" sx={{ 
-            display: 'block', 
-            fontWeight: 700,
-            fontSize: '1.2rem',
-            color: theme => theme.palette.mode === 'dark' ? '#fff' : '#000',
-            my: 1.5 
-          }}>
-            "{deleteConfirmation?.title}"
-          </Box>
-          This action cannot be undone.
-        </DeleteDialogContent>
-        <DeleteDialogActions>
-          <NoButton 
-            onClick={() => setDeleteConfirmation(null)}
-            variant="outlined"
-          >
-            No
-          </NoButton>
-          <YesButton 
-            onClick={handleConfirmDelete}
-            variant="contained"
-          >
-            Yes
-          </YesButton>
-        </DeleteDialogActions>
-      </DeleteDialog>
+      </Dialog>
     </>
   );
 };

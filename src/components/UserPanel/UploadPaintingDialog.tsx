@@ -215,14 +215,16 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
 
   const handleSubmit = async () => {
     if (!file || !title) {
-      // TODO: Show error message to user
+      setError('Please provide both an image and a title');
       return;
     }
 
     setUploading(true);
+    setError('');
+    
     try {
       const formData = new FormData();
-      formData.append('image', file); // Changed back to 'image' to match backend
+      formData.append('image', file);
       formData.append('title', title);
       if (description) formData.append('description', description);
       if (price) formData.append('price', price.toString());
@@ -232,9 +234,14 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
       if (horizontalDepth) formData.append('horizontal_depth', horizontalDepth.toString());
       if (verticalDepth) formData.append('vertical_depth', verticalDepth.toString());
 
+      // Log FormData contents for debugging
       console.log('FormData contents:');
       for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value instanceof File ? value.name : value}`);
+        if (value instanceof File) {
+          console.log(`${key}: File(name=${value.name}, type=${value.type}, size=${value.size})`);
+        } else {
+          console.log(`${key}: ${value}`);
+        }
       }
 
       await onUpload(formData);
@@ -245,7 +252,7 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
         response: error.response?.data,
         status: error.response?.status
       });
-      // TODO: Show error message to user
+      setError(error.message || 'Failed to upload painting. Please try again.');
     } finally {
       setUploading(false);
     }

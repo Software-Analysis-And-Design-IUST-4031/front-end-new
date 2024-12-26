@@ -1,0 +1,31 @@
+
+.title-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60vh;
+  background-color: #f0f0f4;
+  padding: 20px;
+}
+
+.title {
+  font-size: 3rem;
+  color: #493636;
+  text-align: left;
+  margin: 0;
+  flex: 1;  /* Takes up half the width */
+}
+
+.animation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;  /* Takes up the other half */
+  max-width: 50%;  /* Ensures the animation doesn't stretch too wide */
+}
+
+.animation-container img {
+  max-width: 325px;  /* Adjust the maximum width of the GIF */
+  height: auto;      /* Maintain aspect ratio */
+  border-radius: 15px; /* Smooth corners for the GIF */
+}

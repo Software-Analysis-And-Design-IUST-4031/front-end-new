@@ -1,0 +1,35 @@
+/* Ensure the container is centered within its parent */
+.center-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Take the full height of the viewport */
+}
+
+.animation-con {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 50%;
+  background-color: #ffffff;
+  padding: 10px;
+  margin-top: 200px;
+  margin-bottom: 200px;
+  opacity: 0; /* Start with hidden */
+  animation: fadeIn 2s forwards; /* Fade-in effect */
+}
+
+.animation-con img {
+  max-width: 325px;
+  height: auto;
+  border-radius: 15px;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

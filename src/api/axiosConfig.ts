@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// For development, always use localhost
 const baseURL = 'http://localhost:8000/api';
 
 const axiosInstance = axios.create({
@@ -10,23 +9,16 @@ const axiosInstance = axios.create({
   }
 });
 
-const exemptRoutes = ['/user/login/', '/user/register/'];
-
 axiosInstance.interceptors.request.use(
   (config) => {
-    if (!exemptRoutes.includes(config.url || '')) {
-      const token = localStorage.getItem('token');
-      if (token) {
-        // Ensure headers object exists
-        config.headers = config.headers || {};
-        config.headers['Authorization'] = `Bearer ${token}`;
-      }
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
-    console.log('Request:', config);
     return config;
   },
   (error) => {
-    console.error('Request Error:', error);
     return Promise.reject(error);
   }
 );

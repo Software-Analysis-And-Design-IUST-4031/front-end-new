@@ -34,12 +34,12 @@ export interface UserProfile {
   lastname: string;
   username: string;
   nickname: string | null;
-  phone_number: string | null;
+  phone_number: File;
   date_of_birth: string | null;
   country: string | null;
   city: string | null;
   is_gallery: boolean;
-  profile_picture: string | null;
+  profile_picture: string | File | null;
   Theme: string | null;
   Dark_light_theme: string | null;
   favorite_painter: string | null;
