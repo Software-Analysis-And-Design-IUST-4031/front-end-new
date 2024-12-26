@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -213,8 +214,10 @@ const UploadButton = styled(ActionButton)(({ theme }) => ({
 }));
 
 const ProfilePage: React.FC = () => {
-  const theme = useTheme();
-  const { userProfile, userId, isLoading } = useAuth();
+  const theme = useTheme(); 
+  let { userProfile , userId , isLoading } = useAuth();
+  const { userId2} = useParams();
+  console.log("FFFFFFFFFFF" +  userId2);
   const [activeTab, setActiveTab] = useState<'posts' | 'saved'>('posts');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [paintings, setPaintings] = useState<Painting[]>([]);
@@ -222,13 +225,60 @@ const ProfilePage: React.FC = () => {
   const [isLoadingPaintings, setIsLoadingPaintings] = useState(true);
   const [isLoadingSaved, setIsLoadingSaved] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [userProfile2 , setUserProfile2] = useState<any>() ;
+  const [userId3 , setUserId3] = useState<number>(0);
+
+  useEffect(() => {  
+    // console.log("userid " + userId);
+    // console.log("profile " + userProfile);
+    // console.log("userId2 " + userId2);
+    // console.log("userprofile2 " + userProfile2);
+    const fetchUserProfile = async () => {  
+      if (userId2) {  
+        try {  
+          setUserId3(parseInt(userId2));
+          const profile : any = await userService.getUserProfile(parseInt(userId2)); // Get profile for the userId  
+          setUserProfile2(profile); // Update the profile state  
+        } catch (error) {  
+          console.error('Error fetching user profile:', error);  
+        }   
+      }   
+      else 
+      {
+        let user__id = localStorage.getItem("userId");
+        if (user__id)
+        {
+          try {  
+            setUserId3(parseInt(user__id));
+            const profile : any = await userService.getUserProfile(parseInt(user__id)); // Get profile for the userId  
+            setUserProfile2(profile); // Update the profile state  
+          } catch (error) {  
+            console.error('Error fetching user profile:', error);  
+          }  
+        }
+
+        // if (userProfile && userId)
+        // {
+        //   setUserId3(userId);
+        //   setUserProfile2(userProfile);
+        // }
+
+      }
+    };  
+    
+    fetchUserProfile();  
+    console.log("userid " + userId);
+    console.log("profile " + userProfile);
+    console.log("userId2 " + userId2);
+    console.log("userprofile2 " + userProfile2);
+  }, [userId2]); // Add userId2 as a dependenc
+
 
   const transformPaintings = (backendPaintings: BackendPainting[], userLikes: number[] = []): Painting[] => {
     if (!Array.isArray(backendPaintings)) {
       console.error('Invalid backendPaintings:', backendPaintings);
       return [];
     }
-
     return backendPaintings.map(painting => {
       // Construct the full image URL
       const imageUrl = painting.image?.startsWith('http') 
@@ -272,7 +322,7 @@ const ProfilePage: React.FC = () => {
 
   useEffect(() => {
     const fetchPaintings = async () => {
-      if (!userId) {
+      if (!userId3) {
         console.log('No userId available, skipping painting fetch');
         return;
       }
@@ -280,10 +330,10 @@ const ProfilePage: React.FC = () => {
       try {
         if (activeTab === 'posts') {
           setIsLoadingPaintings(true);
-          console.log('Fetching paintings for userId:', userId);
+          console.log('Fetching paintings for userId:', userId3);
           const [paintingsResponse, userLikes] = await Promise.all([
-            userService.getUserPaintings(userId),
-            userService.getUserLikes(userId)
+            userService.getUserPaintings(userId3),
+            userService.getUserLikes(userId3)
           ]);
           console.log('Paintings response:', paintingsResponse);
           
@@ -309,7 +359,7 @@ const ProfilePage: React.FC = () => {
     };
 
     fetchPaintings();
-  }, [userId, activeTab]);
+  }, [userId3, activeTab]);
 
   const handleUpload = async (data: FormData) => {
     try {
@@ -324,8 +374,8 @@ const ProfilePage: React.FC = () => {
 
       // Fetch both updated paintings and likes after successful upload
       const [paintingsResponse, userLikes] = await Promise.all([
-        userService.getUserPaintings(userId),
-        userService.getUserLikes(userId)
+        userService.getUserPaintings(userId3),
+        userService.getUserLikes(userId3)
       ]);
       console.log('Updated paintings after upload:', paintingsResponse);
 
@@ -357,7 +407,7 @@ const ProfilePage: React.FC = () => {
     );
   }
 
-  if (!userProfile) {
+  if (!userProfile2) {
     return (
       <Box sx={{ 
         display: 'flex', 
@@ -377,17 +427,17 @@ const ProfilePage: React.FC = () => {
         <ProfileCard>
           <Box sx={{ display: 'flex', gap: 5, alignItems: 'flex-start' }}>
             <ProfileAvatar
-              alt={userProfile.username}
-              src={userProfile.profile_picture || undefined}
+              alt={userProfile2.username}
+              src={userProfile2.profile_picture || undefined}
             >
-              {!userProfile.profile_picture && getInitials(userProfile.firstname, userProfile.lastname)}
+              {!userProfile2.profile_picture && getInitials(userProfile2.firstname, userProfile2.lastname)}
             </ProfileAvatar>
             <Box sx={{ flex: 1 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
                     <NameTypography>
-                      {userProfile.firstname} {userProfile.lastname}
+                      {userProfile2.firstname} {userProfile2.lastname}
                     </NameTypography>
                     <IconButton 
                       size="small" 
@@ -402,7 +452,7 @@ const ProfilePage: React.FC = () => {
                     </IconButton>
                   </Box>
                   <UsernameTypography>
-                    @{userProfile.username}
+                    @{userProfile2.username}
                   </UsernameTypography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 2 }}>
@@ -419,14 +469,14 @@ const ProfilePage: React.FC = () => {
               </Box>
 
               <BioTypography variant="body1">
-                {userProfile.biography || 'No biography added yet.'}
+                {userProfile2.biography || 'No biography added yet.'}
               </BioTypography>
 
-              {(userProfile.city || userProfile.country) && (
+              {(userProfile2.city || userProfile2.country) && (
                 <LocationBox>
                   <LocationOnIcon fontSize="small" />
                   <Typography variant="body2">
-                    {[userProfile.city, userProfile.country].filter(Boolean).join(', ')}
+                    {[userProfile2.city, userProfile2.country].filter(Boolean).join(', ')}
                   </Typography>
                 </LocationBox>
               )}
@@ -434,7 +484,7 @@ const ProfilePage: React.FC = () => {
               <StatsContainer>
                 <StatsItem>
                   <Typography variant="h5" fontWeight="600">
-                    {userProfile.number_of_paintings || 0}
+                    {userProfile2.number_of_paintings || 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ letterSpacing: '0.5px' }}>
                     posts
@@ -442,7 +492,7 @@ const ProfilePage: React.FC = () => {
                 </StatsItem>
                 <StatsItem>
                   <Typography variant="h5" fontWeight="600">
-                    {userProfile.followers || 0}
+                    {userProfile2.followers || 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ letterSpacing: '0.5px' }}>
                     followers
@@ -450,7 +500,7 @@ const ProfilePage: React.FC = () => {
                 </StatsItem>
                 <StatsItem>
                   <Typography variant="h5" fontWeight="600">
-                    {userProfile.following || 0}
+                    {userProfile2.following || 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ letterSpacing: '0.5px' }}>
                     following
@@ -458,10 +508,10 @@ const ProfilePage: React.FC = () => {
                 </StatsItem>
               </StatsContainer>
 
-              {userProfile.favorite_painter && (
+              {userProfile2.favorite_painter && (
                 <Box sx={{ display: 'flex', gap: 1.5, mt: 4 }}>
                   <Typography variant="body2" color="text.secondary">
-                    Favorite Painter: {userProfile.favorite_painter}
+                    Favorite Painter: {userProfile2.favorite_painter}
                   </Typography>
                 </Box>
               )}

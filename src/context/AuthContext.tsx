@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { userService } from '../services/userService';
 import { UserProfile } from '../types';
-
 interface AuthContextType {
   isAuthenticated: boolean;
   username: string | null;
@@ -24,7 +23,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (isAuthenticated && userId) {
@@ -40,7 +38,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     fetchUserProfile();
   }, [isAuthenticated, userId]);
-
   const login = (token: string, username: string, userId: number) => {
     console.log('AuthContext: Setting login state...');
     // Ensure token has Bearer prefix

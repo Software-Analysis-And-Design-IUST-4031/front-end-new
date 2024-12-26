@@ -50,7 +50,6 @@ const LoginPage: React.FC = () => {
 
       console.log('Setting auth context...');
       login(response.access, response.username, response.user_id);
-      
       console.log('Navigating to profile...');
       navigate('/profile', { replace: true });
     } catch (err: any) {

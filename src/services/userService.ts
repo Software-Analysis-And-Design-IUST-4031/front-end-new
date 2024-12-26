@@ -55,7 +55,7 @@ export const userService = {
 
   getUserProfile: async (userId: number): Promise<UserProfile> => {
     try {
-      const response = await api.get(`/user/${userId}/detail/`);
+      const response : any = await api.get(`/user/${userId}/detail/`);
       return response.data;
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -160,6 +160,16 @@ export const userService = {
     );
     return response.data.liked; // Extract and return the `like` status directly
   },
+
+
+  getUserProfileGallery : async (userId: number) => {
+    const response = await fetch(`/user/${userId}/detail/`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch user profile');
+    }
+    return response.json();
+  },
+
   
 
   getUserLikes: async (userId: number): Promise<number[]> => {

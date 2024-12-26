@@ -48,6 +48,12 @@ function App() {
               } 
             />
             <Route 
+              path="/profile/:userId2" 
+              element={
+                <ProfilePage />
+              }
+            />
+            <Route 
               path="/galleries" 
               element={
                 <ProtectedRoute>
