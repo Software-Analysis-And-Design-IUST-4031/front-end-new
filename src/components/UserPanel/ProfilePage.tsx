@@ -302,6 +302,7 @@ const ProfilePage: React.FC = () => {
   const getInitials = (firstname: string, lastname: string) => {
     return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
   };
+  const userIdFromStorage = localStorage.getItem("userId");
 
   const handlePaintingAction = async (action: string, paintingId: string) => {
     if (action === 'delete') {
@@ -439,7 +440,8 @@ const ProfilePage: React.FC = () => {
                     <NameTypography>
                       {userProfile2.firstname} {userProfile2.lastname}
                     </NameTypography>
-                    <IconButton 
+                  { userIdFromStorage && parseInt(userIdFromStorage) === userId3 &&
+                     <IconButton 
                       size="small" 
                       sx={{ 
                         backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
@@ -449,7 +451,8 @@ const ProfilePage: React.FC = () => {
                       }}
                     >
                       <EditIcon fontSize="small" />
-                    </IconButton>
+                    </IconButton> 
+                  }
                   </Box>
                   <UsernameTypography>
                     @{userProfile2.username}
@@ -551,12 +554,16 @@ const ProfilePage: React.FC = () => {
           <Box sx={{ visibility: 'hidden' }}>
             <TabButton>Posts</TabButton>
           </Box>
-          <UploadButton
-            startIcon={<AddIcon />}
-            onClick={() => setUploadDialogOpen(true)}
-          >
-            Upload Painting
-          </UploadButton>
+          { userIdFromStorage && parseInt(userIdFromStorage) === userId3 &&
+          (
+            <UploadButton
+              startIcon={<AddIcon />}
+              onClick={() => setUploadDialogOpen(true)}
+            >
+              Upload Painting
+            </UploadButton>
+          )
+          }
         </Box>
 
         {(isLoadingPaintings && activeTab === 'posts') || (isLoadingSaved && activeTab === 'saved') ? (
