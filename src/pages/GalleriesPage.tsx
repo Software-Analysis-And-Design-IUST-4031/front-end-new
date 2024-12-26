@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { userService } from '../services/userService';
 // import '../Themes.css';
 
 const Gallery = lazy(() => import('./gallery'));
@@ -45,7 +46,7 @@ const GalleriesPage: any = () => {
   const [data, setData] = useState<GalleryInterface[]>([]);
   const [currentData, setCurrentData] = useState<GalleryInterface[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-
+  console.log(currentData);
   const itemsPerPage = 3;
   const totalPages = Math.ceil(data.length / itemsPerPage);
   const navigate = useNavigate();
@@ -55,6 +56,13 @@ const GalleriesPage: any = () => {
   const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
     setCurrentPage(page);
   };
+
+
+  const handleClickGallery = (user_id : number) =>
+  {
+      userService.getUserProfileGallery(user_id) ;
+      // navigate(`/profile/${user_id}`);
+  }
 
   const truncateString = (str: string): string => 
     str.length > 40 ? str.slice(0, 40) + '...' : str;
@@ -79,9 +87,10 @@ const GalleriesPage: any = () => {
             (gallery : GalleryInterface) =>
                 ({
                     ...gallery , 
-                    cover_image : `${baseURL}${gallery.cover_image}`,
+                    cover_image : gallery.cover_image ? `${baseURL}${gallery.cover_image}` : null,
                     gallery_name: gallery.gallery_name || "Untitled Gallery", 
                     description: gallery.description || "No description available", 
+                    onclick_gallery : handleClickGallery(gallery.owner_id),
                 })
             );
         setData(response.data);
@@ -101,7 +110,7 @@ const GalleriesPage: any = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
     setCurrentData(paginatedData);
-  }, [data, currentPage]);
+  }, [currentPage , data]);
 
   return (
     <Box

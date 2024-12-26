@@ -5,7 +5,7 @@ import { IoImageSharp, IoPeopleSharp, IoChatbubbleEllipsesSharp } from "react-ic
 import { PiPaintBrushDuotone } from "react-icons/pi";
 
 interface GalleryProps {
-  cover_image: string;
+  cover_image: string | null;
   description: string;
   gallery_name: string;
   number_of_paintings: number;
@@ -99,7 +99,7 @@ const Gallery: React.FC<GalleryProps> = ({
       <Box sx={{ position: 'relative', pt: '100%' }}>
         <CardMedia
           component="img"
-          image={imageError ? 'https://via.placeholder.com/800x600?text=Image+Not+Available' : cover_image}
+          image={ cover_image === null ? 'https://via.placeholder.com/800x600?text=Image+Not+Available' : cover_image}
           alt={gallery_name}
           loading="lazy"
           onError={handleImageError}
