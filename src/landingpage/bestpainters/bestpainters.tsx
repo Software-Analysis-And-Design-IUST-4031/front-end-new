@@ -11,7 +11,7 @@ interface Painter {
     total_likes: number;
 }
 
-const itemsPerPage = 10;
+const itemsPerPage = 4;
 
 const Painter: React.FC = () => {
     const [posts, setPosts] = useState<Painter[]>([]);

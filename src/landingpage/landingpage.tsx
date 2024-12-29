@@ -30,8 +30,9 @@ const LandingPage: React.FC = () => {
           <DescriptionSection />
           <MyLottieAnimation2 />
           <Painter />
-          <Features />
           <BestPaintings />
+          <Features />
+          
           <Footer />
         </>
       )}

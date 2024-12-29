@@ -22,6 +22,7 @@ interface Post {
   favorite_painting: string;
   favorite_painting_style: number;
   favorite_painter: string;
+  favorite_painting_technique : string ;
   city: string;
   country: string;
 }
@@ -108,11 +109,6 @@ const CardItem: React.FC<{ post: Post }> = ({ post }) => {
             <PostTitle>
               {post.firstname} {post.lastname}
             </PostTitle>
-            <PostMeta>
-              <Typography variant="body2" color="textSecondary">
-                {post.username}
-              </Typography>
-            </PostMeta>
           </PostInfo>
         </PostCard>
       </Grid>
@@ -120,6 +116,9 @@ const CardItem: React.FC<{ post: Post }> = ({ post }) => {
       <Dialog open={showDialog} onClose={handleDialogClose} maxWidth="md">
         <DialogTitle>
           {post.firstname} {post.lastname}
+        </DialogTitle>
+        <DialogTitle>
+          {post.username}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -140,6 +139,9 @@ const CardItem: React.FC<{ post: Post }> = ({ post }) => {
             </Typography>
             <Typography variant="subtitle2" color="textSecondary">
               Favorite Painter: {post.favorite_painter}
+            </Typography>
+            <Typography variant="subtitle2" color="textSecondary">
+            favorite_painting_technique: {post.favorite_painting_technique}
             </Typography>
           </Box>
         </DialogContent>
