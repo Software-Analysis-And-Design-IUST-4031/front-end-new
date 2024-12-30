@@ -1,11 +1,17 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { useTheme } from "@mui/material/styles";
+import { useSnackbar } from "notistack";
+import { useAuth } from "../../context/AuthContext";
+import { userService } from "../../services/userService";
+import { BackendPainting, Painting, UserProfile } from "../../types";
+import { MEDIA_URL } from "../../services/api";
+import api from "../../services/api";
 import {
   Container,
   Box,
   Typography,
   Grid,
   styled,
-  useTheme,
   Button,
   IconButton,
   alpha,
@@ -19,15 +25,10 @@ import TwitterIcon from "@mui/icons-material/Twitter";
 import PinterestIcon from "@mui/icons-material/Pinterest";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import AddIcon from "@mui/icons-material/Add";
-import { useAuth } from "../../context/AuthContext";
-import { userService, UpdateProfileData } from "../../services/userService";
-import { MEDIA_URL } from "../../services/api";
-import { UserProfile, BackendPainting, Painting } from "../../types";
 import Navbar from "../Navbar";
 import PaintingGrid from "./PaintingGrid";
 import ThemeCustomizer from "./ThemeCustomizer";
 import UploadPaintingDialog from "./UploadPaintingDialog";
-import { useSnackbar } from "notistack";
 import SideBar from "./SideBar";
 import EditProfileButton from "./EditProfileButton";
 
@@ -240,6 +241,22 @@ const UploadButton = styled(ActionButton)(({ theme }) => ({
   },
 }));
 
+interface AuthorDetails {
+  user_id?: number;
+  id?: number;
+  email: string;
+  firstname: string;
+  lastname: string;
+  username: string;
+  profile_picture?: string;
+  biography?: string;
+}
+
+interface PaintingWithAuthor extends BackendPainting {
+  author?: AuthorDetails;
+  artist_details?: AuthorDetails;
+}
+
 const ProfilePage: React.FC = () => {
   const theme = useTheme();
   const { userProfile, userId, isLoading, updateProfile } = useAuth();
@@ -262,16 +279,16 @@ const ProfilePage: React.FC = () => {
     console.log("Sidebar state changed:", sidebarOpen);
   }, [sidebarOpen]);
 
-  const transformPaintings = (
+  const transformPaintings = async (
     backendPaintings: BackendPainting[]
-  ): Painting[] => {
+  ): Promise<Painting[]> => {
     if (!Array.isArray(backendPaintings)) {
       console.error("Invalid backendPaintings:", backendPaintings);
       return [];
     }
 
-    return backendPaintings
-      .map((painting) => {
+    return Promise.all(
+      backendPaintings.map(async (painting) => {
         if (!painting) {
           console.error("Invalid painting object:", painting);
           return null;
@@ -293,15 +310,102 @@ const ProfilePage: React.FC = () => {
           }
         }
 
-        console.log("Processing painting:", {
-          original: painting,
-          transformedImageUrl: imageUrl,
-          mediaUrl: MEDIA_URL,
-          originalImage: painting.image,
-          cleanedPath: painting.image
-            ? painting.image.replace(/^\/?(media\/)?/, "")
-            : null,
-        });
+        // Try to get author information from the backend
+        let authorInfo;
+        try {
+          const authorResponse = await api.get<PaintingWithAuthor>(
+            `/painting/${painting.painting_id}/with-author/`
+          );
+          const paintingWithAuthor = authorResponse.data;
+          const authorData =
+            paintingWithAuthor.author || paintingWithAuthor.artist_details;
+          console.log("Author data for painting:", {
+            paintingId: painting.painting_id,
+            authorData,
+            rawPainting: authorResponse.data,
+          });
+
+          if (
+            authorData &&
+            (authorData.firstname || authorData.lastname || authorData.username)
+          ) {
+            authorInfo = {
+              id: String(
+                authorData.user_id || authorData.id || painting.artist || ""
+              ),
+              username: authorData.username || "anonymous",
+              name:
+                `${authorData.firstname || ""} ${
+                  authorData.lastname || ""
+                }`.trim() || "Unknown Artist",
+              avatarUrl: authorData.profile_picture || undefined,
+              bio: authorData.biography || undefined,
+              email: authorData.email,
+            };
+          } else if (painting.artist) {
+            // If we have an artist ID but no details, try to fetch the user profile
+            const artistProfile = await userService.getUserProfile(
+              painting.artist
+            );
+            authorInfo = {
+              id: String(artistProfile.user_id || ""),
+              username: artistProfile.username || "anonymous",
+              name:
+                `${artistProfile.firstname || ""} ${
+                  artistProfile.lastname || ""
+                }`.trim() || "Unknown Artist",
+              avatarUrl: artistProfile.profile_picture?.toString() || undefined,
+              bio: artistProfile.biography || undefined,
+              email: artistProfile.email,
+            };
+          }
+        } catch (error) {
+          console.error(
+            `Error fetching author data for painting ${painting.painting_id}:`,
+            error
+          );
+          if (painting.artist) {
+            try {
+              const artistProfile = await userService.getUserProfile(
+                painting.artist
+              );
+              authorInfo = {
+                id: String(artistProfile.user_id || ""),
+                username: artistProfile.username || "anonymous",
+                name:
+                  `${artistProfile.firstname || ""} ${
+                    artistProfile.lastname || ""
+                  }`.trim() || "Unknown Artist",
+                avatarUrl:
+                  artistProfile.profile_picture?.toString() || undefined,
+                bio: artistProfile.biography || undefined,
+                email: artistProfile.email,
+              };
+            } catch (profileError) {
+              console.error(
+                `Error fetching artist profile for ID ${painting.artist}:`,
+                profileError
+              );
+              authorInfo = {
+                id: String(painting.artist || ""),
+                username: "anonymous",
+                name: "Unknown Artist",
+                avatarUrl: undefined,
+                bio: undefined,
+                email: undefined,
+              };
+            }
+          } else {
+            authorInfo = {
+              id: "",
+              username: "anonymous",
+              name: "Unknown Artist",
+              avatarUrl: undefined,
+              bio: undefined,
+              email: undefined,
+            };
+          }
+        }
 
         return {
           id: String(painting.painting_id || ""),
@@ -318,9 +422,10 @@ const ProfilePage: React.FC = () => {
           isLiked: painting.is_liked || false,
           isSaved: false,
           createdAt: painting.creation_date || new Date().toISOString(),
+          author: authorInfo,
         };
       })
-      .filter(Boolean) as Painting[];
+    ).then((results) => results.filter(Boolean) as Painting[]);
   };
 
   const getInitials = (firstname: string, lastname: string) => {
@@ -400,26 +505,58 @@ const ProfilePage: React.FC = () => {
         if (activeTab === "posts") {
           setIsLoadingPaintings(true);
           console.log("Fetching paintings for userId:", userId);
-          const [paintingsResponse, userLikes] = await Promise.all([
-            userService.getUserPaintings(userId),
-            userService.getUserLikes(userId),
-          ]);
-          console.log("Paintings response:", paintingsResponse);
 
-          if (
-            !paintingsResponse.paintings ||
-            !Array.isArray(paintingsResponse.paintings)
-          ) {
-            console.error("Invalid paintings data:", paintingsResponse);
-            setPaintings([]);
-            return;
+          // First try with the with-author endpoint
+          try {
+            const [paintingsResponse, userLikes] = await Promise.all([
+              userService.getUserPaintingsWithAuthor(userId),
+              userService.getUserLikes(userId),
+            ]);
+            console.log("Paintings response with author:", paintingsResponse);
+
+            if (
+              !paintingsResponse.paintings ||
+              !Array.isArray(paintingsResponse.paintings)
+            ) {
+              throw new Error("Invalid paintings data");
+            }
+
+            const transformedPaintings = await transformPaintings(
+              paintingsResponse.paintings
+            );
+            console.log("Transformed paintings:", transformedPaintings);
+            setPaintings(transformedPaintings);
+          } catch (error) {
+            console.error(
+              "Error fetching paintings with author, falling back to regular endpoint:",
+              error
+            );
+
+            // Fallback to regular paintings endpoint
+            const [paintingsResponse, userLikes] = await Promise.all([
+              userService.getUserPaintings(userId),
+              userService.getUserLikes(userId),
+            ]);
+            console.log("Paintings response from fallback:", paintingsResponse);
+
+            if (
+              !paintingsResponse.paintings ||
+              !Array.isArray(paintingsResponse.paintings)
+            ) {
+              console.error("Invalid paintings data:", paintingsResponse);
+              setPaintings([]);
+              return;
+            }
+
+            const transformedPaintings = await transformPaintings(
+              paintingsResponse.paintings
+            );
+            console.log(
+              "Transformed paintings from fallback:",
+              transformedPaintings
+            );
+            setPaintings(transformedPaintings);
           }
-
-          const transformedPaintings = transformPaintings(
-            paintingsResponse.paintings
-          );
-          console.log("Transformed paintings:", transformedPaintings);
-          setPaintings(transformedPaintings);
         } else {
           setIsLoadingSaved(true);
           // TODO: Implement saved paintings fetch when backend is ready
@@ -427,6 +564,9 @@ const ProfilePage: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching paintings:", error);
+        enqueueSnackbar("Failed to load paintings. Please try again later.", {
+          variant: "error",
+        });
       } finally {
         setIsLoadingPaintings(false);
         setIsLoadingSaved(false);
@@ -465,7 +605,7 @@ const ProfilePage: React.FC = () => {
         return;
       }
 
-      const transformedPaintings = transformPaintings(
+      const transformedPaintings = await transformPaintings(
         paintingsResponse.paintings
       );
       console.log("Setting new paintings:", transformedPaintings);

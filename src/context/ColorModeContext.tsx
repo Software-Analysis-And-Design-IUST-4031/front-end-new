@@ -1,24 +1,37 @@
-import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import { ThemeProvider, createTheme, CircularProgress, Box } from '@mui/material';
-import { userService } from '../services/userService';
-import { useLocation } from 'react-router-dom';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useEffect,
+} from "react";
+import {
+  ThemeProvider,
+  createTheme,
+  CircularProgress,
+  Box,
+} from "@mui/material";
+import { userService } from "../services/userService";
+import { useLocation } from "react-router-dom";
 
 interface ColorModeContextType {
   toggleColorMode: () => void;
-  mode: 'light' | 'dark';
+  mode: "light" | "dark";
 }
 
 export const ColorModeContext = createContext<ColorModeContextType>({
   toggleColorMode: () => {},
-  mode: 'light'
+  mode: "light",
 });
 
-export const ColorModeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ColorModeProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const location = useLocation();
-  const isLandingPage = location.pathname === '/';
-  const isPublicPage = ['/', '/login', '/signup'].includes(location.pathname);
+  const isLandingPage = location.pathname === "/";
+  const isPublicPage = ["/", "/login", "/signup"].includes(location.pathname);
   const [isLoading, setIsLoading] = useState(!isPublicPage);
-  const [mode, setMode] = useState<'light' | 'dark'>('light'); // Default to light
+  const [mode, setMode] = useState<"light" | "dark">("light"); // Default to light
 
   // Load theme from backend on mount (only for non-public pages)
   useEffect(() => {
@@ -27,8 +40,8 @@ export const ColorModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsLoading(false);
         return;
       }
-      
-      const userId = localStorage.getItem('userId');
+
+      const userId = localStorage.getItem("userId");
       if (userId) {
         try {
           const userProfile = await userService.getUserProfile(Number(userId));
@@ -36,9 +49,9 @@ export const ColorModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             setMode(userProfile.Dark_light_theme);
           }
         } catch (error) {
-          console.error('Error loading theme:', error);
+          console.error("Error loading theme:", error);
           // If there's an error, use light theme
-          setMode('light');
+          setMode("light");
         } finally {
           setIsLoading(false);
         }
@@ -52,14 +65,14 @@ export const ColorModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Effect to handle theme for landing page
   useEffect(() => {
     if (isLandingPage) {
-      const savedTheme = localStorage.getItem('landingPageTheme');
-      if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+      const savedTheme = localStorage.getItem("landingPageTheme");
+      if (savedTheme && (savedTheme === "light" || savedTheme === "dark")) {
         setMode(savedTheme);
       } else {
-        setMode('light');
+        setMode("light");
       }
     } else if (isPublicPage) {
-      setMode('light'); // Always light for login/signup
+      setMode("light"); // Always light for login/signup
     }
   }, [isLandingPage, isPublicPage]);
 
@@ -67,16 +80,17 @@ export const ColorModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     () => ({
       toggleColorMode: () => {
         if (isLandingPage) {
-          const newMode = mode === 'light' ? 'dark' : 'light';
+          const newMode = mode === "light" ? "dark" : "light";
           setMode(newMode);
-          localStorage.setItem('landingPageTheme', newMode);
+          localStorage.setItem("landingPageTheme", newMode);
         } else if (!isPublicPage) {
-          const newMode = mode === 'light' ? 'dark' : 'light';
+          const newMode = mode === "light" ? "dark" : "light";
           setMode(newMode);
-          const userId = localStorage.getItem('userId');
+          const userId = localStorage.getItem("userId");
           if (userId) {
-            userService.updateUserProfile(Number(userId), { Dark_light_theme: newMode })
-              .catch(error => console.error('Error updating theme:', error));
+            userService
+              .updateUserProfile(Number(userId), { Dark_light_theme: newMode })
+              .catch((error) => console.error("Error updating theme:", error));
           }
         }
       },
@@ -90,21 +104,23 @@ export const ColorModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createTheme({
         palette: {
           mode,
-          ...(mode === 'dark' ? {
-            background: {
-              default: '#121212',
-              paper: '#1E1E1E',
-            },
-            text: {
-              primary: '#fff',
-              secondary: 'rgba(255, 255, 255, 0.7)',
-            },
-          } : {
-            background: {
-              default: '#ffffff',
-              paper: '#fff',
-            },
-          }),
+          ...(mode === "dark"
+            ? {
+                background: {
+                  default: "#121212",
+                  paper: "#1E1E1E",
+                },
+                text: {
+                  primary: "#fff",
+                  secondary: "rgba(255, 255, 255, 0.7)",
+                },
+              }
+            : {
+                background: {
+                  default: "#ffffff",
+                  paper: "#fff",
+                },
+              }),
         },
         typography: {
           fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -115,7 +131,14 @@ export const ColorModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
