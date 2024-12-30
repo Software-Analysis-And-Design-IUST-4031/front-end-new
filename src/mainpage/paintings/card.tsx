@@ -12,31 +12,25 @@ import {
   DialogActions,
   Button,
   styled,
-  keyframes,
-  Fade,
-  Badge,
 } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ShareIcon from '@mui/icons-material/Share';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 
 interface Post {
-    id: string;
-    imageUrl: string;
-    caption: string;
-    title: string;
-    price: string;
-    likes: number;
-    createdAt: string;
-    artist: string;
-    year: number;
-    style: string;
+  painting_id: string;
+  image: string;
+  description: string;
+  title: string;
+  price: string;
+  material: string;
+  artist: string;
+  year: number;
+  style: string;
 }
 
 interface CardProps {
   posts: Post[];
-  onShare: (id: string) => void;
 }
 
 const PostCard = styled(Paper)(({ theme }) => ({
@@ -163,20 +157,10 @@ const PostPrice = styled(Typography)(({ theme }) => ({
   color: 'transparent',
 }));
 
-const LikeCount = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '6px',
-  color: theme.palette.text.secondary,
-  '& .MuiSvgIcon-root': {
-    fontSize: '1.1rem',
-  }
-}));
 
 const CardItem: React.FC<{
   post: Post;
-  onShare: (id: string) => void;
-}> = ({ post, onShare }) => {
+}> = ({ post }) => {
   const [showDialog, setShowDialog] = useState(false);
 
   const handleDialogOpen = () => {
@@ -192,15 +176,10 @@ const CardItem: React.FC<{
       <Grid item xs={12} sm={6} md={4} lg={3}>
         <PostCard elevation={0}>
           <ImageContainer onClick={handleDialogOpen}>
-            <PostImage src={post.imageUrl} alt={post.title} />
+            <PostImage src={post.image} alt={post.title} />
             <PostActions>
               <Box sx={{ display: 'flex', gap: 1 }}>
-                <ActionButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShare(post.id); // Use `post.id` instead of `post.painting_id`
-                  }}
-                >
+                <ActionButton>
                   <ShareIcon />
                 </ActionButton>
               </Box>
@@ -208,12 +187,9 @@ const CardItem: React.FC<{
           </ImageContainer>
           <PostInfo>
             <PostTitle>{post.title}</PostTitle>
-            <PostMeta>
+            
               <PostPrice>${post.price}</PostPrice>
-              <LikeCount>
-                <FavoriteIcon />
-              </LikeCount>
-            </PostMeta>
+            
           </PostInfo>
         </PostCard>
       </Grid>
@@ -222,12 +198,9 @@ const CardItem: React.FC<{
         <DialogTitle>{post.title}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <img src={post.imageUrl} alt={post.title} style={{ width: '100%', maxHeight: '500px', objectFit: 'contain' }} />
-            <Typography variant="body1">{post.caption}</Typography> {/* Use `caption` */}
+            <img src={post.image} alt={post.title} style={{ width: '100%', maxHeight: '500px', objectFit: 'contain' }} />
+            <Typography variant="body1">{post.description}</Typography>
             <Typography variant="h6" color="primary">${post.price}</Typography>
-            <Typography variant="caption" color="text.secondary">
-              Posted on: {new Date(post.createdAt).toLocaleDateString()} {/* Use `createdAt` */}
-            </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
@@ -238,15 +211,14 @@ const CardItem: React.FC<{
   );
 };
 
-const Card: React.FC<CardProps> = ({ posts, onShare }) => {
+const Card: React.FC<CardProps> = ({ posts }) => {
   return (
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
         {posts.map((post) => (
           <CardItem
-            key={post.id} // Use `post.id` instead of `post.painting_id`
+            key={post.painting_id}
             post={post}
-            onShare={onShare}
           />
         ))}
       </Grid>

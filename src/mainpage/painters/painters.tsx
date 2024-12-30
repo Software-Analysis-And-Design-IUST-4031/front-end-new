@@ -281,9 +281,9 @@ const Painter: React.FC = () => {
           </Box>
         ) : (
           <>
-            <Card posts={currentPaintings} /> {/* Use the Card component here */}
+            <Card posts={currentPaintings} /> 
 
-            {/* Pagination */}
+            
             {filteredPaintings.length > 0 && (
               <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
                 <Pagination
