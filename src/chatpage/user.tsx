@@ -12,6 +12,7 @@ interface UserProps {
     id : number ,
     isActive: boolean;
     onClick: () => void;
+    chat_id : number ;
 }
 
 // const user1 : UserProps =  {

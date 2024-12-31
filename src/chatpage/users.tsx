@@ -4,6 +4,7 @@ import { TextField, Button, Box , TextareaAutosize , Typography} from '@mui/mate
 interface UserProps {
   id: number;
   name: string;
+  chat_id : number ;
 }
 
 interface UserListProps {
@@ -30,6 +31,7 @@ const UserList: React.FC<UserListProps> = ({ users, activeUser, setActiveUser })
           name = {user.name}
           isActive={activeUser?.id === user.id} 
           onClick={() => setActiveUser(user)} 
+          chat_id = {user.chat_id}
         />
       ))}
     </Box>

@@ -15,6 +15,7 @@ interface MessageProps
 interface UserProps {
     id: number;
     name: string;
+    chat_id : number ;
 }
 interface MessagesByUser {
     [userId: number]: MessageProps[];
@@ -25,28 +26,9 @@ interface MessagesByUser {
 const ChatPage = () =>
 {
     const [activeUser, setActiveUser] = useState<UserProps | null>(null);
-    const [messages , SetMessages] = useState<MessagesByUser> ({});   
+    const [messages , setMessages] = useState<MessagesByUser> ({});   
     // const [users, setUsers] = useState<UserProps[]>([
     //     { id: 1, name: 'gggg' }, 
-    //     { id: 2, name: 'Sarah' },
-    //     { id: 3, name: 'David' },
-    //     { id: 4, name: 'David' },
-    //     { id: 5, name: 'David' },
-    //     { id: 6, name: 'David' },
-    //     { id: 7, name: 'David' },
-    //     { id: 8, name: 'David' },
-    //     { id: 9, name: 'David' },
-    //     { id: 10, name: 'David' },
-    //     { id: 11, name: 'David' },
-    //     { id: 12, name: 'David' },
-    //     { id: 13, name: 'David' },
-    //     { id: 14, name: 'David' },
-    //     { id: 15, name: 'David' },
-    //     { id: 16, name: 'David' },
-    //     { id: 17, name: 'David' },
-    //     { id: 18, name: 'David' },
-    //     { id: 19, name: 'David' },
-    //     { id: 20, name: 'Davidggggggggggggggggggggggg' },
     //     // { id: 20, name: 'David' },
         
         
@@ -69,8 +51,26 @@ const ChatPage = () =>
       loadChats();
     }, []); 
 
+    useEffect(() => {
+      const loadMessages = async () => {
+        if (activeUser) {
+          try {
+            const fetchedMessages = await userService.fetchMessages(activeUser.chat_id);
+            setMessages((prevMessages) => ({
+              ...prevMessages,
+              [activeUser.id]: fetchedMessages,
+            }));
+          } catch (error) {
+            console.error('Failed to load messages:', error);
+          }
+        }
+      };
+  
+      loadMessages();
+    }, [activeUser]);
 
-    const handleSendMessage = (message : string) =>
+
+    const handleSendMessage = async (message : string) =>
     {
         if (activeUser === null || message === '')
         {
@@ -87,9 +87,9 @@ const ChatPage = () =>
                 minute: '2-digit' 
             })
         }
-
+        
         // SetMessages((prev) => [...prev , newMessage]);
-        SetMessages((prevMessages : any) => {
+        setMessages((prevMessages : any) => {
             const updatedMessages = { ...prevMessages };
             if (updatedMessages[activeUser.id]) {
               updatedMessages[activeUser.id] = [...updatedMessages[activeUser.id], newMessage];
@@ -99,6 +99,7 @@ const ChatPage = () =>
             }
             return updatedMessages;
           });
+          await userService.sendMessage(activeUser.chat_id, message);
     }
     const handleSendMessage2 = (message : string) =>
     {
@@ -119,7 +120,7 @@ const ChatPage = () =>
 
         }
 
-        SetMessages((prevMessages : any) => {
+        setMessages((prevMessages : any) => {
             const updatedMessages = { ...prevMessages };
             if (updatedMessages[activeUser.id]) {
               updatedMessages[activeUser.id] = [...updatedMessages[activeUser.id], newMessage];
