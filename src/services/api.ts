@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8000/api';  // Adjust this to match your Django backend URL
-export const MEDIA_URL = 'http://localhost:8000';  // Base URL for media files
+const BASE_URL = 'https://zaferuni.liara.run/api';  // Adjust this to match your Django backend URL
+export const MEDIA_URL = 'https://zaferuni.liara.run';  // Base URL for media files
 
 const api = axios.create({
   baseURL: BASE_URL,

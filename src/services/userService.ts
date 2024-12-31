@@ -2,6 +2,22 @@ import api from './api';
 import { UserProfile, BackendPainting, LoginResponse } from '../types';
 import { countries as mockCountries, getCitiesForCountry as getMockCities } from '../data/locationData';
 
+interface AuthorDetails {
+  user_id?: number;
+  id?: number;
+  email: string;
+  firstname: string;
+  lastname: string;
+  username: string;
+  profile_picture?: string;
+  biography?: string;
+}
+
+interface PaintingWithAuthor extends BackendPainting {
+  author?: AuthorDetails;
+  artist_details?: AuthorDetails;
+}
+
 interface LoginResponseData {
   access: string;
   refresh: string;
@@ -110,6 +126,22 @@ export const userService = {
   getUserPaintings: async (userId: string | number = '1'): Promise<{ paintings: BackendPainting[] }> => {
     const response = await api.get<{ paintings: BackendPainting[] }>(`/painting/user/${userId}/paintings/`);
     return response.data;
+  },
+
+  getUserPaintingsWithAuthor: async (userId: string | number = '1'): Promise<{ paintings: PaintingWithAuthor[] }> => {
+    const response = await api.get<{ paintings: BackendPainting[] }>(`/painting/user/${userId}/paintings/`);
+    const paintingsWithAuthor = await Promise.all(
+      response.data.paintings.map(async (painting) => {
+        try {
+          const authorResponse = await api.get<PaintingWithAuthor>(`/painting/${painting.painting_id}/with-author/`);
+          return authorResponse.data;
+        } catch (error) {
+          console.error(`Error fetching author for painting ${painting.painting_id}:`, error);
+          return painting as PaintingWithAuthor;
+        }
+      })
+    );
+    return { paintings: paintingsWithAuthor };
   },
 
   uploadPainting: async (data: FormData): Promise<BackendPainting> => {

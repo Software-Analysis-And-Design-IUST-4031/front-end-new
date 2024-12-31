@@ -1,4 +1,15 @@
 // Backend Types
+export interface AuthorData {
+  user_id?: number;
+  id?: number;
+  email: string;
+  firstname: string;
+  lastname: string;
+  username: string;
+  profile_picture?: string;
+  biography?: string;
+}
+
 export interface BackendPainting {
   painting_id: number;
   title: string;
@@ -12,6 +23,8 @@ export interface BackendPainting {
   year: number | null;
   vertical_depth: number | null;
   horizontal_depth: number | null;
+  likes?: number;
+  is_liked?: boolean;
 }
 
 // Frontend Types
@@ -20,11 +33,24 @@ export interface Painting {
   imageUrl: string;
   title: string;
   description: string;
-  price: number;
+  price: number | string;
   likes: number;
   isLiked: boolean;
   isSaved: boolean;
   createdAt: string;
+  style?: string;
+  material?: string;
+  horizontalDepth?: string;
+  verticalDepth?: string;
+  year?: string;
+  author?: {
+    id: string;
+    username: string;
+    name: string;
+    avatarUrl?: string;
+    bio?: string;
+    email?: string;
+  };
 }
 
 export interface UserProfile {
