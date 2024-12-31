@@ -51,8 +51,26 @@ const ChatPage = () =>
       loadChats();
     }, []); 
 
+    // useEffect(() => {
+    //   const loadMessages = async () => {
+    //     if (activeUser) {
+    //       try {
+    //         const fetchedMessages = await userService.fetchMessages(activeUser.chat_id);
+    //         setMessages((prevMessages) => ({
+    //           ...prevMessages,
+    //           [activeUser.id]: fetchedMessages,
+    //         }));
+    //       } catch (error) {
+    //         console.error('Failed to load messages:', error);
+    //       }
+    //     }
+    //   };
+  
+    //   loadMessages();
+    // }, [activeUser]);
+
     useEffect(() => {
-      const loadMessages = async () => {
+      const intervalId = setInterval(async () => {
         if (activeUser) {
           try {
             const fetchedMessages = await userService.fetchMessages(activeUser.chat_id);
@@ -64,10 +82,13 @@ const ChatPage = () =>
             console.error('Failed to load messages:', error);
           }
         }
-      };
-  
-      loadMessages();
+      }, 3000); // Poll every 3 seconds
+    
+      return () => clearInterval(intervalId); // Clean up on unmount
     }, [activeUser]);
+    
+
+
 
 
     const handleSendMessage = async (message : string) =>
