@@ -20,23 +20,49 @@ import { userService } from "../services/userService";
 import blackLogo from "../assets/black_on_trans.png";
 import loginBg from "../assets/Login.png";
 
+interface FormErrors {
+  username: string;
+  password: string;
+}
+
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [form, setForm] = useState({ username: "", password: "" });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({
+    username: '',
+    password: ''
+  });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (!form.username || !form.password) {
-      setError("Please fill in all fields.");
+    
+    const newErrors: FormErrors = {
+      username: '',
+      password: ''
+    };
+    
+    let hasErrors = false;
+
+    if (!form.username) {
+      newErrors.username = 'Username is required';
+      hasErrors = true;
+    }
+
+    if (!form.password) {
+      newErrors.password = 'Password is required';
+      hasErrors = true;
+    }
+
+    setErrors(newErrors);
+
+    if (hasErrors) {
       return;
     }
 
     setLoading(true);
-    setError("");
 
     try {
       console.log("Attempting login...");
@@ -58,7 +84,10 @@ const LoginPage: React.FC = () => {
         err.response?.data?.message ||
         err.message ||
         "Invalid username or password";
-      setError(errorMessage);
+      setErrors({
+        ...errors,
+        password: errorMessage
+      });
     } finally {
       setLoading(false);
     }
@@ -150,12 +179,6 @@ const LoginPage: React.FC = () => {
             Sign In
           </Typography>
 
-          {error && (
-            <Typography color="error" sx={{ mb: 1, textAlign: "center" }}>
-              {error}
-            </Typography>
-          )}
-
           <Box
             component="form"
             onSubmit={(e) => e.preventDefault()}
@@ -172,6 +195,8 @@ const LoginPage: React.FC = () => {
               autoFocus
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
+              error={!!errors.username}
+              helperText={errors.username}
               sx={{ mb: 1 }}
             />
             <TextField
@@ -185,6 +210,8 @@ const LoginPage: React.FC = () => {
               autoComplete="current-password"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
+              error={!!errors.password}
+              helperText={errors.password}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
