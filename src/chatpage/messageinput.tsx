@@ -49,7 +49,8 @@ const MessageInput : React.FC<MessageInputProps> = ({handleSendMessage}) =>
                             padding : '15px' ,
                             width : '100%' ,
                             border: '1px solid #ccc',
-                            borderRadius: '8px'
+                            borderRadius: '8px',
+                            fontFamily: 'Arial, sans-serif'
                             // resize : none
                         }}
                         // InputProps={{

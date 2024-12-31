@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import { TextField, Button, Box , TextareaAutosize , Typography , Grid} from '@mui/material';
 import MessageList from './messages';
 import MessageInput from './messageinput';
 import UserList from './users';
 import User from './user';
+import { userService } from '../services/userService';
 
 interface MessageProps 
 {
@@ -25,31 +26,50 @@ const ChatPage = () =>
 {
     const [activeUser, setActiveUser] = useState<UserProps | null>(null);
     const [messages , SetMessages] = useState<MessagesByUser> ({});   
-    const [users, setUsers] = useState<UserProps[]>([
-        { id: 1, name: 'gggg' }, 
-        { id: 2, name: 'Sarah' },
-        { id: 3, name: 'David' },
-        { id: 4, name: 'David' },
-        { id: 5, name: 'David' },
-        { id: 6, name: 'David' },
-        { id: 7, name: 'David' },
-        { id: 8, name: 'David' },
-        { id: 9, name: 'David' },
-        { id: 10, name: 'David' },
-        { id: 11, name: 'David' },
-        { id: 12, name: 'David' },
-        { id: 13, name: 'David' },
-        { id: 14, name: 'David' },
-        { id: 15, name: 'David' },
-        { id: 16, name: 'David' },
-        { id: 17, name: 'David' },
-        { id: 18, name: 'David' },
-        { id: 19, name: 'David' },
-        { id: 20, name: 'Davidggggggggggggggggggggggg' },
-        // { id: 20, name: 'David' },
+    // const [users, setUsers] = useState<UserProps[]>([
+    //     { id: 1, name: 'gggg' }, 
+    //     { id: 2, name: 'Sarah' },
+    //     { id: 3, name: 'David' },
+    //     { id: 4, name: 'David' },
+    //     { id: 5, name: 'David' },
+    //     { id: 6, name: 'David' },
+    //     { id: 7, name: 'David' },
+    //     { id: 8, name: 'David' },
+    //     { id: 9, name: 'David' },
+    //     { id: 10, name: 'David' },
+    //     { id: 11, name: 'David' },
+    //     { id: 12, name: 'David' },
+    //     { id: 13, name: 'David' },
+    //     { id: 14, name: 'David' },
+    //     { id: 15, name: 'David' },
+    //     { id: 16, name: 'David' },
+    //     { id: 17, name: 'David' },
+    //     { id: 18, name: 'David' },
+    //     { id: 19, name: 'David' },
+    //     { id: 20, name: 'Davidggggggggggggggggggggggg' },
+    //     // { id: 20, name: 'David' },
         
         
-    ]);
+    // ]);
+
+
+    const [users , setUsers] = useState<UserProps[]>([]); 
+
+    useEffect(() => {
+      // Fetch users on component mount
+      const loadChats = async () => {
+        try {
+          const fetchedUsers = await userService.fetchChats();
+          setUsers(fetchedUsers); // Update state with fetched users
+        } catch (error) {
+          console.error('Failed to load chats:', error);
+        }
+      };
+  
+      loadChats();
+    }, []); 
+
+
     const handleSendMessage = (message : string) =>
     {
         if (activeUser === null || message === '')
@@ -111,6 +131,20 @@ const ChatPage = () =>
           });
     }
 
+
+    // const xx : number = userService.getUserIdByUsername("ghazalebadi");
+    // console.log("fgh" + xx) ;
+
+    // userService.getUserIdByUsername("ghazalebadi")
+    // .then((xx) => {
+    //   console.log("fgh" + xx); // Output: fgh1
+    // })
+    // .catch((error) => {
+    //   console.error("Error fetching user ID:", error);
+    // });
+
+
+
     const urlImageBackGround = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrGGiAHnT4o4DcXN2zGVsbW70MRPJk0fdeIg&s' ;
     return (
         // <Box
@@ -123,7 +157,7 @@ const ChatPage = () =>
             sx = {{
                 border : '1000px',
                 // width: '94vw',
-                width : '105%', 
+                width : '99.9%', 
                 
                 padding : 0 , 
                 margin : 0,

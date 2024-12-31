@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams , useNavigate} from 'react-router-dom';
+import { PiChatsLight } from "react-icons/pi";
+
 import {
   Container,
   Box,
@@ -227,7 +229,7 @@ const ProfilePage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [userProfile2 , setUserProfile2] = useState<any>() ;
   const [userId3 , setUserId3] = useState<number>(0);
-
+  const navigate = useNavigate();
   useEffect(() => {  
     // console.log("userid " + userId);
     // console.log("profile " + userProfile);
@@ -271,6 +273,7 @@ const ProfilePage: React.FC = () => {
     console.log("profile " + userProfile);
     console.log("userId2 " + userId2);
     console.log("userprofile2 " + userProfile2);
+
   }, [userId2]); // Add userId2 as a dependenc
 
 
@@ -468,13 +471,21 @@ const ProfilePage: React.FC = () => {
                   >
                     Message
                   </ActionButton>
+                  { userIdFromStorage && parseInt(userIdFromStorage) === userId3 &&
+                  <ActionButton
+                    variant="contained"
+                    onClick = {() => navigate('/chatpage')}
+                  >
+                    <PiChatsLight style={{ fontSize: '2rem' }} />
+                  </ActionButton>
+                  }
                 </Box>
               </Box>
 
               <BioTypography variant="body1">
                 {userProfile2.biography || 'No biography added yet.'}
               </BioTypography>
-
+              
               {(userProfile2.city || userProfile2.country) && (
                 <LocationBox>
                   <LocationOnIcon fontSize="small" />

@@ -10,6 +10,23 @@ type LikeResponse = {
   likes_count : number; 
 };
 
+interface UsernameResponse {
+  username: string;
+}
+
+interface UserIdResponse {
+  user_id: number;
+}
+
+interface ChatResponse {
+  chats: { username: string; user_id: number; chat_id: number }[];
+}
+
+interface UserProps {
+  id: number;
+  name: string;
+}
+
 export const userService = {
   login: async (username: string, password: string): Promise<LoginResponse> => {
     try {
@@ -160,6 +177,44 @@ export const userService = {
     );
     return response.data.liked; // Extract and return the `like` status directly
   },
+
+  getUsernameById: async (userId: number): Promise<string> => {
+    try {
+      const response = await api.get<UsernameResponse>(`/get-username/user-id/${userId}/`);
+      return response.data.username;
+    } catch (error) {
+      console.error('Failed to fetch username by user ID:', error);
+      throw new Error('Could not fetch username');
+    }
+  },
+
+  getUserIdByUsername: async (username: string): Promise<number> => {
+    try {
+      const response = await api.get<UserIdResponse>(`/get-user-id/${username}/`);
+      return response.data.user_id;
+    } catch (error) {
+      console.error('Failed to fetch user ID by username:', error);
+      throw new Error('Could not fetch user ID');
+    }
+  },
+
+  fetchChats: async (): Promise<UserProps[]> => {
+    try {
+      const response = await api.get<ChatResponse>('/chat/chats/', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      return response.data.chats.map(chat => ({
+        id: chat.user_id,
+        name: chat.username,
+      }));
+    } catch (error) {
+      console.error('Error fetching chats:', error);
+      throw new Error('Could not fetch chats');
+    }
+  },
+
 
 
   getUserProfileGallery : async (userId: number) => {
