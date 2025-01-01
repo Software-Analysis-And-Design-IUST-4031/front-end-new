@@ -273,43 +273,61 @@ export const userService = {
 
   async getCountries(): Promise<string[]> {
     try {
-      // Try to get countries from backend
-      const response = await api.get<any>('/country/countries/');
-      const backendCountries = Array.isArray(response.data) ? response.data : [];
+      const token = localStorage.getItem('token');
+      const response = await api.get<string[]>('/country/countries/', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
-      // If backend returns no data, use mock data
-      if (backendCountries.length === 0) {
-        console.log('Using mock country data');
-        return mockCountries.map(c => c.label);
+      if (!response.data || !Array.isArray(response.data)) {
+        throw new Error('Invalid response format from country API');
       }
       
-      return backendCountries;
+      return response.data;
     } catch (error) {
       console.error('Error fetching countries:', error);
-      // Fallback to mock data on error
-      console.log('Using mock country data due to error');
-      return mockCountries.map(c => c.label);
+      throw error;
     }
   },
 
   async getCitiesForCountry(country: string): Promise<string[]> {
     try {
-      // Try to get cities from backend
-      const response = await api.get<any>(`/country/cities/${encodeURIComponent(country)}/`);
-      const backendCities = Array.isArray(response.data) ? response.data : [];
+      const token = localStorage.getItem('token');
+      const response = await api.get<string[]>(`/country/cities/${encodeURIComponent(country)}/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
-      // If backend returns no data, use mock data
-      if (backendCities.length === 0) {
-        console.log('Using mock city data');
-        return getMockCities(country);
+      if (!response.data || !Array.isArray(response.data)) {
+        throw new Error('Invalid response format from cities API');
       }
       
-      return backendCities;
+      return response.data;
     } catch (error) {
       console.error('Error fetching cities:', error);
-      // Fallback to mock data on error
-      console.log('Using mock city data due to error');
-      return getMockCities(country);
+      throw error;
     }
+  },
+
+  updateUserPreferences: async (userId: number, preferences: {
+    favorite_painter: string;
+    favorite_painting: string;
+    favorite_painting_style: string;
+    favorite_painting_technique: string;
+    favorite_painting_to_own: string;
+  }) => {
+    const token = localStorage.getItem('token');
+    const response = await api.put(
+      `/user/${userId}/updateFavorites/`,
+      preferences,
+      {
+        headers: {
+          'Authorization': token
+        }
+      }
+    );
+    return response.data;
   }
 };

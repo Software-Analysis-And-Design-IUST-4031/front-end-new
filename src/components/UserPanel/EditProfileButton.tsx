@@ -335,32 +335,36 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     const fetchCountries = async () => {
       try {
         const countriesList = await userService.getCountries();
-        console.log("Fetched countries:", countriesList);
         setCountries(countriesList);
-        console.log("Countries state after update:", countries);
       } catch (error) {
-        console.error("Error fetching countries:", error);
-        enqueueSnackbar("Failed to load countries", { variant: "error" });
+        console.error('Error fetching countries:', error);
+        // Fallback to empty array instead of throwing error
+        setCountries([]);
+        enqueueSnackbar('Failed to load countries. Please try again later.', { 
+          variant: 'error',
+          autoHideDuration: 3000
+        });
       }
     };
 
     fetchCountries();
-  }, []);
+  }, [enqueueSnackbar]);
 
   // Fetch cities when country changes
   useEffect(() => {
     const fetchCities = async () => {
       if (editedProfile.country) {
         try {
-          const citiesList = await userService.getCitiesForCountry(
-            editedProfile.country
-          );
-          console.log("Fetched cities:", citiesList);
+          const citiesList = await userService.getCitiesForCountry(editedProfile.country);
           setAvailableCities(citiesList);
-          console.log("Cities state after update:", availableCities);
         } catch (error) {
-          console.error("Error fetching cities:", error);
-          enqueueSnackbar("Failed to load cities", { variant: "error" });
+          console.error('Error fetching cities:', error);
+          // Fallback to empty array instead of throwing error
+          setAvailableCities([]);
+          enqueueSnackbar('Failed to load cities. Please try again later.', { 
+            variant: 'error',
+            autoHideDuration: 3000
+          });
         }
       } else {
         setAvailableCities([]);
@@ -368,7 +372,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     };
 
     fetchCities();
-  }, [editedProfile.country]);
+  }, [editedProfile.country, enqueueSnackbar]);
 
   // Add console log for render
   console.log("Current countries in state:", countries);
@@ -381,16 +385,16 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   };
 
   const handleChange = (field: keyof UserProfile) => (value: any) => {
-    setEditedProfile((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-
-    // Reset city when country changes
-    if (field === "country") {
+    if (field === "is_gallery") {
+      // Ensure boolean type for is_gallery
       setEditedProfile((prev) => ({
         ...prev,
-        city: "",
+        [field]: Boolean(value)
+      }));
+    } else {
+      setEditedProfile((prev) => ({
+        ...prev,
+        [field]: value
       }));
     }
   };
@@ -410,61 +414,81 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
 
     setIsSubmitting(true);
     try {
-      const formData = new FormData();
+      // Handle basic info update
+      if (activeTab === 0) {
+        const formData = new FormData();
 
-      const fieldsToUpdate: FormField[] = [
-        "firstname",
-        "lastname",
-        "nickname",
-        "email",
-        "phone_number",
-        "date_of_birth",
-        "country",
-        "city",
-        "is_gallery",
-        "profile_picture",
-        "Theme",
-        "Dark_light_theme",
-        "gallery_name",
-        "description",
-        "biography",
-        "favorite_painter",
-        "favorite_painting",
-        "favorite_painting_style",
-        "favorite_painting_technique",
-        "favorite_painting_to_own",
-      ];
+        const basicInfoFields: FormField[] = [
+          "firstname",
+          "lastname",
+          "nickname",
+          "email",
+          "phone_number",
+          "date_of_birth",
+          "country",
+          "city",
+          "is_gallery",
+          "profile_picture",
+          "Theme",
+          "Dark_light_theme",
+          "gallery_name",
+          "description",
+          "biography",
+        ];
 
-      fieldsToUpdate.forEach((field) => {
-        const value = editedProfile[field];
-        if (value !== undefined && value !== null) {
-          if (field === "profile_picture" && value instanceof File) {
-            formData.append(field, value);
-          } else if (field === "is_gallery") {
-            formData.append(field, String(value));
-          } else {
-            formData.append(field, String(value));
+        basicInfoFields.forEach((field) => {
+          const value = editedProfile[field];
+          if (value !== undefined && value !== null) {
+            if (field === "profile_picture" && value instanceof File) {
+              formData.append(field, value);
+            } else if (field === "is_gallery") {
+              formData.append(field, String(value));
+            } else {
+              formData.append(field, String(value));
+            }
           }
-        }
-      });
+        });
 
-      const userId = localStorage.getItem("userId");
-      if (!userId) throw new Error("User ID not found");
+        const userId = localStorage.getItem("userId");
+        if (!userId) throw new Error("User ID not found");
 
-      await userService.updateUserProfile(parseInt(userId), formData);
+        await userService.updateUserProfile(parseInt(userId), formData);
+      } 
+      // Handle preferences update
+      else if (activeTab === 1) {
+        const userId = localStorage.getItem("userId");
+        if (!userId) throw new Error("User ID not found");
+
+        const preferencesData = {
+          favorite_painter: editedProfile.favorite_painter || "",
+          favorite_painting: editedProfile.favorite_painting || "",
+          favorite_painting_style: editedProfile.favorite_painting_style || "",
+          favorite_painting_technique: editedProfile.favorite_painting_technique || "",
+          favorite_painting_to_own: editedProfile.favorite_painting_to_own || "",
+        };
+
+        await userService.updateUserPreferences(
+          parseInt(userId),
+          preferencesData
+        );
+      }
 
       onProfileUpdate({
         ...userData,
         ...editedProfile,
       });
 
-      enqueueSnackbar("Profile updated successfully", { variant: "success" });
+      enqueueSnackbar(
+        `${activeTab === 0 ? "Basic info" : "Preferences"} updated successfully`, 
+        { variant: "success" }
+      );
       handleClose();
     } catch (error: any) {
       console.error("Error updating profile:", error);
-      enqueueSnackbar(error.message || "Failed to update profile", {
-        variant: "error",
-      });
+      enqueueSnackbar(
+        error.message || `Failed to update ${activeTab === 0 ? "basic info" : "preferences"}`, 
+        { variant: "error" }
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -555,12 +579,10 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                 <Autocomplete
                   value={editedProfile.country || null}
                   onChange={(_, newValue) => {
-                    console.log("Selected country:", newValue);
                     handleChange("country")(newValue || "");
-                    // Reset city when country changes
                     handleChange("city")("");
                   }}
-                  options={countries || []}
+                  options={countries}
                   getOptionLabel={(option) => option || ""}
                   isOptionEqualToValue={(option, value) => option === value}
                   renderInput={(params) => (
@@ -569,6 +591,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                       label="Country"
                       variant="outlined"
                       fullWidth
+                      error={countries.length === 0}
+                      helperText={countries.length === 0 ? "Failed to load countries" : ""}
                     />
                   )}
                 />
@@ -577,22 +601,24 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                 <Autocomplete
                   value={editedProfile.city || null}
                   onChange={(_, newValue) => {
-                    console.log("Selected city:", newValue);
                     handleChange("city")(newValue || "");
                   }}
-                  options={availableCities || []}
+                  options={availableCities}
                   getOptionLabel={(option) => option || ""}
                   isOptionEqualToValue={(option, value) => option === value}
-                  disabled={!editedProfile.country}
+                  disabled={!editedProfile.country || countries.length === 0}
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       label="City"
                       variant="outlined"
                       fullWidth
+                      error={Boolean(editedProfile.country && availableCities.length === 0)}
                       helperText={
-                        !editedProfile.country
+                        !editedProfile.country 
                           ? "Please select a country first"
+                          : availableCities.length === 0 
+                          ? "Failed to load cities" 
                           : ""
                       }
                     />

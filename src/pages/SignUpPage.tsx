@@ -23,6 +23,15 @@ import blackLogo from "../assets/black_on_trans.png";
 import signupBg from "../assets/Signup.png";
 import { userService } from "../services/userService";
 
+interface FormErrors {
+  firstname: string;
+  lastname: string;
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
 const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -34,7 +43,14 @@ const SignUpPage: React.FC = () => {
     password: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({
+    firstname: '',
+    lastname: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -48,67 +64,86 @@ const SignUpPage: React.FC = () => {
   };
 
   const handleSignUp = async () => {
-    const { firstname, lastname, username, email, password, confirmPassword } =
-      form;
+    const newErrors: FormErrors = {
+      firstname: '',
+      lastname: '',
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    };
+    
+    let hasErrors = false;
 
-    // Basic validation
-    if (
-      !firstname ||
-      !lastname ||
-      !username ||
-      !email ||
-      !password ||
-      !confirmPassword
-    ) {
-      setError("Please fill in all fields.");
-      return;
+    // Validate each field
+    if (!form.firstname) {
+      newErrors.firstname = 'First name is required';
+      hasErrors = true;
     }
 
-    // Username validation
-    if (!validateUsername(username)) {
-      setError(
-        "Username must be at least 3 characters long and can only contain letters, numbers, and underscores."
-      );
-      return;
+    if (!form.lastname) {
+      newErrors.lastname = 'Last name is required';
+      hasErrors = true;
     }
 
-    // Email validation
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email address.");
-      return;
+    if (!form.username) {
+      newErrors.username = 'Username is required';
+      hasErrors = true;
+    } else if (!validateUsername(form.username)) {
+      newErrors.username = 'Username must be at least 3 characters and contain only letters, numbers, and underscores';
+      hasErrors = true;
     }
 
-    // Password validation
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
-      return;
+    if (!form.email) {
+      newErrors.email = 'Email is required';
+      hasErrors = true;
+    } else if (!validateEmail(form.email)) {
+      newErrors.email = 'Please enter a valid email address';
+      hasErrors = true;
     }
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+    if (!form.password) {
+      newErrors.password = 'Password is required';
+      hasErrors = true;
+    } else if (form.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters long';
+      hasErrors = true;
+    }
+
+    if (!form.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+      hasErrors = true;
+    } else if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+      hasErrors = true;
+    }
+
+    setErrors(newErrors);
+
+    if (hasErrors) {
       return;
     }
 
     setLoading(true);
     try {
       const response = await axiosInstance.post("/user/register/", {
-        firstname,
-        lastname,
-        username,
-        email,
-        password,
-        confirm_password: confirmPassword,
+        firstname: form.firstname,
+        lastname: form.lastname,
+        username: form.username,
+        email: form.email,
+        password: form.password,
+        confirm_password: form.confirmPassword,
       });
 
       console.log("Signup Response:", response.data);
 
       // Login automatically after successful registration
-      const loginResponse = await userService.login(username, password);
+      const loginResponse = await userService.login(form.username, form.password);
       console.log("Login Response:", loginResponse);
 
       if (loginResponse.access && loginResponse.user_id) {
-        login(loginResponse.access, username, loginResponse.user_id);
-        navigate("/home");
+        login(loginResponse.access, form.username, loginResponse.user_id);
+        navigate("/login");
       } else {
         console.error("Missing user_id in login response");
         navigate("/login");
@@ -118,64 +153,53 @@ const SignUpPage: React.FC = () => {
 
       if (err.response?.data) {
         const errorData = err.response.data;
-        let errorMessage = "";
+        const newErrors: FormErrors = {
+          firstname: '',
+          lastname: '',
+          username: '',
+          email: '',
+          password: '',
+          confirmPassword: ''
+        };
 
-        // Handle array of errors for each field
+        // Map backend errors to form fields
         if (errorData.username) {
-          errorMessage += `Username: ${
-            Array.isArray(errorData.username)
-              ? errorData.username[0]
-              : errorData.username
-          }. `;
+          newErrors.username = Array.isArray(errorData.username) 
+            ? errorData.username[0] 
+            : errorData.username;
         }
         if (errorData.email) {
-          errorMessage += `Email: ${
-            Array.isArray(errorData.email)
-              ? errorData.email[0]
-              : errorData.email
-          }. `;
+          newErrors.email = Array.isArray(errorData.email) 
+            ? errorData.email[0] 
+            : errorData.email;
         }
         if (errorData.password) {
-          errorMessage += `Password: ${
-            Array.isArray(errorData.password)
-              ? errorData.password[0]
-              : errorData.password
-          }. `;
+          newErrors.password = Array.isArray(errorData.password) 
+            ? errorData.password[0] 
+            : errorData.password;
         }
         if (errorData.confirm_password) {
-          errorMessage += `Confirm Password: ${
-            Array.isArray(errorData.confirm_password)
-              ? errorData.confirm_password[0]
-              : errorData.confirm_password
-          }. `;
+          newErrors.confirmPassword = Array.isArray(errorData.confirm_password) 
+            ? errorData.confirm_password[0] 
+            : errorData.confirm_password;
         }
         if (errorData.firstname) {
-          errorMessage += `First Name: ${
-            Array.isArray(errorData.firstname)
-              ? errorData.firstname[0]
-              : errorData.firstname
-          }. `;
+          newErrors.firstname = Array.isArray(errorData.firstname) 
+            ? errorData.firstname[0] 
+            : errorData.firstname;
         }
         if (errorData.lastname) {
-          errorMessage += `Last Name: ${
-            Array.isArray(errorData.lastname)
-              ? errorData.lastname[0]
-              : errorData.lastname
-          }. `;
+          newErrors.lastname = Array.isArray(errorData.lastname) 
+            ? errorData.lastname[0] 
+            : errorData.lastname;
         }
 
-        // If no specific field errors, check for general error
-        if (!errorMessage && errorData.detail) {
-          errorMessage = errorData.detail;
-        }
-
-        // If still no error message, use a generic one
-        setError(
-          errorMessage ||
-            "Registration failed. Please try different username/email."
-        );
+        setErrors(newErrors);
       } else {
-        setError("An error occurred during registration. Please try again.");
+        setErrors({
+          ...errors,
+          password: 'An error occurred during registration. Please try again.'
+        });
       }
     } finally {
       setLoading(false);
@@ -274,15 +298,9 @@ const SignUpPage: React.FC = () => {
             />
           </Box>
 
-          <Typography component="h1" variant="h5" sx={{ mb: 0.5 }}>
+          <Typography component="h1" variant="h5" sx={{ mb: 2 }}>
             Sign Up
           </Typography>
-
-          {error && (
-            <Typography color="error" sx={{ mb: 0.5, textAlign: "center" }}>
-              {error}
-            </Typography>
-          )}
 
           <Stack direction="row" spacing={1} sx={{ mb: 0.5 }}>
             <TextField
@@ -294,6 +312,8 @@ const SignUpPage: React.FC = () => {
               value={form.firstname}
               onChange={(e) => setForm({ ...form, firstname: e.target.value })}
               disabled={loading}
+              error={!!errors.firstname}
+              helperText={errors.firstname}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   bgcolor: "#f8f8f8",
@@ -313,6 +333,8 @@ const SignUpPage: React.FC = () => {
               value={form.lastname}
               onChange={(e) => setForm({ ...form, lastname: e.target.value })}
               disabled={loading}
+              error={!!errors.lastname}
+              helperText={errors.lastname}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   bgcolor: "#f8f8f8",
@@ -334,6 +356,8 @@ const SignUpPage: React.FC = () => {
             value={form.username}
             onChange={(e) => setForm({ ...form, username: e.target.value })}
             disabled={loading}
+            error={!!errors.username}
+            helperText={errors.username}
             sx={{
               mb: 0.5,
               "& .MuiOutlinedInput-root": {
@@ -360,6 +384,8 @@ const SignUpPage: React.FC = () => {
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             disabled={loading}
+            error={!!errors.email}
+            helperText={errors.email}
             sx={{
               mb: 0.5,
               "& .MuiOutlinedInput-root": {
@@ -386,6 +412,8 @@ const SignUpPage: React.FC = () => {
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             disabled={loading}
+            error={!!errors.password}
+            helperText={errors.password}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -427,6 +455,8 @@ const SignUpPage: React.FC = () => {
               setForm({ ...form, confirmPassword: e.target.value })
             }
             disabled={loading}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -485,20 +515,23 @@ const SignUpPage: React.FC = () => {
 
           <Grid container justifyContent="center">
             <Grid item>
-              <Link
-                component="button"
-                variant="body2"
-                onClick={() => navigate("/login")}
-                sx={{
-                  color: "primary.main",
-                  textDecoration: "none",
-                  "&:hover": {
-                    textDecoration: "underline",
-                  },
-                }}
-              >
-                {"Already have an account? Sign In"}
-              </Link>
+              <Typography variant="body2" sx={{ mt: 2, textAlign: "center" }}>
+                Already have an account?{" "}
+                <Link
+                  component="button"
+                  variant="body2"
+                  onClick={() => navigate("/login")}
+                  sx={{
+                    color: "primary.main",
+                    textDecoration: "none",
+                    "&:hover": {
+                      textDecoration: "underline",
+                    },
+                  }}
+                >
+                  {"Sign In"}
+                </Link>
+              </Typography>
             </Grid>
           </Grid>
         </Box>
