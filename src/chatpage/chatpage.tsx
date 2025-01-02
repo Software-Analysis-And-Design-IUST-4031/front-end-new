@@ -74,29 +74,27 @@ const ChatPage = () =>
     //   return () => clearInterval(intervalId);
     // }, [state]);
 
-    // useEffect(() => {
-    //   const loadChats = async () => {
-    //     try {
-    //       const fetchedUsers = await userService.fetchChats();
-    //       setUsers(fetchedUsers); // Update state with fetched users
+    useEffect(() => {
+      const loadChats = async () => {
+        try {
+          const fetchedUsers = await userService.fetchChats();
+          setUsers(fetchedUsers); // Update state with fetched users
           
-    //       // If navigated with state, find and set the active user
-    //       if (state && state.userId) {
-    //         const user = fetchedUsers.find((u) => u.id === state.userId);
-    //         if (user) {
-    //           setActiveUser(user);
-    //         } else {
-    //           console.log("User not found in fetched chats.");
-              
-    //         }
-    //       }
-    //     } catch (error) {
-    //       console.error('Failed to load chats:', error);
-    //     }
-    //   };
+          // If navigated with state, set the active user
+          if (state && state.username) {
+            const user = fetchedUsers.find((u) => u.name === state.username);
+            if (user) {
+              setActiveUser(user); // Set active user
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load chats:', error);
+        }
+      };
     
-    //   loadChats();
-    // }, [state]);
+      loadChats();
+    }, [state]);
+    
     
 
     useEffect(() => {
@@ -129,6 +127,12 @@ const ChatPage = () =>
   
     //   loadMessages();
     // }, [activeUser]);
+    
+
+    useEffect(() => {
+        console.log("Received state:", state);
+    }, [state]);
+
 
     useEffect(() => {
       const intervalId = setInterval(async () => {

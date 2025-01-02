@@ -474,11 +474,11 @@ const ProfilePage: React.FC = () => {
                             // Assuming 'username' is available in your component's props or state
                             await userService.startChat(userProfile2.username);
                             // navigate('/chatpage') ;
-                            navigate('/chatpage', { state: { userId: userProfile2.id, username: userProfile2.username } });
+                            navigate('/chatpage', { state: { username: userProfile2.username } });
                             alert('Chat started successfully!');
                           } catch (error) {
                             // navigate('/chatpage') ;
-                            navigate('/chatpage', { state: { userId: userProfile2.id, username: userProfile2.username } });
+                            navigate('/chatpage', { state: { username: userProfile2.username } });
                           }
                         }}
                       >
