@@ -165,13 +165,22 @@ const ChatPage = () =>
         const newMessage = {
             text : message , 
             sender : "me" ,
-            date: new Date().toLocaleString([], { 
-                year: 'numeric', 
-                month: '2-digit', 
-                day: '2-digit', 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            })
+            // date: new Date().toLocaleString([], { 
+            //     year: 'numeric', 
+            //     month: '2-digit', 
+            //     day: '2-digit', 
+            //     hour: '2-digit', 
+            //     minute: '2-digit' 
+            // })
+            date: new Intl.DateTimeFormat('en-US', { 
+              year: 'numeric', 
+              month: '2-digit', 
+              day: '2-digit', 
+              hour: '2-digit', 
+              minute: '2-digit', 
+              hour12: true, // Ensures AM/PM format
+              timeZone: 'UTC' // Ensures the date is in UTC
+          }).format(new Date()).replace(',', '') // Remove the comma
         }
         
         // SetMessages((prev) => [...prev , newMessage]);
