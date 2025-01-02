@@ -465,20 +465,32 @@ const ProfilePage: React.FC = () => {
                   <ActionButton className="outlined" variant="outlined">
                     Follow
                   </ActionButton>
-                  <ActionButton
-                    variant="contained"
-                    startIcon={<EmailOutlinedIcon />}
-                  >
-                    Message
-                  </ActionButton>
-                  { userIdFromStorage && parseInt(userIdFromStorage) === userId3 &&
-                  <ActionButton
-                    variant="contained"
-                    onClick = {() => navigate('/chatpage')}
-                  >
-                    <PiChatsLight style={{ fontSize: '2rem' }} />
-                  </ActionButton>
-                  }
+                    { userIdFromStorage && parseInt(userIdFromStorage) !== userId3 &&
+                      <ActionButton
+                        variant="contained"
+                        startIcon={<EmailOutlinedIcon />}
+                        onClick={async () => {
+                          try {
+                            // Assuming 'username' is available in your component's props or state
+                            await userService.startChat(userProfile2.username);
+                            navigate('/chatpage') ;
+                            alert('Chat started successfully!');
+                          } catch (error) {
+                            navigate('/chatpage') ;
+                          }
+                        }}
+                      >
+                        Message
+                      </ActionButton>
+                    }
+                    { userIdFromStorage && parseInt(userIdFromStorage) === userId3 &&
+                      <ActionButton
+                        variant="contained"
+                        onClick = {() => navigate('/chatpage')}
+                      >
+                        <PiChatsLight style={{ fontSize: '2rem' }} />
+                      </ActionButton>
+                    }
                 </Box>
               </Box>
 

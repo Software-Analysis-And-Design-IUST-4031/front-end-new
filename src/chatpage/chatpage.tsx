@@ -37,19 +37,32 @@ const ChatPage = () =>
 
     const [users , setUsers] = useState<UserProps[]>([]); 
 
+    // useEffect(() => {
+    //   // Fetch users on component mount
+    //   const loadChats = async () => {
+    //     try {
+    //       const fetchedUsers = await userService.fetchChats();
+    //       setUsers(fetchedUsers); // Update state with fetched users
+    //     } catch (error) {
+    //       console.error('Failed to load chats:', error);
+    //     }
+    //   };
+  
+    //   loadChats();
+    // }, []); 
+
     useEffect(() => {
-      // Fetch users on component mount
-      const loadChats = async () => {
+      const intervalId = setInterval(async () => {
         try {
           const fetchedUsers = await userService.fetchChats();
           setUsers(fetchedUsers); // Update state with fetched users
         } catch (error) {
           console.error('Failed to load chats:', error);
         }
-      };
-  
-      loadChats();
-    }, []); 
+      }, 3000); // Poll every 3 seconds
+    
+      return () => clearInterval(intervalId); // Clean up on unmount
+    }, []);
 
     // useEffect(() => {
     //   const loadMessages = async () => {
@@ -225,11 +238,11 @@ const ChatPage = () =>
                 {activeUser && (
                     <MessageInput handleSendMessage={handleSendMessage} />
                 )}
-                {activeUser && (
+                {/* {activeUser && (
                     <MessageInput 
                         handleSendMessage = {handleSendMessage2}
                     /> 
-                )}
+                )} */}
             </Grid>
        
         </Grid>

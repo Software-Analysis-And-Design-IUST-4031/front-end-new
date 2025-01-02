@@ -262,6 +262,60 @@ export const userService = {
       throw new Error('Could not fetch messages');
     }
   },
+
+  startChat: async (participant: string): Promise<void> => {
+    try {
+      const response = await api.post(
+        '/chat/chats/', // API endpoint
+        { participant }, // Request body
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`, // Include token
+            'Content-Type': 'application/json', // Set content type
+          },
+        }
+      );
+      console.log('Chat started successfully:', response.data);
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      throw new Error('Could not start chat');
+    }
+  },
+  
+
+
+
+
+  // startChat: async (username: string): Promise<number> => {
+  //   try {
+  //     const response = await api.post('/chat/chats/', {
+  //       participant: username,
+  //     }, {
+  //       headers: {
+  //         Authorization: `Bearer ${localStorage.getItem('token')}`,
+  //       },
+  //     });
+  
+  //     // Chat created successfully, return its ID
+  //     return response.data.chat.id;
+  //   } catch (error: any) {
+  //     if (error.response?.data?.detail === "Chat with this participant already exists.") {
+  //       // Fetch existing chat details to get the chat_id
+  //       const chats = await userService.fetchChats();
+  //       const existingChat = chats.find(chat => chat.name === username);
+  //       if (existingChat) {
+  //         return existingChat.chat_id; // Return the existing chat ID
+  //       } else {
+  //         throw new Error('Existing chat not found.');
+  //       }
+  //     } else {
+  //       console.error('Failed to start chat:', error);
+  //       throw new Error('Could not start or retrieve chat');
+  //     }
+  //   }
+  // },
+  
+  
   
   
 
