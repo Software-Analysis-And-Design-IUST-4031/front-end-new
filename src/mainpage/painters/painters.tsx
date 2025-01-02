@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Pagination, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
+import { Box, Pagination, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, TextField , InputAdornment } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import Card from './cpainter'; // Import the new Card component
 
 interface Post {
@@ -50,7 +51,7 @@ const Painter: React.FC = () => {
           firstname: user.firstname || '',
           lastname: user.lastname || '',
           description: user.description || '',
-          image: user.profile_picture || 'DEFAULT_IMAGE_URL',
+          image: user.profile_picture || 'https://via.placeholder.com/150',
           favorite_painting: user.favorite_painting || '',
           favorite_painting_style: user.favorite_painting_style || '',
           favorite_painter: user.favorite_painter || '',
@@ -106,7 +107,7 @@ const Painter: React.FC = () => {
   return (
     <Box
         sx={{
-          backgroundColor: 'background.paper',
+          backgroundColor: 'grey.50',
           borderRadius: 3,
           boxShadow: 3,
           padding: 3.5,
@@ -121,7 +122,7 @@ const Painter: React.FC = () => {
       {/* Search and Filter Section */}
       <Box
         sx={{
-          backgroundColor: 'background.paper',
+          backgroundColor: 'grey.50',
           borderRadius: 3,
           boxShadow: 3,
           padding: 3,
@@ -141,22 +142,48 @@ const Painter: React.FC = () => {
         >
           {/* Search Bar */}
           <TextField
-            id="outlined-basic"
-            label="Search"
-            variant="outlined"
-            fullWidth
-            sx={{ maxWidth: 400 }}
-            value={searchQuery}
-            onChange={handleSearchChange}
-          />
+              id="outlined-basic"
+              label="Search"
+              variant="outlined"
+              fullWidth
+              sx={{
+                maxWidth: 400,
+                borderRadius: '20px', // Added more border radius
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '20px', // Applied to the input field itself
+                },
+              }}
+              value={searchQuery}
+              onChange={handleSearchChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
 
           {/* Filter Dropdowns */}
-          <FormControl fullWidth sx={{ maxWidth: 200 }}>
+          <FormControl fullWidth sx={{
+              maxWidth: 200,
+              borderRadius: '20px', // Added more border radius
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '20px', // Applied to the input field itself
+              },
+            }}>
             <InputLabel>Painting Technique</InputLabel>
             <Select
               value={filters.favorite_painting_technique}
               onChange={(e) => handleFilterChange(e, 'favorite_painting_technique')}
               label="Painting Technique"
+              sx={{
+                maxWidth: 200,
+                borderRadius: '20px', // Added more border radius
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '20px', // Applied to the input field itself
+                },
+              }}
             >
               <MenuItem value="">None</MenuItem>
               <MenuItem value="Oil Painting">Oil Painting</MenuItem>
@@ -199,6 +226,13 @@ const Painter: React.FC = () => {
               value={filters.favorite_painting_style}
               onChange={(e) => handleFilterChange(e, 'favorite_painting_style')}
               label="Painting Style"
+              sx={{
+                maxWidth: 200,
+                borderRadius: '20px', // Added more border radius
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '20px', // Applied to the input field itself
+                },
+              }}
             >
               <MenuItem value="">None</MenuItem>
               <MenuItem value={1}>Abstract</MenuItem>
@@ -239,7 +273,14 @@ const Painter: React.FC = () => {
             <Select
               value={filters.favorite_painting}
               onChange={(e) => handleFilterChange(e, 'favorite_painting')}
-              label=""
+              label="favorite painting"
+              sx={{
+                maxWidth: 200,
+                borderRadius: '20px', // Added more border radius
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '20px', // Applied to the input field itself
+                },
+              }}
             >
               <MenuItem value="">None</MenuItem>
               <MenuItem value="Leonardo da Vinci">Leonardo da Vinci</MenuItem>

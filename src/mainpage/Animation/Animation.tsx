@@ -13,13 +13,16 @@ const Mygif1: React.FC = () => {
         flexDirection: { xs: 'column', md: 'row' },
         alignItems: 'center',
         justifyContent: 'center',
-        py: 8,
+        py: 3,  
         px: 2,
-        backgroundColor: theme.palette.background.default,
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
         borderRadius: 2,
         boxShadow: 3,
-        mt: 6,
-        mb: 4,
+        mt: 20,
+        mb: 20,
+        maxHeight: 600,
+        position: 'relative',
+        overflow: 'hidden',  // Hide overflow to keep a clean look
       }}
     >
       <Box
@@ -27,11 +30,11 @@ const Mygif1: React.FC = () => {
         src={mygif}
         alt="Art Shop Animation"
         sx={{
-          width: { xs: '100%', md: '50%' },
-          height: 'auto',
+          maxwidth: 400 ,
           borderRadius: 2,
           boxShadow: 1,
           mb: { xs: 4, md: 0 },
+          maxHeight: 400,
         }}
       />
       <Box
@@ -45,12 +48,14 @@ const Mygif1: React.FC = () => {
           component="h2"
           sx={{
             fontWeight: 700,
-            color: theme.palette.text.primary,
-            mb: 2,
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(45deg, #fff 30%, #e0e0e0 90%)'
+              : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
           }}
         >
-                    we have so many intersting things for you
-
+          We have so many interesting things for you
         </Typography>
         <Typography
           variant="h6"
@@ -60,6 +65,7 @@ const Mygif1: React.FC = () => {
             fontWeight: 400,
           }}
         >
+          {/* Optional text here */}
         </Typography>
       </Box>
     </Box>

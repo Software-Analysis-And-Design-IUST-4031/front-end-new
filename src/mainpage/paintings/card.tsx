@@ -3,9 +3,7 @@ import {
   Grid,
   Paper,
   Box,
-  IconButton,
   Typography,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -13,16 +11,13 @@ import {
   Button,
   styled,
 } from '@mui/material';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
-import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 
 interface Post {
   painting_id: string;
   image: string;
   description: string;
   title: string;
-  price: string;
+  price: string;  
   material: string;
   artist: string;
   year: number;
@@ -41,21 +36,7 @@ const PostCard = styled(Paper)(({ theme }) => ({
   transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
   '&:hover': {
     transform: 'translateY(-12px)',
-    '& .image-container': {
-      boxShadow: theme.palette.mode === 'dark'
-        ? '0 20px 40px rgba(0,0,0,0.4)'
-        : '0 20px 40px rgba(0,0,0,0.15)',
-      '&::after': {
-        opacity: 1,
-      },
-      '& .post-image': {
-        transform: 'scale(1.05)',
-      },
-      '& .post-actions': {
-        opacity: 1,
-      }
-    }
-  }
+  },
 }));
 
 const ImageContainer = styled(Box)(({ theme }) => ({
@@ -66,18 +47,10 @@ const ImageContainer = styled(Box)(({ theme }) => ({
   overflow: 'hidden',
   transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
   cursor: 'pointer',
-  boxShadow: theme.palette.mode === 'dark'
-    ? '0 10px 30px rgba(0,0,0,0.3)'
-    : '0 10px 30px rgba(0,0,0,0.1)',
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    inset: 0,
-    background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 40%, transparent 100%)',
-    opacity: 0,
-    transition: 'opacity 0.5s ease',
-  },
-  className: 'image-container'
+  boxShadow:
+    theme.palette.mode === 'dark'
+      ? '0 10px 30px rgba(0,0,0,0.3)'
+      : '0 10px 30px rgba(0,0,0,0.1)',
 }));
 
 const PostImage = styled('img')({
@@ -90,77 +63,39 @@ const PostImage = styled('img')({
   transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
 });
 
-const PostActions = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  right: 0,
-  padding: '20px',
-  display: 'flex',
-  justifyContent: 'space-between',
-  opacity: 0,
-  transition: 'opacity 0.3s ease',
-  zIndex: 2,
-  className: 'post-actions'
-}));
-
-const ActionButton = styled(IconButton)(({ theme }) => ({
-  color: '#fff',
-  backgroundColor: 'rgba(255,255,255,0.1)',
-  backdropFilter: 'blur(8px)',
-  padding: '12px',
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    transform: 'scale(1.1)',
-  },
-  '& .MuiSvgIcon-root': {
-    fontSize: '1.4rem',
-  },
-}));
-
 const PostInfo = styled(Box)(({ theme }) => ({
   marginTop: '16px',
   position: 'relative',
-  height: '60px', // Reduced height since we're using single line
 }));
 
 const PostTitle = styled(Typography)(({ theme }) => ({
   fontSize: '1.1rem',
   fontWeight: 700,
   color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-  letterSpacing: '-0.01em',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap', // Force single line
+  whiteSpace: 'nowrap',
   marginBottom: '8px',
 }));
 
 const PostMeta = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  right: 0,
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
 }));
 
 const PostPrice = styled(Typography)(({ theme }) => ({
-  fontSize: '1.2rem',
-  fontWeight: 800,
-  background: theme.palette.mode === 'dark'
-    ? 'linear-gradient(135deg, #3f51b5, #2196f3)'
-    : 'linear-gradient(135deg, #1a237e, #1976d2)',
-  backgroundClip: 'text',
-  WebkitBackgroundClip: 'text',
-  color: 'transparent',
-}));
+    fontSize: '1.2rem',
+    fontWeight: 800,
+    background: theme.palette.mode === 'dark'
+      ? 'linear-gradient(135deg, #3f51b5, #2196f3)'
+      : 'linear-gradient(135deg, #1a237e, #1976d2)',
+    backgroundClip: 'text',
+    WebkitBackgroundClip: 'text',
+    color: 'transparent',
+  }));
 
-
-const CardItem: React.FC<{
-  post: Post;
-}> = ({ post }) => {
+const CardItem: React.FC<{ post: Post }> = ({ post }) => {
   const [showDialog, setShowDialog] = useState(false);
 
   const handleDialogOpen = () => {
@@ -176,31 +111,40 @@ const CardItem: React.FC<{
       <Grid item xs={12} sm={6} md={4} lg={3}>
         <PostCard elevation={0}>
           <ImageContainer onClick={handleDialogOpen}>
-            <PostImage src={post.image} alt={post.title} />
-            <PostActions>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <ActionButton>
-                  <ShareIcon />
-                </ActionButton>
-              </Box>
-            </PostActions>
+            <PostImage src={post.image}/>
           </ImageContainer>
           <PostInfo>
-            <PostTitle>{post.title}</PostTitle>
-            
-              <PostPrice>${post.price}</PostPrice>
-            
+            <PostTitle>
+              {post.title}
+              
+            </PostTitle>
+            <PostPrice>${post.price}</PostPrice>
           </PostInfo>
         </PostCard>
       </Grid>
 
       <Dialog open={showDialog} onClose={handleDialogClose} maxWidth="md">
-        <DialogTitle>{post.title}</DialogTitle>
+        <DialogTitle>
+          {post.title}
+        </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <img src={post.image} alt={post.title} style={{ width: '100%', maxHeight: '500px', objectFit: 'contain' }} />
+            <img
+              src={post.image}
+              
+              style={{ width: '100%', maxHeight: '500px', objectFit: 'contain' }}
+            />
             <Typography variant="body1">{post.description}</Typography>
-            <Typography variant="h6" color="primary">${post.price}</Typography>
+            
+            <Typography variant="subtitle2" color="textSecondary">
+              Year: {post.year}
+            </Typography>
+            <Typography variant="subtitle2" color="textSecondary">
+              Style: {post.style}
+            </Typography>
+            <Typography variant="subtitle2" color="textSecondary">
+              Material: {post.material}
+            </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
@@ -216,10 +160,7 @@ const Card: React.FC<CardProps> = ({ posts }) => {
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
         {posts.map((post) => (
-          <CardItem
-            key={post.painting_id}
-            post={post}
-          />
+          <CardItem key={post.painting_id} post={post} />
         ))}
       </Grid>
     </Box>

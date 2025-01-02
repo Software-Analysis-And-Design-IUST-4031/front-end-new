@@ -13,7 +13,7 @@ const Title: React.FC = () => {
         backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
         borderRadius: 2,
         mt: 6,
-        mb: 4,
+        mb: 20,
       }}
     >
       <Container maxWidth="lg">
