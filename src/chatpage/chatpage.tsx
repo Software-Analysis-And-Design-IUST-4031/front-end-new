@@ -105,7 +105,7 @@ const ChatPage = () =>
         } catch (error) {
           console.error('Failed to load chats:', error);
         }
-      }, 2000); // Poll every 3 seconds
+      }, 3000); // Poll every 3 seconds
     
       return () => clearInterval(intervalId); // Clean up on unmount
     }, []);
@@ -147,7 +147,7 @@ const ChatPage = () =>
             console.error('Failed to load messages:', error);
           }
         }
-      }, 2000); // Poll every 3 seconds
+      }, 800); // Poll every 3 seconds
     
       return () => clearInterval(intervalId); // Clean up on unmount
     }, [activeUser]);
