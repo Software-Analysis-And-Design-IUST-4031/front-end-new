@@ -1,4 +1,5 @@
 import React, { useState , useEffect} from 'react';
+import { useLocation } from 'react-router-dom';
 import { TextField, Button, Box , TextareaAutosize , Typography , Grid} from '@mui/material';
 import MessageList from './messages';
 import MessageInput from './messageinput';
@@ -27,6 +28,7 @@ const ChatPage = () =>
 {
     const [activeUser, setActiveUser] = useState<UserProps | null>(null);
     const [messages , setMessages] = useState<MessagesByUser> ({});   
+    const { state } = useLocation();
     // const [users, setUsers] = useState<UserProps[]>([
     //     { id: 1, name: 'gggg' }, 
     //     // { id: 20, name: 'David' },
@@ -51,6 +53,52 @@ const ChatPage = () =>
     //   loadChats();
     // }, []); 
 
+
+    // useEffect(() => {
+    //   const intervalId = setInterval(async () => {
+    //     try {
+    //       const fetchedUsers = await userService.fetchChats();
+    //       setUsers(fetchedUsers); // Update state with fetched users
+  
+    //       // If navigated with state, find and set the active user
+    //       if (state && state.userId) {
+    //         const user = fetchedUsers.find((u) => u.id === state.userId);
+    //         if (user) setActiveUser(user);
+    //         console.log("HKJ987" + activeUser?.name);
+    //       }
+    //     } catch (error) {
+    //       console.error('Failed to load chats:', error);
+    //     }
+    //   }, 3000);
+  
+    //   return () => clearInterval(intervalId);
+    // }, [state]);
+
+    // useEffect(() => {
+    //   const loadChats = async () => {
+    //     try {
+    //       const fetchedUsers = await userService.fetchChats();
+    //       setUsers(fetchedUsers); // Update state with fetched users
+          
+    //       // If navigated with state, find and set the active user
+    //       if (state && state.userId) {
+    //         const user = fetchedUsers.find((u) => u.id === state.userId);
+    //         if (user) {
+    //           setActiveUser(user);
+    //         } else {
+    //           console.log("User not found in fetched chats.");
+              
+    //         }
+    //       }
+    //     } catch (error) {
+    //       console.error('Failed to load chats:', error);
+    //     }
+    //   };
+    
+    //   loadChats();
+    // }, [state]);
+    
+
     useEffect(() => {
       const intervalId = setInterval(async () => {
         try {
@@ -59,7 +107,7 @@ const ChatPage = () =>
         } catch (error) {
           console.error('Failed to load chats:', error);
         }
-      }, 3000); // Poll every 3 seconds
+      }, 2000); // Poll every 3 seconds
     
       return () => clearInterval(intervalId); // Clean up on unmount
     }, []);
@@ -95,7 +143,7 @@ const ChatPage = () =>
             console.error('Failed to load messages:', error);
           }
         }
-      }, 3000); // Poll every 3 seconds
+      }, 2000); // Poll every 3 seconds
     
       return () => clearInterval(intervalId); // Clean up on unmount
     }, [activeUser]);
