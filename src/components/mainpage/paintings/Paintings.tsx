@@ -1,146 +1,332 @@
-import React, { useState, useEffect } from "react";
-import "./paintings.css";
-import PostCard from "../../LandingPage/bestpaintings/card";
-import { Box, Pagination, CircularProgress } from "@mui/material";
+import React, { useState, useEffect } from 'react';
+import { Box, Pagination, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, TextField , InputAdornment, useTheme, SelectChangeEvent} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import Card from '../../../mainpage/paintings/card';
 
-interface Painting {
+interface Post {
   painting_id: string;
-  title: string;
+  image: string;
   description: string;
-  image: string | null;
-  creation_date: string;
-  price: number;
+  title: string;
+  price: string;  // Price is a string, but we'll convert it to number for comparison
+  material: string;
+  artist: string;
+  year: number;
+  style: string;
 }
 
 const itemsPerPage = 4;
 
-const Paintings: React.FC = () => {
-  const [posts, setPosts] = useState<Painting[]>([]);
-  const [search, setSearch] = useState("");
+const Painting: React.FC = () => {
+  const theme = useTheme();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState({
+    price: '',
+    style: '',
+    material: '',
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Mock data instead of API call for testing
-        const mockPaintings: Painting[] = [
-          {
-            painting_id: "1",
-            title: "Abstract Art",
-            description: "A beautiful painting.",
-            image: "https://via.placeholder.com/150",
-            creation_date: "2024-12-01",
-            price: 500,
-          },
-          {
-            painting_id: "2",
-            title: "Mountain View",
-            description: "An amazing landscape.",
-            image: "https://via.placeholder.com/150",
-            creation_date: "2024-12-01",
-            price: 750,
-          },
-          {
-            painting_id: "3",
-            title: "Portrait of a Woman",
-            description: "A stunning portrait.",
-            image: "https://via.placeholder.com/150",
-            creation_date: "2024-12-01",
-            price: 1000,
-          },
-          {
-            painting_id: "4",
-            title: "Color Explosion",
-            description: "Vibrant and colorful.",
-            image: "https://via.placeholder.com/150",
-            creation_date: "2024-12-01",
-            price: 400,
-          },
-        ];
-        setPosts(mockPaintings);
+        const response = await fetch('https://zaferuni.liara.run/api/painting/paintings/search/');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    
+        const data = await response.json();
+        console.log(data); // Log the data for debugging
+    
+        // Map the response data and handle missing values
+        const mappedPosts = data.map((painting: any) => ({
+          painting_id: painting.painting_id,
+          image: painting.image || 'https://via.placeholder.com/150', // Fallback image if none exists
+          description: painting.description || 'No description available',
+          title: painting.title || 'Untitled',
+          price: painting.price ? `${painting.price}` : '',
+          material: painting.material || 'Material not specified',
+          style: painting.style || 'Style not specified',
+          year: painting.year || 'Year not specified',
+          vertical_depth: painting.vertical_depth || 'N/A',
+          horizontal_depth: painting.horizontal_depth || 'N/A',
+        }));
+    
+        setPosts(mappedPosts);
       } catch (err) {
-        console.error("Error fetching paintings:", err);
+        console.error('Error fetching paintings:', err);
+        setError('Failed to load paintings. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
+    
+
     fetchData();
   }, []);
 
-  const filteredPaintings = posts.filter((painting) => {
-    const searchLower = search.toLowerCase();
+  // Filter the paintings based on user input and filters
+  const filteredPaintings = posts.filter((post) => {
     return (
-      painting.title.toLowerCase().includes(searchLower) ||
-      painting.description.toLowerCase().includes(searchLower)
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (filters.style && filters.style !== '' ? post.style.toLowerCase() === filters.style.toLowerCase() : true) &&
+      (filters.material && filters.material !== '' ? post.material.toLowerCase() === filters.material.toLowerCase() : true) &&
+      (filters.price ? parseFloat(post.price) <= parseFloat(filters.price) : true)
     );
   });
+  
+  
 
   const totalPages = Math.ceil(filteredPaintings.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentPaintings = filteredPaintings.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
+  const currentPaintings = filteredPaintings.slice(startIndex, startIndex + itemsPerPage);
 
-  const handlePageChange = (
-    event: React.ChangeEvent<unknown>,
-    page: number
-  ) => {
+  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
     setCurrentPage(page);
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleFilterChange = (e: SelectChangeEvent<string>, field: string) => {
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      [field]: e.target.value
+    }));
+  };
+
   return (
-    <section className="paintings-section">
-      {/* Search Input */}
-      <div className="filters-container">
-        <input
-          type="text"
-          placeholder="Search "
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setCurrentPage(1); // Reset to the first page when searching
-          }}
-          className="filter-input"
-        />
-      </div>
-
-      {loading ? (
+    <Box
+      sx={{
+        backgroundColor: theme.palette.background.paper,
+        borderRadius: 3,
+        boxShadow: theme.palette.mode === 'dark' 
+          ? '0 4px 12px rgba(0,0,0,0.3)'
+          : '0 4px 12px rgba(0,0,0,0.1)',
+        padding: 3.5,
+        mb: 2,
+        width: '95%',
+        maxWidth: '10000px',
+        maxHeight: '750px',
+        margin: '0 auto',
+      }}
+    >
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5, mb: 8 }}>
+        {/* Search and Filter Section */}
         <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight="60vh"
+          sx={{
+            backgroundColor: theme.palette.background.paper,
+            borderRadius: 3,
+            boxShadow: theme.palette.mode === 'dark' 
+              ? '0 4px 12px rgba(0,0,0,0.3)'
+              : '0 4px 12px rgba(0,0,0,0.1)',
+            padding: 3,
+            mb: 3,
+            width: '100%',
+            maxWidth: '100000px',
+            margin: '0 auto',
+          }}
         >
-          <CircularProgress />
-        </Box>
-      ) : (
-        <>
-          <div className="paintings-grid">
-            {currentPaintings.map((post) => (
-              <PostCard
-                key={post.painting_id}
-                post={post}
-                onShare={() => null}
-              />
-            ))}
-          </div>
-
-          <Box mt={3} display="flex" justifyContent="center">
-            <Pagination
-              count={totalPages}
-              page={currentPage}
-              onChange={handlePageChange}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: 2,
+              flexWrap: 'wrap',
+            }}
+          >
+            {/* Search Bar */}
+            <TextField
+              id="outlined-basic"
+              label="Search"
               variant="outlined"
-              color="primary"
+              fullWidth
+              sx={{
+                maxWidth: 400,
+                borderRadius: '20px',
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '20px',
+                  backgroundColor: theme.palette.background.paper,
+                },
+              }}
+              value={searchQuery}
+              onChange={handleSearchChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
             />
+
+            {/* Filter Dropdowns */}
+            <FormControl fullWidth sx={{ maxWidth: 200 }}>
+              <InputLabel>Material</InputLabel>
+              <Select
+                value={filters.material}
+                onChange={(e) => handleFilterChange(e, 'material')}
+                label="material"
+                sx={{
+                  maxWidth: 200,
+                  borderRadius: '20px',
+                  backgroundColor: theme.palette.background.paper,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '20px',
+                  },
+                }}
+              >
+                <MenuItem value="">None</MenuItem>
+              <MenuItem value="Oil">Oil</MenuItem>
+              <MenuItem value="Acrylic">Acrylic</MenuItem>
+              <MenuItem value="Watercolor">Watercolor</MenuItem>
+              <MenuItem value="Digital Art">Digital Art</MenuItem>
+              <MenuItem value="Mixed Media">Mixed Media</MenuItem>
+              <MenuItem value="Pencil Drawing">Pencil Drawing</MenuItem>
+              <MenuItem value="Charcoal">Charcoal</MenuItem>
+              <MenuItem value="Pastel">Pastel</MenuItem>
+              <MenuItem value="Ink">Ink</MenuItem>
+              <MenuItem value="Sculpture">Sculpture</MenuItem>
+              <MenuItem value="Tempera">Tempera</MenuItem>
+              <MenuItem value="Fresco">Fresco</MenuItem>
+              <MenuItem value="Gouache">Gouache</MenuItem>
+              <MenuItem value="Encaustic">Encaustic</MenuItem>
+              <MenuItem value="Spray Paint">Spray Paint</MenuItem>
+              <MenuItem value="Linocut">Linocut</MenuItem>
+              <MenuItem value="Woodcut">Woodcut</MenuItem>
+              <MenuItem value="Etching">Etching</MenuItem>
+              <MenuItem value="Lithography">Lithography</MenuItem>
+              <MenuItem value="Screen Printing">Screen Printing</MenuItem>
+              <MenuItem value="Collage">Collage</MenuItem>
+              <MenuItem value="Mosaic">Mosaic</MenuItem>
+              <MenuItem value="Glass Art">Glass Art</MenuItem>
+              <MenuItem value="Ceramic">Ceramic</MenuItem>
+              <MenuItem value="Metal Work">Metal Work</MenuItem>
+              <MenuItem value="Photography">Photography</MenuItem>
+              <MenuItem value="3D Printing">3D Printing</MenuItem>
+              <MenuItem value="Textile Art">Textile Art</MenuItem>
+              <MenuItem value="Paper Art">Paper Art</MenuItem>
+              <MenuItem value="Installation">Installation</MenuItem>
+
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth sx={{ maxWidth: 200 }}>
+              <InputLabel>Style</InputLabel>
+              <Select
+                value={filters.style}
+                onChange={(e) => handleFilterChange(e, 'style')}
+                label="Painting Style"
+                sx={{
+                  maxWidth: 200,
+                  borderRadius: '20px',
+                  backgroundColor: theme.palette.background.paper,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '20px',
+                  },
+                }}
+              >
+                <MenuItem value="">None</MenuItem>
+                <MenuItem value="Abstract">Abstract</MenuItem>
+                <MenuItem value="Realism">Realism</MenuItem>
+                <MenuItem value="Impressionism">Impressionism</MenuItem>
+                <MenuItem value="Expressionism">Expressionism</MenuItem>
+                <MenuItem value="Surrealism">Surrealism</MenuItem>
+                <MenuItem value="Pop Art">Pop Art</MenuItem>
+                <MenuItem value="Minimalism">Minimalism</MenuItem>
+                <MenuItem value="Contemporary">Contemporary</MenuItem>
+                <MenuItem value="Modern">Modern</MenuItem>
+                <MenuItem value="Traditional">Traditional</MenuItem>
+                <MenuItem value="Baroque">Baroque</MenuItem>
+                <MenuItem value="Renaissance">Renaissance</MenuItem>
+                <MenuItem value="Cubism">Cubism</MenuItem>
+                <MenuItem value="Art Nouveau">Art Nouveau</MenuItem>
+                <MenuItem value="Art Deco">Art Deco</MenuItem>
+                <MenuItem value="Gothic">Gothic</MenuItem>
+                <MenuItem value="Romanticism">Romanticism</MenuItem>
+                <MenuItem value="Neoclassicism">Neoclassicism</MenuItem>
+                <MenuItem value="Post-Impressionism">Post-Impressionism</MenuItem>
+                <MenuItem value="Pointillism">Pointillism</MenuItem>
+                <MenuItem value="Fauvism">Fauvism</MenuItem>
+                <MenuItem value="Abstract Expressionism">Abstract Expressionism</MenuItem>
+                <MenuItem value="Color Field">Color Field</MenuItem>
+                <MenuItem value="Op Art">Op Art</MenuItem>
+                <MenuItem value="Kinetic Art">Kinetic Art</MenuItem>
+                <MenuItem value="Installation Art">Installation Art</MenuItem>
+                <MenuItem value="Performance Art">Performance Art</MenuItem>
+                <MenuItem value="Digital Art">Digital</MenuItem>
+                <MenuItem value="Street Art">Street Art</MenuItem>
+                <MenuItem value="Folk Art">Folk Art</MenuItem>
+
+              </Select>
+            </FormControl>
+
+            {/* Price Filter */}
+            <FormControl fullWidth sx={{ maxWidth: 200 }}>
+              <InputLabel>Price</InputLabel>
+              <Select
+                value={filters.price}
+                onChange={(e) => handleFilterChange(e, 'price')}
+                label="Price"
+                sx={{
+                maxWidth: 200,
+                borderRadius: '20px',
+                backgroundColor: theme.palette.background.paper,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '20px',
+                },
+              }}
+              >
+                <MenuItem value="">None</MenuItem>
+                <MenuItem value="100">Under 100</MenuItem>
+                <MenuItem value="500">Under 500</MenuItem>
+                <MenuItem value="1000">Under 1000</MenuItem>
+                <MenuItem value="2000">Under 2000</MenuItem>
+                <MenuItem value="5000">Under 5000</MenuItem>
+                <MenuItem value="10000">Under 10000</MenuItem>
+                <MenuItem value="20000">Under 20000</MenuItem>
+                <MenuItem value="50000">Under 50000</MenuItem>
+                <MenuItem value="100000">Under 100000</MenuItem>
+                <MenuItem value="10000000">Under 10000000</MenuItem>
+              </Select>
+            </FormControl>
           </Box>
-        </>
-      )}
-    </section>
+        </Box>
+
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+            <Alert severity="error">{error}</Alert>
+          </Box>
+        ) : (
+          <>
+            <Card posts={currentPaintings} />
+
+            {filteredPaintings.length > 0 && (
+              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+                <Pagination
+                  count={totalPages}
+                  page={currentPage}
+                  onChange={handlePageChange}
+                  variant="outlined"
+                  color="primary"
+                />
+              </Box>
+            )}
+          </>
+        )}
+      </Box>
+    </Box>
   );
 };
 
-export default Paintings;
+export default Painting;

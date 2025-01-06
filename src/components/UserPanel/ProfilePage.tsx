@@ -31,6 +31,7 @@ import ThemeCustomizer from "./ThemeCustomizer";
 import UploadPaintingDialog from "./UploadPaintingDialog";
 import SideBar from "./SideBar";
 import EditProfileButton from "./EditProfileButton";
+import { useParams , useNavigate} from 'react-router-dom';
 
 const MainContainer = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#0A0A0A" : "#FAFAFA",
@@ -260,6 +261,7 @@ interface PaintingWithAuthor extends BackendPainting {
 const ProfilePage: React.FC = () => {
   const theme = useTheme();
   const { userProfile, userId, isLoading, updateProfile } = useAuth();
+  const { userId2} = useParams();
   const { enqueueSnackbar } = useSnackbar();
   const [activeTab, setActiveTab] = useState<"posts" | "saved">("posts");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -269,6 +271,8 @@ const ProfilePage: React.FC = () => {
   const [isLoadingSaved, setIsLoadingSaved] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userProfile2 , setUserProfile2] = useState<any>() ;
+  const [userId3 , setUserId3] = useState<number>(0);
 
   const handleSidebarToggle = useCallback(() => {
     console.log("Toggling sidebar. Current state:", sidebarOpen);

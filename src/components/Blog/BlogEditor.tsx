@@ -195,6 +195,8 @@ const BlogEditor: React.FC = () => {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            aria-label="Blog post title"
+            placeholder="Enter blog title"
             style={{
               width: '100%',
               padding: '8px',

@@ -131,12 +131,16 @@ const Navbar: React.FC<NavbarProps> = ({ onSidebarToggle }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const { toggleColorMode } = useColorMode();
-  const { username, logout } = useAuth();
+  const { username, logout, userId } = useAuth();
 
   const currentPath = location.pathname.split("/")[1] || "home";
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
-    navigate(`/${newValue}`);
+    if (newValue === 'profile') {
+      navigate(`/profile/${userId}`);
+    } else {
+      navigate(`/${newValue}`);
+    }
   };
 
   const handleLogout = () => {
@@ -148,7 +152,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSidebarToggle }) => {
     { label: "Home", value: "home" },
     { label: "Blog", value: "blog" },
     { label: "Galleries", value: "galleries" },
-    { label: "Profile", value: "profile" },
+    { label: "Profile", value: "profile" }
   ];
 
   return (

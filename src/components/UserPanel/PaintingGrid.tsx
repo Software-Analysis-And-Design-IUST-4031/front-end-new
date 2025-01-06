@@ -34,6 +34,9 @@ import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import PersonIcon from "@mui/icons-material/Person";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import ChatIcon from "@mui/icons-material/Chat";
+import ZoomOutMapIcon from "@mui/icons-material/ZoomOutMap";
+import ZoomInIcon from "@mui/icons-material/ZoomIn";
+import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 
 interface Painting {
   id: string;
@@ -403,10 +406,8 @@ const ImageSection = styled(Box)(({ theme }) => ({
   justifyContent: "center",
   overflow: "hidden",
   borderRadius: theme.shape.borderRadius * 2,
-  boxShadow:
-    theme.palette.mode === "dark"
-      ? "inset 0 0 40px rgba(0,0,0,0.8)"
-      : "inset 0 0 40px rgba(0,0,0,0.05)",
+  cursor: "zoom-in",
+  transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
 }));
 
 const DetailImage = styled("img")({
@@ -743,6 +744,73 @@ const formatPrice = (price: string | number | undefined) => {
   return !isNaN(numericPrice) ? `$${numericPrice.toLocaleString()}` : "N/A";
 };
 
+const FullScreenImageDialog = styled(Dialog)(({ theme }) => ({
+  "& .MuiDialog-paper": {
+    margin: 0,
+    maxWidth: "100vw",
+    maxHeight: "100vh",
+    width: "100vw",
+    height: "100vh",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(0,0,0,0.95)"
+        : "rgba(255,255,255,0.98)",
+    backgroundImage:
+      theme.palette.mode === "dark"
+        ? "radial-gradient(circle at center, rgba(30,30,30,0.95) 0%, rgba(0,0,0,0.98) 100%)"
+        : "radial-gradient(circle at center, rgba(255,255,255,0.98) 0%, rgba(245,245,245,0.95) 100%)",
+  },
+}));
+
+const FullScreenImage = styled("img")(({ theme }) => ({
+  maxWidth: "95vw",
+  maxHeight: "90vh",
+  objectFit: "contain",
+  transition: "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+  filter: "brightness(1.02) contrast(1.02)",
+  cursor: "move",
+  userSelect: "none",
+}));
+
+const ImageControls = styled(Box)(({ theme }) => ({
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  padding: theme.spacing(2),
+  display: "flex",
+  justifyContent: "flex-end",
+  gap: theme.spacing(1),
+  background:
+    "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 100%)",
+  opacity: 0,
+  transition: "opacity 0.3s ease",
+  zIndex: 10,
+  "&:hover": {
+    opacity: 1,
+  },
+}));
+
+const ImageControlButton = styled(IconButton)(({ theme }) => ({
+  color: "#fff",
+  backgroundColor: "rgba(0,0,0,0.3)",
+  backdropFilter: "blur(4px)",
+  "&:hover": {
+    backgroundColor: "rgba(0,0,0,0.5)",
+    transform: "scale(1.1)",
+  },
+  transition: "all 0.2s ease",
+}));
+
+const FullScreenControls = styled(Box)(({ theme }) => ({
+  position: "fixed",
+  top: theme.spacing(2),
+  right: theme.spacing(2),
+  display: "flex",
+  gap: theme.spacing(1),
+  zIndex: 1300,
+}));
+
 const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
   const theme = useTheme();
   const { enqueueSnackbar } = useSnackbar();
@@ -756,6 +824,11 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
   const [imageErrors, setImageErrors] = useState<{ [key: string]: boolean }>(
     {}
   );
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
+  const [imageScale, setImageScale] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const handlePaintingClick = (painting: Painting) => {
     setSelectedPainting(painting);
@@ -804,6 +877,73 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
 
   const handleImageError = (paintingId: string) => {
     setImageErrors((prev) => ({ ...prev, [paintingId]: true }));
+  };
+
+  const handleImageClick = (e: React.MouseEvent, imageUrl: string) => {
+    e.stopPropagation();
+    setFullScreenImage(imageUrl);
+    setImageScale(1);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (imageScale > 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y,
+      });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isDragging && imageScale > 1) {
+      const newX = e.clientX - dragStart.x;
+      const newY = e.clientY - dragStart.y;
+
+      // Calculate bounds based on zoom level
+      const bounds = {
+        x: Math.abs((window.innerWidth * imageScale - window.innerWidth) / 2),
+        y: Math.abs((window.innerHeight * imageScale - window.innerHeight) / 2),
+      };
+
+      // Constrain movement within bounds
+      const constrainedX = Math.min(Math.max(newX, -bounds.x), bounds.x);
+      const constrainedY = Math.min(Math.max(newY, -bounds.y), bounds.y);
+
+      setPosition({
+        x: constrainedX,
+        y: constrainedY,
+      });
+    }
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleZoom = (e: React.MouseEvent, factor: number) => {
+    e.stopPropagation();
+    setImageScale((prev) => {
+      const newScale = Math.min(Math.max(prev * factor, 1), 3);
+      if (newScale === 1) {
+        // Reset position when zooming out completely
+        setPosition({ x: 0, y: 0 });
+      }
+      return newScale;
+    });
+  };
+
+  const handleFullScreenClose = (e: React.MouseEvent) => {
+    // Only close if clicking on the backdrop
+    if (e.target === e.currentTarget) {
+      setFullScreenImage(null);
+      setImageScale(1);
+      setPosition({ x: 0, y: 0 });
+    }
   };
 
   return (
@@ -955,7 +1095,19 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                     src={getImageUrl(selectedPainting)}
                     alt={selectedPainting.title}
                     onError={() => handleImageError(selectedPainting.id)}
+                    onClick={(e) =>
+                      handleImageClick(e, getImageUrl(selectedPainting))
+                    }
                   />
+                  <ImageControls onClick={(e) => e.stopPropagation()}>
+                    <ImageControlButton
+                      onClick={(e) =>
+                        handleImageClick(e, getImageUrl(selectedPainting))
+                      }
+                    >
+                      <ZoomOutMapIcon />
+                    </ImageControlButton>
+                  </ImageControls>
                 </ImageSection>
                 <InfoSection>
                   <DetailTitle variant="h4">
@@ -1082,6 +1234,108 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
           </>
         )}
       </DetailDialog>
+
+      <FullScreenImageDialog
+        open={!!fullScreenImage}
+        onClose={(e: any) => handleFullScreenClose(e)}
+        onClick={(e: any) => handleFullScreenClose(e)}
+        BackdropProps={{
+          onClick: (e) => handleFullScreenClose(e),
+        }}
+      >
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            overflow: "hidden",
+          }}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <FullScreenControls onClick={(e) => e.stopPropagation()}>
+            <ImageControlButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleZoom(e, 1.2);
+              }}
+              disabled={imageScale >= 3}
+            >
+              <ZoomInIcon />
+            </ImageControlButton>
+            <ImageControlButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleZoom(e, 0.8);
+              }}
+              disabled={imageScale <= 1}
+            >
+              <ZoomOutIcon />
+            </ImageControlButton>
+            <ImageControlButton
+              onClick={(e) => {
+                e.stopPropagation();
+                setFullScreenImage(null);
+              }}
+            >
+              <CloseIcon />
+            </ImageControlButton>
+          </FullScreenControls>
+          {fullScreenImage && (
+            <Box
+              sx={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                height: "100%",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FullScreenImage
+                src={fullScreenImage}
+                alt="Full screen view"
+                onMouseDown={handleMouseDown}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  transform: `scale(${imageScale}) translate(${position.x}px, ${position.y}px)`,
+                  cursor:
+                    imageScale > 1
+                      ? isDragging
+                        ? "grabbing"
+                        : "grab"
+                      : "default",
+                }}
+                draggable={false}
+              />
+            </Box>
+          )}
+          {imageScale > 1 && (
+            <Typography
+              sx={{
+                position: "fixed",
+                bottom: 16,
+                left: "50%",
+                transform: "translateX(-50%)",
+                color: "rgba(255,255,255,0.7)",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                padding: "4px 12px",
+                borderRadius: 2,
+                fontSize: "0.875rem",
+                pointerEvents: "none",
+              }}
+            >
+              Click and drag to move
+            </Typography>
+          )}
+        </Box>
+      </FullScreenImageDialog>
     </>
   );
 };

@@ -35,10 +35,160 @@ import {
   CalendarToday as CalendarIcon,
   Person as PersonIcon,
   ArrowForward as ArrowForwardIcon,
+  Bookmark as BookmarkIcon,
+  Comment as CommentIcon,
+  Visibility as VisibilityIcon,
 } from "@mui/icons-material";
 import blogService, { Blog } from "../../services/blogService";
 import Navbar from "../Navbar";
 import { useAuth } from "../../context/AuthContext";
+import { Theme } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
+
+const HeroSection = styled(Box)(({ theme }) => ({
+  background:
+    theme.palette.mode === "dark"
+      ? "linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%)"
+      : "linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%)",
+  padding: theme.spacing(12, 0, 8),
+  textAlign: "center",
+  position: "relative",
+  overflow: "hidden",
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: "100%",
+    background: `radial-gradient(circle at 50% 50%, 
+      ${alpha(theme.palette.mode === "dark" ? "#ffffff" : "#000000", 0.03)} 0%, 
+      transparent 70%)`,
+    pointerEvents: "none",
+  },
+}));
+
+const SearchSection = styled(Box)(({ theme }) => ({
+  background: theme.palette.background.paper,
+  padding: theme.spacing(3),
+  position: "sticky",
+  top: 0,
+  zIndex: 10,
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  backdropFilter: "blur(8px)",
+}));
+
+const BlogCard = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(4),
+  marginBottom: theme.spacing(3),
+  borderRadius: theme.shape.borderRadius * 2,
+  background: theme.palette.background.paper,
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  cursor: "pointer",
+  border: `1px solid ${theme.palette.divider}`,
+  "&:hover": {
+    transform: "translateY(-2px)",
+    boxShadow: theme.shadows[4],
+    borderColor: theme.palette.primary.main,
+    "& .blog-title": {
+      color: theme.palette.primary.main,
+    },
+  },
+}));
+
+const BlogHeader = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(2),
+  marginBottom: theme.spacing(3),
+}));
+
+const BlogContent = styled(Box)(({ theme }) => ({
+  display: "flex",
+  gap: theme.spacing(4),
+  [theme.breakpoints.down("md")]: {
+    flexDirection: "column",
+  },
+}));
+
+const BlogText = styled(Box)(({ theme }) => ({
+  flex: 1,
+}));
+
+const BlogImage = styled(Box)(({ theme }) => ({
+  width: "280px",
+  height: "200px",
+  borderRadius: theme.shape.borderRadius,
+  overflow: "hidden",
+  flexShrink: 0,
+  [theme.breakpoints.down("md")]: {
+    width: "100%",
+    height: "240px",
+    marginBottom: theme.spacing(3),
+  },
+  "& img": {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    transition: "transform 0.6s ease",
+  },
+  "&:hover img": {
+    transform: "scale(1.05)",
+  },
+}));
+
+const BlogTitle = styled(Typography)(({ theme }) => ({
+  fontSize: "1.75rem",
+  fontWeight: 800,
+  lineHeight: 1.3,
+  marginBottom: theme.spacing(2),
+  color: theme.palette.text.primary,
+  transition: "color 0.2s ease",
+}));
+
+const BlogExcerpt = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.secondary,
+  fontSize: "1.1rem",
+  lineHeight: 1.6,
+  marginBottom: theme.spacing(3),
+  display: "-webkit-box",
+  WebkitLineClamp: 3,
+  WebkitBoxOrient: "vertical",
+  overflow: "hidden",
+}));
+
+const BlogMeta = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(3),
+  color: theme.palette.text.secondary,
+  fontSize: "0.9rem",
+  "& .MuiSvgIcon-root": {
+    fontSize: "1.1rem",
+  },
+}));
+
+const BlogTags = styled(Box)(({ theme }) => ({
+  display: "flex",
+  gap: theme.spacing(1),
+  marginTop: theme.spacing(2),
+}));
+
+const BlogTag = styled(Chip)(({ theme }) => ({
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? alpha(theme.palette.grey[800], 0.5)
+      : alpha(theme.palette.grey[200], 0.8),
+  color: theme.palette.text.primary,
+  fontWeight: 500,
+  "&:hover": {
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? alpha(theme.palette.grey[700], 0.7)
+        : alpha(theme.palette.grey[300], 0.9),
+  },
+}));
 
 const BlogPage: React.FC = () => {
   const theme = useTheme();
@@ -130,548 +280,245 @@ const BlogPage: React.FC = () => {
   return (
     <>
       <Navbar />
-      <Box
-        sx={{
-          background:
-            theme.palette.mode === "dark"
-              ? `linear-gradient(180deg, 
-                ${alpha(theme.palette.common.black, 0.4)} 0%,
-                ${alpha(theme.palette.common.black, 0.2)} 50%,
-                transparent 100%)`
-              : `linear-gradient(180deg, 
-                ${alpha(theme.palette.common.black, 0.05)} 0%,
-                ${alpha(theme.palette.common.black, 0.02)} 50%,
-                transparent 100%)`,
-          pt: 8,
-          pb: 6,
-          position: "relative",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "100%",
-            background: `radial-gradient(circle at 50% 0%, 
-              ${alpha(
-                theme.palette.mode === "dark" ? "#fff" : "#000",
-                0.03
-              )} 0%, 
-              transparent 70%)`,
-            pointerEvents: "none",
-          },
-        }}
-      >
-        <Container maxWidth="lg">
-          <Grid container spacing={4} alignItems="center" sx={{ mb: 6 }}>
-            <Grid item xs={12} md={7}>
-              <Typography
-                variant="h2"
-                component="h1"
-                gutterBottom
-                sx={{
-                  fontWeight: 900,
-                  letterSpacing: -1.5,
-                  color:
-                    theme.palette.mode === "dark"
-                      ? theme.palette.common.white
-                      : theme.palette.common.black,
-                  fontSize: { xs: "2.5rem", md: "3.5rem" },
-                  lineHeight: 1.2,
-                  mb: 3,
-                  position: "relative",
-                  "&::after": {
-                    content: '""',
-                    position: "absolute",
-                    bottom: -16,
-                    left: 0,
-                    width: 80,
-                    height: 4,
-                    borderRadius: 2,
-                    backgroundColor:
-                      theme.palette.mode === "dark"
-                        ? theme.palette.common.white
-                        : theme.palette.common.black,
-                  },
-                }}
-              >
-                Art Blog
-              </Typography>
-              <Typography
-                variant="h5"
-                sx={{
-                  color:
-                    theme.palette.mode === "dark"
-                      ? alpha(theme.palette.common.white, 0.7)
-                      : alpha(theme.palette.common.black, 0.6),
-                  fontWeight: 400,
-                  mb: 4,
-                  maxWidth: 600,
-                  lineHeight: 1.6,
-                }}
-              >
-                Share your artistic journey and connect with fellow artists in
-                our creative community
-              </Typography>
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              md={5}
-              sx={{ display: "flex", justifyContent: "flex-end" }}
-            >
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<AddIcon />}
-                onClick={handleCreatePost}
-                sx={{
-                  borderRadius: "32px",
-                  px: 6,
-                  py: 2,
-                  bgcolor:
-                    theme.palette.mode === "dark"
-                      ? theme.palette.common.white
-                      : theme.palette.common.black,
-                  color:
-                    theme.palette.mode === "dark"
-                      ? theme.palette.common.black
-                      : theme.palette.common.white,
-                  fontSize: "1.1rem",
-                  fontWeight: 600,
-                  textTransform: "none",
-                  boxShadow:
-                    theme.palette.mode === "dark"
-                      ? "0 0 20px rgba(255, 255, 255, 0.1)"
-                      : "0 0 20px rgba(0, 0, 0, 0.1)",
-                  "&:hover": {
-                    bgcolor:
-                      theme.palette.mode === "dark"
-                        ? alpha(theme.palette.common.white, 0.9)
-                        : alpha(theme.palette.common.black, 0.8),
-                    transform: "translateY(-3px)",
-                    boxShadow:
-                      theme.palette.mode === "dark"
-                        ? "0 0 30px rgba(255, 255, 255, 0.2)"
-                        : "0 0 30px rgba(0, 0, 0, 0.2)",
-                  },
-                  "&:active": {
-                    transform: "translateY(-1px)",
-                  },
-                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                }}
-              >
-                Create New Post
-              </Button>
-            </Grid>
-          </Grid>
-
-          <Paper
-            elevation={0}
+      <HeroSection>
+        <Container maxWidth="md">
+          <Typography variant="h2" gutterBottom sx={{ fontWeight: 900, mb: 3 }}>
+            Explore Our Blog
+          </Typography>
+          <Typography variant="h5" color="text.secondary" sx={{ mb: 6 }}>
+            Discover stories, thinking, and expertise from writers on any topic.
+          </Typography>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<AddIcon />}
+            onClick={handleCreatePost}
             sx={{
-              p: 4,
-              borderRadius: "32px",
-              backgroundColor:
-                theme.palette.mode === "dark"
-                  ? alpha(theme.palette.common.white, 0.05)
-                  : alpha(theme.palette.common.black, 0.02),
-              backdropFilter: "blur(20px)",
-              border: `1px solid ${
-                theme.palette.mode === "dark"
-                  ? alpha(theme.palette.common.white, 0.1)
-                  : alpha(theme.palette.common.black, 0.05)
-              }`,
-              position: "relative",
-              overflow: "hidden",
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: "100%",
-                background: `radial-gradient(circle at 0% 0%, 
-                  ${alpha(
-                    theme.palette.mode === "dark" ? "#fff" : "#000",
-                    0.03
-                  )} 0%, 
-                  transparent 50%)`,
-                pointerEvents: "none",
+              borderRadius: "28px",
+              px: 4,
+              py: 1.5,
+              fontSize: "1.1rem",
+              textTransform: "none",
+              bgcolor: theme.palette.mode === "dark" ? "#ffffff" : "#000000",
+              color: theme.palette.mode === "dark" ? "#000000" : "#ffffff",
+              "&:hover": {
+                bgcolor:
+                  theme.palette.mode === "dark"
+                    ? alpha("#ffffff", 0.9)
+                    : alpha("#000000", 0.8),
               },
             }}
           >
-            <Grid container spacing={3} alignItems="center">
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  placeholder="Search blogs..."
-                  value={searchTerm}
-                  onChange={handleSearch}
-                  InputProps={{
-                    startAdornment: (
-                      <SearchIcon
-                        sx={{
-                          color: theme.palette.text.secondary,
-                          mr: 1,
-                          transition: "color 0.3s ease",
-                        }}
-                      />
-                    ),
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "24px",
-                      backgroundColor:
-                        theme.palette.mode === "dark"
-                          ? alpha(theme.palette.common.white, 0.05)
-                          : alpha(theme.palette.common.black, 0.02),
-                      transition: "all 0.3s ease",
-                      "&:hover": {
-                        backgroundColor:
-                          theme.palette.mode === "dark"
-                            ? alpha(theme.palette.common.white, 0.08)
-                            : alpha(theme.palette.common.black, 0.04),
-                        transform: "translateY(-1px)",
-                        "& .MuiSvgIcon-root": {
-                          color:
-                            theme.palette.mode === "dark"
-                              ? theme.palette.common.white
-                              : theme.palette.common.black,
-                        },
-                      },
-                      "&.Mui-focused": {
-                        backgroundColor:
-                          theme.palette.mode === "dark"
-                            ? alpha(theme.palette.common.white, 0.1)
-                            : alpha(theme.palette.common.black, 0.05),
-                        transform: "translateY(-1px)",
-                        boxShadow:
-                          theme.palette.mode === "dark"
-                            ? "0 0 20px rgba(255, 255, 255, 0.1)"
-                            : "0 0 20px rgba(0, 0, 0, 0.1)",
-                        "& .MuiSvgIcon-root": {
-                          color:
-                            theme.palette.mode === "dark"
-                              ? theme.palette.common.white
-                              : theme.palette.common.black,
-                        },
-                      },
-                      "& fieldset": {
-                        borderColor: "transparent",
-                      },
-                      "&:hover fieldset": {
-                        borderColor:
-                          theme.palette.mode === "dark"
-                            ? alpha(theme.palette.common.white, 0.1)
-                            : alpha(theme.palette.common.black, 0.1),
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor:
-                          theme.palette.mode === "dark"
-                            ? alpha(theme.palette.common.white, 0.2)
-                            : alpha(theme.palette.common.black, 0.2),
-                      },
-                    },
-                    "& .MuiInputBase-input": {
-                      py: 1.5,
-                      px: 2,
-                      fontSize: "1rem",
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <SortIcon sx={{ mr: 1 }} /> Sort By
-                    </Box>
-                  </InputLabel>
-                  <Select
-                    value={sortBy}
-                    onChange={handleSortChange}
-                    label="Sort By"
-                    sx={{
-                      borderRadius: "24px",
-                      backgroundColor:
-                        theme.palette.mode === "dark"
-                          ? alpha(theme.palette.common.white, 0.05)
-                          : alpha(theme.palette.common.black, 0.02),
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor:
-                          theme.palette.mode === "dark"
-                            ? alpha(theme.palette.common.white, 0.1)
-                            : alpha(theme.palette.common.black, 0.1),
-                      },
-                    }}
-                  >
-                    <MenuItem value="newest">Newest First</MenuItem>
-                    <MenuItem value="oldest">Oldest First</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <FilterIcon sx={{ mr: 1 }} /> Filter
-                    </Box>
-                  </InputLabel>
-                  <Select
-                    value={filter}
-                    onChange={handleFilterChange}
-                    label="Filter"
-                    sx={{
-                      borderRadius: "24px",
-                      backgroundColor:
-                        theme.palette.mode === "dark"
-                          ? alpha(theme.palette.common.white, 0.05)
-                          : alpha(theme.palette.common.black, 0.02),
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor:
-                          theme.palette.mode === "dark"
-                            ? alpha(theme.palette.common.white, 0.1)
-                            : alpha(theme.palette.common.black, 0.1),
-                      },
-                    }}
-                  >
-                    <MenuItem value="all">All Posts</MenuItem>
-                    {username && <MenuItem value="my">My Posts</MenuItem>}
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Paper>
+            Write a Story
+          </Button>
         </Container>
-      </Box>
+      </HeroSection>
 
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <SearchSection>
+        <Container maxWidth="md">
+          <Grid container spacing={3} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                placeholder="Search stories..."
+                value={searchTerm}
+                onChange={handleSearch}
+                InputProps={{
+                  startAdornment: (
+                    <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />
+                  ),
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "28px",
+                    bgcolor:
+                      theme.palette.mode === "dark"
+                        ? alpha("#ffffff", 0.05)
+                        : alpha("#000000", 0.03),
+                    "&:hover": {
+                      bgcolor:
+                        theme.palette.mode === "dark"
+                          ? alpha("#ffffff", 0.08)
+                          : alpha("#000000", 0.05),
+                    },
+                    "& fieldset": {
+                      borderColor:
+                        theme.palette.mode === "dark"
+                          ? alpha("#ffffff", 0.1)
+                          : alpha("#000000", 0.1),
+                    },
+                  },
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <FormControl fullWidth>
+                <Select
+                  value={sortBy}
+                  onChange={handleSortChange}
+                  displayEmpty
+                  sx={{
+                    borderRadius: "28px",
+                    bgcolor:
+                      theme.palette.mode === "dark"
+                        ? alpha("#ffffff", 0.05)
+                        : alpha("#000000", 0.03),
+                    "& fieldset": {
+                      borderColor:
+                        theme.palette.mode === "dark"
+                          ? alpha("#ffffff", 0.1)
+                          : alpha("#000000", 0.1),
+                    },
+                  }}
+                >
+                  <MenuItem value="newest">Newest First</MenuItem>
+                  <MenuItem value="oldest">Oldest First</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <FormControl fullWidth>
+                <Select
+                  value={filter}
+                  onChange={handleFilterChange}
+                  displayEmpty
+                  sx={{
+                    borderRadius: "28px",
+                    bgcolor:
+                      theme.palette.mode === "dark"
+                        ? alpha("#ffffff", 0.05)
+                        : alpha("#000000", 0.03),
+                    "& fieldset": {
+                      borderColor:
+                        theme.palette.mode === "dark"
+                          ? alpha("#ffffff", 0.1)
+                          : alpha("#000000", 0.1),
+                    },
+                  }}
+                >
+                  <MenuItem value="all">All Stories</MenuItem>
+                  {username && <MenuItem value="my">My Stories</MenuItem>}
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </Container>
+      </SearchSection>
+
+      <Container maxWidth="md" sx={{ py: 6 }}>
         {loading ? (
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="200px"
-          >
-            <CircularProgress size={40} />
+          <Box display="flex" justifyContent="center" py={8}>
+            <CircularProgress
+              sx={{
+                color: theme.palette.mode === "dark" ? "#ffffff" : "#000000",
+              }}
+            />
           </Box>
         ) : error ? (
           <Alert
             severity="error"
             sx={{
-              mb: 2,
+              mb: 4,
               borderRadius: 2,
+              bgcolor:
+                theme.palette.mode === "dark"
+                  ? alpha("#ff3333", 0.1)
+                  : alpha("#ff3333", 0.05),
+              color: "#ff3333",
+              "& .MuiAlert-icon": {
+                color: "#ff3333",
+              },
             }}
           >
             {error}
           </Alert>
         ) : (
-          <Grid container spacing={3}>
+          <Box>
             {filteredAndSortedBlogs.map((blog) => (
-              <Grid item xs={12} sm={6} md={4} key={blog.id}>
-                <Card
-                  sx={{
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    borderRadius: "28px",
-                    overflow: "hidden",
-                    cursor: "pointer",
-                    position: "relative",
-                    backgroundColor:
+              <BlogCard
+                key={blog.id}
+                onClick={() => handleViewBlog(blog.id)}
+                elevation={0}
+                sx={{
+                  "&:hover": {
+                    borderColor:
                       theme.palette.mode === "dark"
-                        ? alpha(theme.palette.common.white, 0.05)
-                        : alpha(theme.palette.common.black, 0.02),
-                    border: `1px solid ${
-                      theme.palette.mode === "dark"
-                        ? alpha(theme.palette.common.white, 0.1)
-                        : alpha(theme.palette.common.black, 0.05)
-                    }`,
-                    "&::before": {
-                      content: '""',
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      background: `radial-gradient(circle at 50% 0%, 
-                        ${alpha(
-                          theme.palette.mode === "dark" ? "#fff" : "#000",
-                          0.03
-                        )} 0%, 
-                        transparent 70%)`,
-                      opacity: 0,
-                      transition: "opacity 0.3s ease",
+                        ? alpha("#ffffff", 0.2)
+                        : alpha("#000000", 0.2),
+                    "& .blog-title": {
+                      color:
+                        theme.palette.mode === "dark" ? "#ffffff" : "#000000",
                     },
-                    "&:hover": {
-                      transform: "translateY(-8px)",
-                      boxShadow:
-                        theme.palette.mode === "dark"
-                          ? "0 20px 40px rgba(0, 0, 0, 0.3)"
-                          : "0 20px 40px rgba(0, 0, 0, 0.1)",
-                      "& .MuiCardMedia-root": {
-                        transform: "scale(1.1)",
-                      },
-                      "& .blog-overlay": {
-                        opacity: 1,
-                        background:
-                          theme.palette.mode === "dark"
-                            ? "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)"
-                            : "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)",
-                      },
-                      "&::before": {
-                        opacity: 1,
-                      },
-                      border: `1px solid ${
-                        theme.palette.mode === "dark"
-                          ? alpha(theme.palette.common.white, 0.2)
-                          : alpha(theme.palette.common.black, 0.1)
-                      }`,
-                    },
-                    transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
-                  }}
-                  onClick={() => handleViewBlog(blog.id)}
-                >
-                  <Box sx={{ position: "relative", pt: "60%" }}>
-                    <CardMedia
-                      component="img"
-                      image={blog.image || "/placeholder-image.jpg"}
-                      alt={blog.title}
-                      sx={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        height: "100%",
-                        width: "100%",
-                        objectFit: "cover",
-                        transition: "transform 0.3s ease-in-out",
-                      }}
-                    />
-                    <Box
-                      className="blog-overlay"
-                      sx={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background:
-                          "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)",
-                        opacity: 0,
-                        transition: "opacity 0.3s ease-in-out",
-                      }}
-                    />
+                  },
+                }}
+              >
+                <BlogHeader>
+                  <Avatar
+                    src={blog.author?.avatarUrl}
+                    sx={{ width: 48, height: 48 }}
+                  >
+                    {blog.author?.username?.[0].toUpperCase()}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      {blog.author?.username || "Unknown Author"}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {formatDate(blog.created_at)}
+                    </Typography>
                   </Box>
-                  <CardContent
-                    sx={{ flexGrow: 1, position: "relative", zIndex: 1 }}
-                  >
-                    <Typography
-                      variant="h5"
-                      component="h2"
-                      gutterBottom
-                      sx={{
-                        fontWeight: 700,
-                        letterSpacing: -0.5,
-                        color:
-                          theme.palette.mode === "dark"
-                            ? theme.palette.common.white
-                            : theme.palette.common.black,
-                      }}
-                    >
-                      {blog.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
-                        mb: 2,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: "vertical",
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      {blog.content}
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 2,
-                        mt: "auto",
-                      }}
-                    >
-                      <Avatar
-                        sx={{
-                          width: 32,
-                          height: 32,
-                          bgcolor:
-                            theme.palette.mode === "dark"
-                              ? alpha(theme.palette.common.white, 0.1)
-                              : alpha(theme.palette.common.black, 0.1),
-                        }}
+                </BlogHeader>
+
+                <BlogContent>
+                  <BlogText>
+                    <BlogTitle className="blog-title">{blog.title}</BlogTitle>
+                    <BlogExcerpt>{blog.content}</BlogExcerpt>
+                    <BlogMeta>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
-                        <PersonIcon sx={{ fontSize: 20 }} />
-                      </Avatar>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography
-                          variant="subtitle2"
-                          sx={{ fontWeight: 600 }}
-                        >
-                          {blog.author?.username || 'Unknown Author'}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color:
-                              theme.palette.mode === "dark"
-                                ? alpha(theme.palette.common.white, 0.6)
-                                : alpha(theme.palette.common.black, 0.6),
-                          }}
-                        >
-                          {formatDate(blog.created_at)}
-                        </Typography>
+                        <VisibilityIcon />
+                        1.2k views
                       </Box>
-                    </Box>
-                  </CardContent>
-                  <Divider sx={{ mx: 2 }} />
-                  <CardActions
-                    sx={{ px: 2, py: 1.5, justifyContent: "space-between" }}
-                  >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <PersonIcon sx={{ fontSize: 16 }} />
-                      <Typography variant="body2" color="text.secondary">
-                        {blog.author?.username || 'Unknown Author'}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <CalendarIcon sx={{ fontSize: 16 }} />
-                      <Typography variant="body2" color="text.secondary">
-                        {new Date(blog.created_at).toLocaleDateString()}
-                      </Typography>
-                    </Box>
-                  </CardActions>
-                </Card>
-              </Grid>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <CommentIcon />8 comments
+                      </Box>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <BookmarkIcon />
+                        24 saves
+                      </Box>
+                    </BlogMeta>
+                    <BlogTags>
+                      <BlogTag label="Design" size="small" />
+                      <BlogTag label="UI/UX" size="small" />
+                      <BlogTag label="Development" size="small" />
+                    </BlogTags>
+                  </BlogText>
+                  {blog.image && (
+                    <BlogImage>
+                      <img src={blog.image} alt={blog.title} />
+                    </BlogImage>
+                  )}
+                </BlogContent>
+              </BlogCard>
             ))}
+
             {filteredAndSortedBlogs.length === 0 && (
-              <Grid item xs={12}>
-                <Box
-                  display="flex"
-                  flexDirection="column"
-                  alignItems="center"
-                  justifyContent="center"
-                  minHeight="200px"
-                >
-                  <Typography variant="h6" color="textSecondary" gutterBottom>
-                    No blog posts found
-                  </Typography>
-                </Box>
-              </Grid>
+              <Box textAlign="center" py={8}>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  No stories found
+                </Typography>
+                <Typography color="text.secondary">
+                  Try adjusting your search or filter to find what you're
+                  looking for.
+                </Typography>
+              </Box>
             )}
-          </Grid>
+          </Box>
         )}
       </Container>
     </>
