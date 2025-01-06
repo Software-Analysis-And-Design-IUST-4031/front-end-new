@@ -11,7 +11,7 @@ interface Post {
   description: string;
   image: string;
   favorite_painting: string;
-  favorite_painting_style: number;
+  favorite_painting_style: string;
   favorite_painter: string;
   favorite_painting_technique : string ;
   city: string;
@@ -29,7 +29,7 @@ const Painter: React.FC = () => {
   const [filters, setFilters] = useState({
     favorite_painting_style: '',
     favorite_painting_technique: '',
-    favorite_painting: '',
+    favorite_painter: '',
   });
 
   useEffect(() => {
@@ -55,6 +55,7 @@ const Painter: React.FC = () => {
           favorite_painting: user.favorite_painting || '',
           favorite_painting_style: user.favorite_painting_style || '',
           favorite_painter: user.favorite_painter || '',
+          favorite_painting_technique: user.favorite_painting_technique || '', // Ensure this is added
           city: user.city || '',
           country: user.country || '',
         }));
@@ -71,19 +72,16 @@ const Painter: React.FC = () => {
     fetchData();
   }, []);
 
-  const filteredPaintings = posts.filter((post) =>
-    (post.favorite_painting.toLowerCase().includes(filters.favorite_painting_technique.toLowerCase()) || !filters.favorite_painting_technique) &&
-    (post.favorite_painting_style.toString().includes(filters.favorite_painting_style) || !filters.favorite_painting_style) &&
-    (post.country.toLowerCase().includes(filters.favorite_painting.toLowerCase()) || !filters.favorite_painting) &&
-    (post.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.lastname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.favorite_painting.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.favorite_painter.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
+  const filteredPaintings = posts.filter((post) => {
+    return (
+      post.username.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (filters.favorite_painting_style && filters.favorite_painting_style !== '' ? post.favorite_painting_style.toLowerCase() === filters.favorite_painting_style.toLowerCase() : true) &&
+      (filters.favorite_painting_technique && filters.favorite_painting_technique !== '' ? post.favorite_painting_technique.toLowerCase() === filters.favorite_painting_technique.toLowerCase() : true) &&
+      (filters.favorite_painter && filters.favorite_painter !== '' ? post.favorite_painter.toLowerCase() === filters.favorite_painter.toLowerCase() : true) 
+    );
+  });
+  
+  
 
   const totalPages = Math.ceil(filteredPaintings.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -103,6 +101,7 @@ const Painter: React.FC = () => {
       [field]: e.target.value as string,
     }));
   };
+  
 
   return (
     <Box
@@ -235,45 +234,45 @@ const Painter: React.FC = () => {
               }}
             >
               <MenuItem value="">None</MenuItem>
-              <MenuItem value={1}>Abstract</MenuItem>
-              <MenuItem value={2}>Realism</MenuItem>
-              <MenuItem value={3}>Impressionism</MenuItem>
-              <MenuItem value={4}>Expressionism</MenuItem>
-              <MenuItem value={5}>Surrealism</MenuItem>
-              <MenuItem value={6}>Pop Art</MenuItem>
-              <MenuItem value={7}>Minimalism</MenuItem>
-              <MenuItem value={8}>Contemporary</MenuItem>
-              <MenuItem value={9}>Modern</MenuItem>
-              <MenuItem value={10}>Traditional</MenuItem>
-              <MenuItem value={11}>Baroque</MenuItem>
-              <MenuItem value={12}>Renaissance</MenuItem>
-              <MenuItem value={13}>Cubism</MenuItem>
-              <MenuItem value={14}>Art Nouveau</MenuItem>
-              <MenuItem value={15}>Art Deco</MenuItem>
-              <MenuItem value={16}>Gothic</MenuItem>
-              <MenuItem value={17}>Romanticism</MenuItem>
-              <MenuItem value={18}>Neoclassicism</MenuItem>
-              <MenuItem value={19}>Post-Impressionism</MenuItem>
-              <MenuItem value={20}>Pointillism</MenuItem>
-              <MenuItem value={21}>Fauvism</MenuItem>
-              <MenuItem value={22}>Abstract Expressionism</MenuItem>
-              <MenuItem value={23}>Color Field</MenuItem>
-              <MenuItem value={24}>Op Art</MenuItem>
-              <MenuItem value={25}>Kinetic Art</MenuItem>
-              <MenuItem value={26}>Installation Art</MenuItem>
-              <MenuItem value={27}>Performance Art</MenuItem>
-              <MenuItem value={28}>Digital Art</MenuItem>
-              <MenuItem value={29}>Street Art</MenuItem>
-              <MenuItem value={30}>Folk Art</MenuItem>
+                <MenuItem value="Abstract">Abstract</MenuItem>
+                <MenuItem value="Realism">Realism</MenuItem>
+                <MenuItem value="Impressionism">Impressionism</MenuItem>
+                <MenuItem value="Expressionism">Expressionism</MenuItem>
+                <MenuItem value="Surrealism">Surrealism</MenuItem>
+                <MenuItem value="Pop Art">Pop Art</MenuItem>
+                <MenuItem value="Minimalism">Minimalism</MenuItem>
+                <MenuItem value="Contemporary">Contemporary</MenuItem>
+                <MenuItem value="Modern">Modern</MenuItem>
+                <MenuItem value="Traditional">Traditional</MenuItem>
+                <MenuItem value="Baroque">Baroque</MenuItem>
+                <MenuItem value="Renaissance">Renaissance</MenuItem>
+                <MenuItem value="Cubism">Cubism</MenuItem>
+                <MenuItem value="Art Nouveau">Art Nouveau</MenuItem>
+                <MenuItem value="Art Deco">Art Deco</MenuItem>
+                <MenuItem value="Gothic">Gothic</MenuItem>
+                <MenuItem value="Romanticism">Romanticism</MenuItem>
+                <MenuItem value="Neoclassicism">Neoclassicism</MenuItem>
+                <MenuItem value="Post-Impressionism">Post-Impressionism</MenuItem>
+                <MenuItem value="Pointillism">Pointillism</MenuItem>
+                <MenuItem value="Fauvism">Fauvism</MenuItem>
+                <MenuItem value="Abstract Expressionism">Abstract Expressionism</MenuItem>
+                <MenuItem value="Color Field">Color Field</MenuItem>
+                <MenuItem value="Op Art">Op Art</MenuItem>
+                <MenuItem value="Kinetic Art">Kinetic Art</MenuItem>
+                <MenuItem value="Installation Art">Installation Art</MenuItem>
+                <MenuItem value="Performance Art">Performance Art</MenuItem>
+                <MenuItem value="Digital Art">Digital Art</MenuItem>
+                <MenuItem value="Street Art">Street Art</MenuItem>
+                <MenuItem value="Folk Art">Folk Art</MenuItem>
             </Select>
           </FormControl>
 
           <FormControl fullWidth sx={{ maxWidth: 200 }}>
-            <InputLabel>Favorite Painting</InputLabel>
+            <InputLabel>Favorite Painter</InputLabel>
             <Select
-              value={filters.favorite_painting}
-              onChange={(e) => handleFilterChange(e, 'favorite_painting')}
-              label="favorite painting"
+              value={filters.favorite_painter}
+              onChange={(e) => handleFilterChange(e, 'favorite_painter')}
+              label="favorite painter"
               sx={{
                 maxWidth: 200,
                 borderRadius: '20px', // Added more border radius

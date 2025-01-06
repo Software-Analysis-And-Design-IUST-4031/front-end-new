@@ -20,7 +20,7 @@ interface Post {
   description: string;
   image: string;
   favorite_painting: string;
-  favorite_painting_style: number;
+  favorite_painting_style: string;
   favorite_painter: string;
   favorite_painting_technique : string ;
   city: string;
