@@ -9,6 +9,11 @@ export interface Blog {
   author_name: string;
   image?: string;
   comments?: Comment[];
+  author: {
+    username: string;
+    id: number;
+    avatarUrl?: string;
+  };
 }
 
 export interface Comment {
@@ -25,6 +30,7 @@ export interface Comment {
 
 export interface CommentCreateData {
   content: string;
+  parent_id?: number;
 }
 
 const blogService = {

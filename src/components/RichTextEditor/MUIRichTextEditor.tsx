@@ -251,12 +251,20 @@ const MUIRichTextEditor: React.FC<Props> = ({ value, onChange, readOnly = false 
           borderRadius: 1,
           p: 2,
           minHeight: '200px',
+          direction: 'ltr',
+          textAlign: 'left',
           '& .DraftEditor-root': {
             height: '100%',
+            direction: 'ltr',
           },
           '& .public-DraftEditor-content': {
             minHeight: '200px',
+            direction: 'ltr',
+            unicodeBidi: 'isolate',
           },
+          '& .DraftEditor-editorContainer': {
+            direction: 'ltr',
+          }
         }}
       >
         <Editor
@@ -267,6 +275,8 @@ const MUIRichTextEditor: React.FC<Props> = ({ value, onChange, readOnly = false 
           spellCheck={true}
           readOnly={readOnly}
           customStyleMap={styleMap}
+          textDirectionality="LTR"
+          textAlignment="left"
         />
       </Box>
     </Box>

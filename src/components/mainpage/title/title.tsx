@@ -10,11 +10,12 @@ const Title: React.FC = () => {
       component="section"
       sx={{
         py: 8,
-        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)',
         borderRadius: 2,
         mt: 6,
-        mb: 4,
+        mb: 20,
       }}
+      
     >
       <Container maxWidth="lg">
         <Grid
@@ -31,8 +32,7 @@ const Title: React.FC = () => {
               sx={{
                 fontWeight: 700,
                 background: theme.palette.mode === 'dark'
-                  ? 'linear-gradient(45deg, #fff 30%, #e0e0e0 90%)'
-                  : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                  ? 'linear-gradient(45deg, #0D47A1 30%, #1976D2 90%)' : 'linear-gradient(45deg, #0D47A1 30%, #1976D2 90%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
               }}

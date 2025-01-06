@@ -14,10 +14,11 @@ import MainPage from "./components/mainpage/mainpage";
 import BlogPage from "./components/Blog/BlogPage";
 import BlogPost from "./components/Blog/BlogPost";
 import BlogEditor from "./components/Blog/BlogEditor";
-import GalleriesPage from "./components/Gallery/GalleriesPage";
+import GalleriesPage from "./pages/GalleriesPage";
 import ProfilePage from "./components/UserPanel/ProfilePage";
 import { AuthProvider } from "./context/AuthContext";
 import { ColorModeProvider, useColorMode } from "./context/ColorModeContext";
+import ChatPage from './chatpage/chatpage';
 
 export { useColorMode };
 
@@ -93,13 +94,18 @@ function App() {
                 }
               />
               <Route
-                path="/profile"
+                path="/profile/:userId"
                 element={
                   <ProtectedRoute>
                     <ProfilePage />
                   </ProtectedRoute>
                 }
               />
+              <Route path = "/chatpage" element = {
+              <ProtectedRoute>
+                <ChatPage/>
+              </ProtectedRoute>
+            } />
             </Routes>
           </AuthProvider>
         </SnackbarProvider>

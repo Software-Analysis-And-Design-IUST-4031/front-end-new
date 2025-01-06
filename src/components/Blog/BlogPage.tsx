@@ -42,7 +42,8 @@ import {
 import blogService, { Blog } from "../../services/blogService";
 import Navbar from "../Navbar";
 import { useAuth } from "../../context/AuthContext";
-import styled from "@emotion/styled";
+import { Theme } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 
 const HeroSection = styled(Box)(({ theme }) => ({
   background:

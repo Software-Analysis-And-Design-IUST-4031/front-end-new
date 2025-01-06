@@ -48,7 +48,7 @@ const LandingPage: React.FC = () => {
             <img
               src={
                 theme.palette.mode === "dark"
-                  ? "/assets/white_on_trans.png"
+                  ? "/assets/black_on_trans.png"
                   : "/assets/black_on_trans.png"
               }
               alt="Logo"

@@ -1,0 +1,52 @@
+/* Header.css */
+body {
+    margin: 0;
+}
+
+.header {
+    top: 0;
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background-color: #000000;
+    text-align: left;
+    z-index: 1000;
+    border-bottom: 1px solid #333; /* Add a bottom border */
+    border-radius: 0 0 8px 8px; /* Smooth corners at the bottom */
+}
+
+.header-title {
+    margin: 0;
+    flex-grow: 1;
+    font-family: 'Pacifico', cursive;
+    color: white;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    font-family: 'Pacifico', cursive;
+}
+
+.button-primary {
+    background-color: #ffffff;
+    color: rgb(0, 0, 0);
+}
+
+.button-secondary {
+    background-color: #6C757D;
+    color: white;
+}
+
+.button:hover {
+    opacity: 0.9;
+}
