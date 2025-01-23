@@ -1,4 +1,4 @@
-import api from './api';
+import api, { MEDIA_URL } from './api';
 import { UserProfile, BackendPainting, LoginResponse } from '../types';
 import { countries as mockCountries, getCitiesForCountry as getMockCities } from '../data/locationData';
 
@@ -60,6 +60,11 @@ interface CitiesResponse {
   cities: string[];
 }
 
+interface UpdateProfileResponse {
+  message: string;
+  user: UserProfile;
+}
+
 export const userService = {
   login: async (username: string, password: string): Promise<LoginResponse> => {
     try {
@@ -107,13 +112,60 @@ export const userService = {
 
   async updateUserProfile(userId: number, data: FormData): Promise<void> {
     try {
-      await api.put(`/user/${userId}/updateEditProfile/`, data, {
+      // Log the FormData contents for debugging
+      const formDataEntries = Array.from(data.entries()).map(([key, value]) => ({
+        key,
+        value: value instanceof File ? {
+          name: value.name,
+          type: value.type,
+          size: value.size
+        } : value
+      }));
+
+      console.log('Updating profile with data:', {
+        userId,
+        formDataEntries
+      });
+
+      const response = await api.put<UpdateProfileResponse>(`/user/${userId}/updateEditProfile/`, data, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          Accept: 'application/json',
         },
       });
+
+      if (!response.data) {
+        throw new Error('No response data received');
+      }
+
+      // If there's a profile picture in the response, update the cache
+      if (response.data.user && response.data.user.profile_picture && typeof response.data.user.profile_picture === 'string') {
+        const profilePicUrl = response.data.user.profile_picture.startsWith('http')
+          ? response.data.user.profile_picture
+          : `${MEDIA_URL}/${response.data.user.profile_picture.replace(/^\//, '')}`;
+        localStorage.setItem('lastProfilePicture', profilePicUrl);
+      }
+
+      console.log('Profile update response:', response.data);
     } catch (error: any) {
-      console.error('Error updating profile:', error);
+      console.error('Error updating profile:', {
+        error: {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        }
+      });
+
+      if (error.response?.status === 400) {
+        const errorDetails = error.response.data.details || {};
+        console.error('Validation errors:', errorDetails);
+        throw {
+          error: 'Invalid data',
+          details: errorDetails,
+          message: error.response.data.error || error.message
+        };
+      }
+
       throw error.response?.data?.error || error.message || 'Failed to update profile';
     }
   },

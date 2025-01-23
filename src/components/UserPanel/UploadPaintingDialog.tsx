@@ -1,31 +1,278 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useRef } from "react";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
+  TextField,
   Box,
   Typography,
   IconButton,
   styled,
   useTheme,
-  CircularProgress,
-  Grid,
   MenuItem,
-  InputAdornment,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  Select,
-} from '@mui/material';
-import { useDropzone } from 'react-dropzone';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import StraightenIcon from '@mui/icons-material/Straighten';
-import StyleIcon from '@mui/icons-material/Style';
-import BrushIcon from '@mui/icons-material/Brush';
-import EventIcon from '@mui/icons-material/Event';
+} from "@mui/material";
+import {
+  Close as CloseIcon,
+  CloudUpload as CloudUploadIcon,
+  MonetizationOn as MonetizationOnIcon,
+} from "@mui/icons-material";
+
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  "& .MuiDialog-paper": {
+    borderRadius: 24,
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(26, 26, 26, 0.98)"
+        : "rgba(255, 255, 255, 0.98)",
+    backdropFilter: "blur(20px)",
+    border: `1px solid ${
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(0, 0, 0, 0.05)"
+    }`,
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 8px 32px rgba(0, 0, 0, 0.4)"
+        : "0 8px 32px rgba(0, 0, 0, 0.1)",
+    overflow: "hidden",
+    maxWidth: 500,
+    margin: theme.spacing(2),
+  },
+  "& .MuiBackdrop-root": {
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(0, 0, 0, 0.8)"
+        : "rgba(0, 0, 0, 0.5)",
+    backdropFilter: "blur(8px)",
+  },
+}));
+
+const DialogHeader = styled(DialogTitle)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  padding: theme.spacing(3),
+  background:
+    theme.palette.mode === "dark"
+      ? "linear-gradient(145deg, rgba(26,26,26,0.95) 0%, rgba(32,32,32,0.95) 100%)"
+      : "linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(250,250,250,0.95) 100%)",
+  borderBottom: `1px solid ${
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.1)"
+      : "rgba(0, 0, 0, 0.05)"
+  }`,
+  "& .MuiTypography-root": {
+    fontSize: "1.25rem",
+    fontWeight: 700,
+    color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  },
+}));
+
+const CloseButton = styled(IconButton)(({ theme }) => ({
+  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  "&:hover": {
+    transform: "rotate(90deg)",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(0, 0, 0, 0.05)",
+  },
+}));
+
+const UploadArea = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(6),
+  border: `2px dashed ${
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.2)"
+      : "rgba(0, 0, 0, 0.15)"
+  }`,
+  borderRadius: 20,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: theme.spacing(2),
+  cursor: "pointer",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.02)"
+      : "rgba(0, 0, 0, 0.02)",
+  "&:hover": {
+    borderColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.3)"
+        : "rgba(0, 0, 0, 0.25)",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.03)"
+        : "rgba(0, 0, 0, 0.03)",
+    transform: "translateY(-2px)",
+  },
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  "& .MuiOutlinedInput-root": {
+    borderRadius: 12,
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.03)"
+        : "rgba(0, 0, 0, 0.02)",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    minHeight: 56,
+    "&:hover": {
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.05)"
+          : "rgba(0, 0, 0, 0.03)",
+    },
+    "&.Mui-focused": {
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.05)"
+          : "rgba(0, 0, 0, 0.03)",
+      boxShadow: `0 0 0 2px ${
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.2)"
+          : "rgba(0, 0, 0, 0.1)"
+      }`,
+    },
+  },
+  "& .MuiInputBase-input": {
+    minHeight: 24,
+  },
+}));
+
+const PreviewImage = styled("img")({
+  width: "100%",
+  height: 300,
+  objectFit: "contain",
+  borderRadius: 16,
+  marginBottom: 24,
+  backgroundColor: "rgba(0, 0, 0, 0.03)",
+  padding: 16,
+});
+
+const ActionButton = styled(Button)(({ theme }) => ({
+  borderRadius: 12,
+  padding: "12px 24px",
+  textTransform: "none",
+  fontWeight: 600,
+  fontSize: "0.925rem",
+  letterSpacing: "0.2px",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  "&.MuiButton-contained": {
+    backgroundColor: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+    color: theme.palette.mode === "dark" ? "#000000" : "#FFFFFF",
+    "&:hover": {
+      backgroundColor: theme.palette.mode === "dark" ? "#F8F8F8" : "#111111",
+      transform: "translateY(-2px)",
+      boxShadow:
+        theme.palette.mode === "dark"
+          ? "0 4px 24px rgba(0, 0, 0, 0.2)"
+          : "0 4px 24px rgba(0, 0, 0, 0.15)",
+    },
+  },
+  "&.MuiButton-outlined": {
+    borderColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.2)"
+        : "rgba(0, 0, 0, 0.15)",
+    "&:hover": {
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.05)"
+          : "rgba(0, 0, 0, 0.03)",
+      transform: "translateY(-2px)",
+    },
+  },
+}));
+
+const paintingStyles = [
+  "Abstract",
+  "Realism",
+  "Impressionism",
+  "Expressionism",
+  "Minimalism",
+  "Surrealism",
+  "Pop Art",
+  "Contemporary",
+];
+
+const paintingMaterials = [
+  "Oil",
+  "Acrylic",
+  "Watercolor",
+  "Charcoal",
+  "Pencil",
+  "Pastel",
+  "Mixed Media",
+  "Digital",
+];
+
+const StyledSelect = styled(TextField)(({ theme }) => ({
+  "& .MuiOutlinedInput-root": {
+    borderRadius: 12,
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.03)"
+        : "rgba(0, 0, 0, 0.02)",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    "&:hover": {
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.05)"
+          : "rgba(0, 0, 0, 0.03)",
+    },
+    "&.Mui-focused": {
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.05)"
+          : "rgba(0, 0, 0, 0.03)",
+      boxShadow: `0 0 0 2px ${
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.2)"
+          : "rgba(0, 0, 0, 0.1)"
+      }`,
+    },
+  },
+}));
+
+const StyledCoinIcon = styled(MonetizationOnIcon)(({ theme }) => ({
+  background:
+    theme.palette.mode === "dark"
+      ? "linear-gradient(135deg, #FFD700 0%, #FDB931 50%, #FFD700 100%)"
+      : "linear-gradient(135deg, #FFD700 0%, #FDB931 50%, #FFD700 100%)",
+  borderRadius: "50%",
+  padding: 4,
+  fontSize: "1.5rem",
+  boxShadow:
+    theme.palette.mode === "dark"
+      ? "0 0 10px rgba(255, 215, 0, 0.3)"
+      : "0 0 10px rgba(253, 185, 49, 0.3)",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  animation: "coinShine 3s infinite",
+  "@keyframes coinShine": {
+    "0%": {
+      filter: "brightness(100%)",
+    },
+    "50%": {
+      filter: "brightness(120%)",
+    },
+    "100%": {
+      filter: "brightness(100%)",
+    },
+  },
+  "&:hover": {
+    transform: "scale(1.1) rotate(15deg)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 0 15px rgba(255, 215, 0, 0.5)"
+        : "0 0 15px rgba(253, 185, 49, 0.5)",
+  },
+}));
 
 interface UploadPaintingDialogProps {
   open: boolean;
@@ -33,471 +280,255 @@ interface UploadPaintingDialogProps {
   onUpload: (data: FormData) => Promise<void>;
 }
 
-const StyledDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialog-paper': {
-    borderRadius: 16,
-    backgroundColor: theme.palette.mode === 'dark' ? '#1A1A1A' : '#FFFFFF',
-  },
-}));
-
-const DialogHeader = styled(DialogTitle)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? '#2A2A2A' : '#F5F5F5',
-  color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
-  padding: theme.spacing(3),
-}));
-
-const DropzoneBox = styled(Box)(({ theme }) => ({
-  border: `2px dashed ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-  borderRadius: 16,
-  padding: theme.spacing(6),
-  minHeight: 300,
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  textAlign: 'center',
-  cursor: 'pointer',
-  transition: 'all 0.2s ease-in-out',
-  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-  '&:hover': {
-    borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
-    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-  },
-}));
-
-const PreviewBox = styled(Box)(({ theme }) => ({
-  position: 'relative',
-  width: '100%',
-  paddingTop: '75%',
-  borderRadius: 16,
-  overflow: 'hidden',
-  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-}));
-
-const PreviewImage = styled('img')({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  objectFit: 'contain',
-});
-
-const DeleteButton = styled(IconButton)(({ theme }) => ({
-  position: 'absolute',
-  top: theme.spacing(1),
-  right: theme.spacing(1),
-  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.8)',
-  color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
-  '&:hover': {
-    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.9)',
-  },
-}));
-
-const ActionButton = styled(Button)(({ theme }) => ({
-  padding: '10px 24px',
-  borderRadius: 8,
-  textTransform: 'none',
-  fontWeight: 600,
-  fontSize: '1rem',
-  transition: 'all 0.2s ease-in-out',
-  '&:focus-visible': {
-    outline: `2px solid ${theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000'}`,
-    outlineOffset: 2,
-  },
-}));
-
-const CancelButton = styled(ActionButton)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-  color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
-  '&:hover': {
-    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-  },
-}));
-
-const SubmitButton = styled(ActionButton)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? '#2A2A2A' : '#FFFFFF',
-  color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
-  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-  '&:hover': {
-    backgroundColor: theme.palette.mode === 'dark' ? '#3A3A3A' : '#F5F5F5',
-  },
-  '&.Mui-disabled': {
-    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-    color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
-  },
-}));
-
-const paintingStyles = [
-  'Abstract', 'Realism', 'Impressionism', 'Expressionism', 
-  'Minimalism', 'Surrealism', 'Pop Art', 'Contemporary'
-];
-
-const paintingMaterials = [
-  'Oil', 'Acrylic', 'Watercolor', 'Charcoal', 
-  'Pencil', 'Pastel', 'Mixed Media', 'Digital'
-];
-
 const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
   open,
   onClose,
   onUpload,
 }) => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [year, setYear] = useState("");
+  const [style, setStyle] = useState("");
+  const [material, setMaterial] = useState("");
+  const [horizontalDepth, setHorizontalDepth] = useState("");
+  const [verticalDepth, setVerticalDepth] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = useTheme();
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string>('');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [year, setYear] = useState('');
-  const [style, setStyle] = useState('');
-  const [material, setMaterial] = useState('');
-  const [horizontalDepth, setHorizontalDepth] = useState('');
-  const [verticalDepth, setVerticalDepth] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string>('');
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    setError(''); // Clear any previous errors
-    const file = acceptedFiles[0];
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
-      // Validate file type
-      const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-      if (!validTypes.includes(file.type)) {
-        setError(`Invalid file type. Please upload a JPEG, PNG, or GIF file.`);
-        return;
-      }
-
-
-      if (file.size > 5242880) {
-        setError('File is too large. Maximum size is 5MB.');
-        return;
-      }
-      if (preview) {
-        URL.revokeObjectURL(preview);
-      }
-
-      setFile(file);
-      const previewUrl = URL.createObjectURL(file);
-      setPreview(previewUrl);
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }, [preview]);
+  };
 
-  // Clean up preview URL when component unmounts or dialog closes
-  useEffect(() => {
-    return () => {
-      if (preview) {
-        URL.revokeObjectURL(preview);
-      }
-    };
-  }, [preview]);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png'],
-      'image/gif': ['.gif']
-    },
-    multiple: false,
-    maxSize: 5242880, // 5MB
-    noClick: false, // Enable click to open file dialog
-    noKeyboard: false, // Enable keyboard navigation
-  });
-
-  const handleRemoveImage = () => {
-    if (preview) {
-      URL.revokeObjectURL(preview);
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-    setFile(null);
-    setPreview('');
   };
 
   const handleSubmit = async () => {
-    if (!file || !title) {
-      setError('Please provide both an image and a title');
-      return;
-    }
+    if (!selectedFile) return;
 
-    setUploading(true);
-    setError('');
-    
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('title', title);
-      if (description) formData.append('description', description);
-      if (price) formData.append('price', price.toString());
-      if (year) formData.append('year', year.toString());
-      if (style) formData.append('style', style);
-      if (material) formData.append('material', material);
-      if (horizontalDepth) formData.append('horizontal_depth', horizontalDepth.toString());
-      if (verticalDepth) formData.append('vertical_depth', verticalDepth.toString());
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("price", price);
+    formData.append("year", year);
+    formData.append("style", style);
+    formData.append("material", material);
+    formData.append("horizontal_depth", horizontalDepth);
+    formData.append("vertical_depth", verticalDepth);
+    formData.append("image", selectedFile);
 
-      // Log FormData contents for debugging
-      console.log('FormData contents:');
-      for (let [key, value] of formData.entries()) {
-        if (value instanceof File) {
-          console.log(`${key}: File(name=${value.name}, type=${value.type}, size=${value.size})`);
-        } else {
-          console.log(`${key}: ${value}`);
-        }
-      }
-
-      await onUpload(formData);
-      handleClose();
-    } catch (error: any) {
-      console.error('Upload failed:', {
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-      setError(error.message || 'Failed to upload painting. Please try again.');
-    } finally {
-      setUploading(false);
-    }
+    await onUpload(formData);
+    handleClose();
   };
 
   const handleClose = () => {
-    setFile(null);
-    setPreview('');
-    setTitle('');
-    setDescription('');
-    setPrice('');
-    setYear('');
-    setStyle('');
-    setMaterial('');
-    setHorizontalDepth('');
-    setVerticalDepth('');
+    setTitle("");
+    setDescription("");
+    setPrice("");
+    setYear("");
+    setStyle("");
+    setMaterial("");
+    setHorizontalDepth("");
+    setVerticalDepth("");
+    setSelectedFile(null);
+    setPreviewUrl(null);
     onClose();
   };
 
   return (
-    <StyledDialog
-      open={open}
-      onClose={handleClose}
-      maxWidth="md"
-      fullWidth
-    >
+    <StyledDialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogHeader>
-        <Typography component="div" variant="h5" fontWeight="600" color="text.primary">
-          Upload New Painting
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          Upload Your Painting
         </Typography>
+        <CloseButton onClick={handleClose} size="small">
+          <CloseIcon />
+        </CloseButton>
       </DialogHeader>
-
       <DialogContent sx={{ p: 3 }}>
-        {error && (
-          <Typography color="error" sx={{ mb: 2 }}>
-            {error}
-          </Typography>
-        )}
-        <form id="painting-upload-form" noValidate autoComplete="off">
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              {!preview ? (
-                <DropzoneBox {...getRootProps()}>
-                  <input {...getInputProps()} />
-                  <CloudUploadIcon sx={{ fontSize: 64, mb: 2, color: 'text.secondary' }} />
-                  <Typography variant="h6" color="text.secondary" gutterBottom>
-                    {isDragActive ? 'Drop the image here' : 'Drag & drop an image here'}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    or click to select a file
-                  </Typography>
-                </DropzoneBox>
-              ) : (
-                <PreviewBox>
-                  <PreviewImage src={preview} alt="Painting preview" />
-                  <DeleteButton
-                    onClick={handleRemoveImage}
-                    aria-label="Remove uploaded image"
-                  >
-                    <DeleteOutlineIcon />
-                  </DeleteButton>
-                </PreviewBox>
-              )}
-            </Grid>
+        <Box sx={{ mb: 4 }}>
+          {previewUrl ? (
+            <Box
+              sx={{
+                position: "relative",
+                "&:hover .remove-preview": {
+                  opacity: 1,
+                },
+              }}
+            >
+              <PreviewImage src={previewUrl} alt="Preview" />
+              <IconButton
+                className="remove-preview"
+                sx={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  backgroundColor: "rgba(0,0,0,0.6)",
+                  color: "#fff",
+                  opacity: 0,
+                  transition: "opacity 0.2s",
+                  "&:hover": {
+                    backgroundColor: "rgba(0,0,0,0.8)",
+                  },
+                }}
+                onClick={() => {
+                  setSelectedFile(null);
+                  setPreviewUrl(null);
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          ) : (
+            <UploadArea
+              onDrop={handleDrop}
+              onDragOver={(e) => e.preventDefault()}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <CloudUploadIcon sx={{ fontSize: 64, opacity: 0.5 }} />
+              <Typography variant="h6" fontWeight={600}>
+                Drag and drop your image here
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                or click to browse from your computer
+              </Typography>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mt: 1 }}
+              >
+                Supports: JPG, PNG, WEBP (Max 10MB)
+              </Typography>
+              <input
+                ref={fileInputRef}
+                type="file"
+                hidden
+                accept="image/*"
+                onChange={handleFileSelect}
+              />
+            </UploadArea>
+          )}
+        </Box>
 
-            <Grid item xs={12} md={6}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <FormControl fullWidth required>
-                    <InputLabel htmlFor="painting-title">Title</InputLabel>
-                    <OutlinedInput
-                      id="painting-title"
-                      name="title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      label="Title"
-                      aria-required="true"
-                    />
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12}>
-                  <FormControl fullWidth>
-                    <InputLabel htmlFor="painting-description">Description</InputLabel>
-                    <OutlinedInput
-                      id="painting-description"
-                      name="description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      label="Description"
-                      multiline
-                      rows={3}
-                    />
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel htmlFor="painting-price">Price</InputLabel>
-                    <OutlinedInput
-                      id="painting-price"
-                      name="price"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      type="number"
-                      startAdornment={<InputAdornment position="start">$</InputAdornment>}
-                      label="Price"
-                    />
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel htmlFor="painting-year">Year</InputLabel>
-                    <OutlinedInput
-                      id="painting-year"
-                      name="year"
-                      value={year}
-                      onChange={(e) => setYear(e.target.value)}
-                      type="number"
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <EventIcon />
-                        </InputAdornment>
-                      }
-                      label="Year"
-                    />
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel id="painting-style-label">Style</InputLabel>
-                    <Select
-                      labelId="painting-style-label"
-                      id="painting-style"
-                      name="style"
-                      value={style}
-                      onChange={(e) => setStyle(e.target.value)}
-                      input={
-                        <OutlinedInput
-                          id="painting-style-input"
-                          name="style-input"
-                          label="Style"
-                        />
-                      }
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <StyleIcon />
-                        </InputAdornment>
-                      }
-                    >
-                      {paintingStyles.map((style) => (
-                        <MenuItem key={style} value={style}>{style}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel id="painting-material-label">Material</InputLabel>
-                    <Select
-                      labelId="painting-material-label"
-                      id="painting-material"
-                      name="material"
-                      value={material}
-                      onChange={(e) => setMaterial(e.target.value)}
-                      input={
-                        <OutlinedInput
-                          id="painting-material-input"
-                          name="material-input"
-                          label="Material"
-                        />
-                      }
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <BrushIcon />
-                        </InputAdornment>
-                      }
-                    >
-                      {paintingMaterials.map((material) => (
-                        <MenuItem key={material} value={material}>{material}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel htmlFor="painting-horizontal-length">
-                      Horizontal Length (cm)
-                    </InputLabel>
-                    <OutlinedInput
-                      id="painting-horizontal-length"
-                      name="horizontal_length"
-                      value={horizontalDepth}
-                      onChange={(e) => setHorizontalDepth(e.target.value)}
-                      type="number"
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <StraightenIcon />
-                        </InputAdornment>
-                      }
-                      label="Horizontal Length (cm)"
-                    />
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel htmlFor="painting-vertical-length">
-                      Vertical Length (cm)
-                    </InputLabel>
-                    <OutlinedInput
-                      id="painting-vertical-length"
-                      name="vertical_length"
-                      value={verticalDepth}
-                      onChange={(e) => setVerticalDepth(e.target.value)}
-                      type="number"
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <StraightenIcon />
-                        </InputAdornment>
-                      }
-                      label="Vertical Length (cm)"
-                    />
-                  </FormControl>
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
-        </form>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <StyledTextField
+            label="Title"
+            fullWidth
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            sx={{ minHeight: 56 }}
+          />
+          <StyledTextField
+            label="Description"
+            fullWidth
+            multiline
+            rows={4}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            sx={{ "& .MuiOutlinedInput-root": { minHeight: 120 } }}
+          />
+
+          <Box sx={{ display: "flex", gap: 3 }}>
+            <StyledTextField
+              label="Price"
+              fullWidth
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <StyledCoinIcon sx={{ mr: 1, color: "#FFFFFF" }} />
+                ),
+              }}
+            />
+            <StyledTextField
+              label="Year"
+              fullWidth
+              type="number"
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+            />
+          </Box>
+
+          <Box sx={{ display: "flex", gap: 3 }}>
+            <StyledSelect
+              select
+              label="Style"
+              fullWidth
+              value={style}
+              onChange={(e) => setStyle(e.target.value)}
+            >
+              {paintingStyles.map((s) => (
+                <MenuItem key={s} value={s}>
+                  {s}
+                </MenuItem>
+              ))}
+            </StyledSelect>
+            <StyledSelect
+              select
+              label="Material"
+              fullWidth
+              value={material}
+              onChange={(e) => setMaterial(e.target.value)}
+            >
+              {paintingMaterials.map((m) => (
+                <MenuItem key={m} value={m}>
+                  {m}
+                </MenuItem>
+              ))}
+            </StyledSelect>
+          </Box>
+
+          <Box sx={{ display: "flex", gap: 3 }}>
+            <StyledTextField
+              label="Width (cm)"
+              fullWidth
+              type="number"
+              value={horizontalDepth}
+              onChange={(e) => setHorizontalDepth(e.target.value)}
+            />
+            <StyledTextField
+              label="Height (cm)"
+              fullWidth
+              type="number"
+              value={verticalDepth}
+              onChange={(e) => setVerticalDepth(e.target.value)}
+            />
+          </Box>
+        </Box>
       </DialogContent>
-
       <DialogActions sx={{ p: 3, gap: 2 }}>
-        <CancelButton
-          onClick={handleClose}
-          tabIndex={0}
-          aria-label="Cancel upload"
-        >
+        <ActionButton variant="outlined" onClick={handleClose}>
           Cancel
-        </CancelButton>
-        <SubmitButton
+        </ActionButton>
+        <ActionButton
+          variant="contained"
           onClick={handleSubmit}
-          disabled={!file || !title || uploading}
-          tabIndex={0}
-          aria-label="Upload painting"
-          startIcon={uploading ? <CircularProgress size={20} /> : undefined}
+          disabled={!selectedFile || !title}
         >
-          {uploading ? 'Uploading...' : 'Upload'}
-        </SubmitButton>
+          Upload Painting
+        </ActionButton>
       </DialogActions>
     </StyledDialog>
   );

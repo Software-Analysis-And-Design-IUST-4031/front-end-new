@@ -212,37 +212,6 @@ const Gallery: React.FC<GalleryProps> = ({
               value={number_of_paintings}
               title="Associated Paintings"
             />
-            {/* <StatBox icon={<IoPeopleSharp style={{ fontSize: '14px' }} />} value={number_of_artists} title="Associated Artists" /> */}
-
-            <Tooltip
-              title="Send Message"
-              placement="top"
-              TransitionComponent={Zoom}
-              arrow
-            >
-              <IconButton
-                sx={{
-                  ml: "auto",
-                  width: "36px",
-                  height: "36px",
-                  background:
-                    mode === "dark"
-                      ? "rgba(255,255,255,0.1)"
-                      : "rgba(0,0,0,0.05)",
-                  backdropFilter: "blur(10px)",
-                  transition: "all 0.2s ease",
-                  "&:hover": {
-                    background:
-                      mode === "dark"
-                        ? "rgba(255,255,255,0.2)"
-                        : "rgba(0,0,0,0.1)",
-                    transform: "scale(1.1)",
-                  },
-                }}
-              >
-                <IoChatbubbleEllipsesSharp style={{ fontSize: "20px" }} />
-              </IconButton>
-            </Tooltip>
           </Box>
         </Box>
       </Box>

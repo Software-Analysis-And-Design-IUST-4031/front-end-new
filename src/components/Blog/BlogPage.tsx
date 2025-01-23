@@ -85,12 +85,30 @@ const BlogCard = styled(Paper)(({ theme }) => ({
   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   cursor: "pointer",
   border: `1px solid ${theme.palette.divider}`,
+  position: "relative",
+  overflow: "hidden",
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "4px",
+    height: "100%",
+    background: theme.palette.mode === "dark" ? "#ffffff" : "#000000",
+    opacity: 0,
+    transition: "opacity 0.3s ease",
+  },
   "&:hover": {
     transform: "translateY(-2px)",
     boxShadow: theme.shadows[4],
-    borderColor: theme.palette.primary.main,
+    "&::before": {
+      opacity: 0.2,
+    },
     "& .blog-title": {
-      color: theme.palette.primary.main,
+      color: theme.palette.mode === "dark" ? "#ffffff" : "#000000",
+    },
+    "& .blog-image": {
+      transform: "scale(1.05)",
     },
   },
 }));
@@ -117,9 +135,11 @@ const BlogText = styled(Box)(({ theme }) => ({
 const BlogImage = styled(Box)(({ theme }) => ({
   width: "280px",
   height: "200px",
-  borderRadius: theme.shape.borderRadius,
+  borderRadius: theme.shape.borderRadius * 2,
   overflow: "hidden",
   flexShrink: 0,
+  boxShadow: theme.shadows[2],
+  border: `1px solid ${theme.palette.divider}`,
   [theme.breakpoints.down("md")]: {
     width: "100%",
     height: "240px",
@@ -131,9 +151,6 @@ const BlogImage = styled(Box)(({ theme }) => ({
     objectFit: "cover",
     transition: "transform 0.6s ease",
   },
-  "&:hover img": {
-    transform: "scale(1.05)",
-  },
 }));
 
 const BlogTitle = styled(Typography)(({ theme }) => ({
@@ -143,10 +160,22 @@ const BlogTitle = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(2),
   color: theme.palette.text.primary,
   transition: "color 0.2s ease",
+  position: "relative",
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    bottom: "-8px",
+    left: 0,
+    width: "40px",
+    height: "2px",
+    background: theme.palette.mode === "dark" ? "#ffffff" : "#000000",
+    opacity: 0.2,
+  },
 }));
 
 const BlogExcerpt = styled(Typography)(({ theme }) => ({
-  color: theme.palette.text.secondary,
+  color:
+    theme.palette.mode === "dark" ? "#ffffff" : theme.palette.text.secondary,
   fontSize: "1.1rem",
   lineHeight: 1.6,
   marginBottom: theme.spacing(3),
@@ -181,11 +210,14 @@ const BlogTag = styled(Chip)(({ theme }) => ({
       : alpha(theme.palette.grey[200], 0.8),
   color: theme.palette.text.primary,
   fontWeight: 500,
+  border: `1px solid ${theme.palette.divider}`,
+  transition: "all 0.2s ease",
   "&:hover": {
     backgroundColor:
       theme.palette.mode === "dark"
         ? alpha(theme.palette.grey[700], 0.7)
         : alpha(theme.palette.grey[300], 0.9),
+    transform: "translateY(-1px)",
   },
 }));
 
@@ -245,8 +277,9 @@ const BlogPage: React.FC = () => {
         blog.content.toLowerCase().includes(searchTerm.toLowerCase());
 
       if (filter === "all") return matchesSearch;
-      if (filter === "my" && username && blog.author)
-        return matchesSearch && blog.author.username === username;
+      if (filter === "my" && username) {
+        return matchesSearch && blog.author_name === username;
+      }
       return matchesSearch;
     })
     .sort((a, b) => {
@@ -281,7 +314,15 @@ const BlogPage: React.FC = () => {
       <Navbar />
       <HeroSection>
         <Container maxWidth="md">
-          <Typography variant="h2" gutterBottom sx={{ fontWeight: 900, mb: 3 }}>
+          <Typography
+            variant="h2"
+            gutterBottom
+            sx={{
+              fontWeight: 900,
+              mb: 3,
+              color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+            }}
+          >
             Explore Our Blog
           </Typography>
           <Typography variant="h5" color="text.secondary" sx={{ mb: 6 }}>
@@ -452,17 +493,31 @@ const BlogPage: React.FC = () => {
                 }}
               >
                 <BlogHeader>
-                  <Avatar
-                    src={blog.author?.avatarUrl}
-                    sx={{ width: 48, height: 48 }}
-                  >
-                    {blog.author?.username?.[0].toUpperCase()}
+                  <Avatar sx={{ width: 48, height: 48 }}>
+                    {blog.author_name?.[0].toUpperCase()}
                   </Avatar>
                   <Box>
-                    <Typography variant="subtitle1" fontWeight={600}>
-                      {blog.author?.username || "Unknown Author"}
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={600}
+                      sx={{
+                        color:
+                          theme.palette.mode === "dark"
+                            ? "#ffffff"
+                            : theme.palette.text.primary,
+                      }}
+                    >
+                      {blog.author_name || "Unknown Author"}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color:
+                          theme.palette.mode === "dark"
+                            ? "rgba(255,255,255,0.7)"
+                            : theme.palette.text.secondary,
+                      }}
+                    >
                       {formatDate(blog.created_at)}
                     </Typography>
                   </Box>
@@ -471,35 +526,73 @@ const BlogPage: React.FC = () => {
                 <BlogContent>
                   <BlogText>
                     <BlogTitle className="blog-title">{blog.title}</BlogTitle>
-                    <BlogExcerpt>{blog.content}</BlogExcerpt>
+                    <BlogExcerpt component="div">
+                      {truncateText(
+                        blog.content.replace(/<\/?[^>]+(>|$)/g, " "),
+                        200
+                      )}
+                    </BlogExcerpt>
                     <BlogMeta>
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
-                        <VisibilityIcon />
-                        1.2k views
+                        <CalendarIcon
+                          sx={{
+                            color:
+                              theme.palette.mode === "dark"
+                                ? "#ffffff"
+                                : "inherit",
+                          }}
+                        />
+                        <Typography
+                          sx={{
+                            color:
+                              theme.palette.mode === "dark"
+                                ? "#ffffff"
+                                : theme.palette.text.secondary,
+                          }}
+                        >
+                          {formatDate(blog.created_at)}
+                        </Typography>
                       </Box>
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
-                        <CommentIcon />8 comments
-                      </Box>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <BookmarkIcon />
-                        24 saves
+                        <PersonIcon
+                          sx={{
+                            color:
+                              theme.palette.mode === "dark"
+                                ? "#ffffff"
+                                : "inherit",
+                          }}
+                        />
+                        <Typography
+                          sx={{
+                            color:
+                              theme.palette.mode === "dark"
+                                ? "#ffffff"
+                                : theme.palette.text.secondary,
+                          }}
+                        >
+                          {blog.author_name}
+                        </Typography>
                       </Box>
                     </BlogMeta>
-                    <BlogTags>
-                      <BlogTag label="Design" size="small" />
-                      <BlogTag label="UI/UX" size="small" />
-                      <BlogTag label="Development" size="small" />
-                    </BlogTags>
+                    {blog.tags && blog.tags.length > 0 && (
+                      <BlogTags>
+                        {blog.tags.map((tag, index) => (
+                          <BlogTag key={index} label={tag} size="small" />
+                        ))}
+                      </BlogTags>
+                    )}
                   </BlogText>
                   {blog.image && (
                     <BlogImage>
-                      <img src={blog.image} alt={blog.title} />
+                      <img
+                        src={blog.image}
+                        alt={blog.title}
+                        className="blog-image"
+                      />
                     </BlogImage>
                   )}
                 </BlogContent>

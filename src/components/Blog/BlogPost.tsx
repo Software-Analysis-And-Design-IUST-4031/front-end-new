@@ -31,6 +31,7 @@ import {
 import blogService, { Blog, Comment } from "../../services/blogService";
 import { useAuth } from "../../context/AuthContext";
 import Navbar from "../Navbar";
+import styled from "@emotion/styled";
 
 const BlogPost: React.FC = () => {
   const theme = useTheme();
@@ -48,11 +49,9 @@ const BlogPost: React.FC = () => {
     const fetchBlogAndComments = async () => {
       try {
         setLoading(true);
-        const [blogData, commentsData] = await Promise.all([
-          blogService.getBlog(Number(id)),
-          blogService.getComments(Number(id)),
-        ]);
+        const blogData = await blogService.getBlog(Number(id));
         setBlog(blogData);
+        const commentsData = await blogService.getComments(Number(id));
         setComments(commentsData);
         setError(null);
       } catch (err) {
@@ -96,14 +95,21 @@ const BlogPost: React.FC = () => {
     if (!newComment.trim() || !blog) return;
 
     try {
-      await blogService.addComment(blog.id, { content: newComment });
-      setNewComment("");
-      // Refresh comments
+      setLoading(true);
+      await blogService.addComment(blog.id, {
+        content: newComment,
+      });
+
       const updatedComments = await blogService.getComments(blog.id);
       setComments(updatedComments);
+      
+      setNewComment("");
+      setError(null);
     } catch (error) {
       console.error("Error adding comment:", error);
       setError("Failed to add comment. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -117,6 +123,36 @@ const BlogPost: React.FC = () => {
     };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
+
+  const CommentSection = styled(Box)(({ theme }) => ({
+    marginTop: theme.spacing(4),
+  }));
+
+  const CommentCard = styled(Paper)(({ theme }) => ({
+    padding: theme.spacing(3),
+    marginBottom: theme.spacing(2),
+    borderRadius: theme.shape.borderRadius,
+    background: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.divider}`,
+  }));
+
+  const CommentHeader = styled(Box)(({ theme }) => ({
+    display: "flex",
+    alignItems: "center",
+    marginBottom: theme.spacing(2),
+    gap: theme.spacing(2),
+  }));
+
+  const CommentContent = styled(Typography)(({ theme }) => ({
+    color: theme.palette.text.primary,
+    fontSize: "1rem",
+    lineHeight: 1.6,
+  }));
+
+  const CommentMeta = styled(Typography)(({ theme }) => ({
+    color: theme.palette.text.secondary,
+    fontSize: "0.875rem",
+  }));
 
   if (loading) {
     return (
@@ -174,40 +210,17 @@ const BlogPost: React.FC = () => {
           pt: 8,
           pb: 6,
           position: "relative",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "100%",
-            background: `radial-gradient(circle at 50% 0%, 
-              ${alpha(
-                theme.palette.mode === "dark" ? "#fff" : "#000",
-                0.03
-              )} 0%, 
-              transparent 70%)`,
-            pointerEvents: "none",
-          },
         }}
       >
         <Container maxWidth="lg">
           <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 2 }}>
             <IconButton
-              onClick={() => navigate("/blog")}
+              onClick={handleBack}
               sx={{
                 bgcolor:
                   theme.palette.mode === "dark"
                     ? alpha(theme.palette.common.white, 0.05)
                     : alpha(theme.palette.common.black, 0.02),
-                "&:hover": {
-                  bgcolor:
-                    theme.palette.mode === "dark"
-                      ? alpha(theme.palette.common.white, 0.1)
-                      : alpha(theme.palette.common.black, 0.05),
-                  transform: "translateX(-2px)",
-                },
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               }}
             >
               <ArrowBackIcon />
@@ -216,41 +229,15 @@ const BlogPost: React.FC = () => {
               <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
                 <Button
                   startIcon={<EditIcon />}
-                  onClick={() => navigate(`/blog/edit/${id}`)}
+                  onClick={handleEdit}
                   sx={{
                     borderRadius: "28px",
                     px: 4,
                     py: 1.5,
                     bgcolor:
-                      theme.palette.mode === "dark"
-                        ? theme.palette.common.white
-                        : theme.palette.common.black,
+                      theme.palette.mode === "dark" ? "#ffffff" : "#000000",
                     color:
-                      theme.palette.mode === "dark"
-                        ? theme.palette.common.black
-                        : theme.palette.common.white,
-                    fontSize: "1rem",
-                    fontWeight: 600,
-                    textTransform: "none",
-                    boxShadow:
-                      theme.palette.mode === "dark"
-                        ? "0 0 20px rgba(255, 255, 255, 0.1)"
-                        : "0 0 20px rgba(0, 0, 0, 0.1)",
-                    "&:hover": {
-                      bgcolor:
-                        theme.palette.mode === "dark"
-                          ? alpha(theme.palette.common.white, 0.9)
-                          : alpha(theme.palette.common.black, 0.8),
-                      transform: "translateY(-2px)",
-                      boxShadow:
-                        theme.palette.mode === "dark"
-                          ? "0 0 30px rgba(255, 255, 255, 0.2)"
-                          : "0 0 30px rgba(0, 0, 0, 0.2)",
-                    },
-                    "&:active": {
-                      transform: "translateY(-1px)",
-                    },
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      theme.palette.mode === "dark" ? "#000000" : "#ffffff",
                   }}
                 >
                   Edit Post
@@ -258,93 +245,58 @@ const BlogPost: React.FC = () => {
                 <Button
                   startIcon={<DeleteIcon />}
                   onClick={handleDeleteClick}
-                  sx={{
-                    borderRadius: "28px",
-                    px: 4,
-                    py: 1.5,
-                    bgcolor: alpha(theme.palette.error.main, 0.1),
-                    color: theme.palette.error.main,
-                    fontSize: "1rem",
-                    fontWeight: 600,
-                    textTransform: "none",
-                    border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`,
-                    "&:hover": {
-                      bgcolor: theme.palette.error.main,
-                      color: theme.palette.common.white,
-                      transform: "translateY(-2px)",
-                      boxShadow: `0 0 30px ${alpha(
-                        theme.palette.error.main,
-                        0.2
-                      )}`,
-                    },
-                    "&:active": {
-                      transform: "translateY(-1px)",
-                    },
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  }}
+                  color="error"
+                  sx={{ borderRadius: "28px", px: 4, py: 1.5 }}
                 >
                   Delete
                 </Button>
               </Box>
             )}
           </Box>
+        </Container>
+      </Box>
 
-          <Paper
-            elevation={0}
-            sx={{
-              p: { xs: 3, md: 6 },
-              borderRadius: "32px",
-              backgroundColor:
-                theme.palette.mode === "dark"
-                  ? alpha(theme.palette.common.white, 0.05)
-                  : alpha(theme.palette.common.black, 0.02),
-              backdropFilter: "blur(20px)",
-              border: `1px solid ${
-                theme.palette.mode === "dark"
-                  ? alpha(theme.palette.common.white, 0.1)
-                  : alpha(theme.palette.common.black, 0.05)
-              }`,
-              position: "relative",
-              overflow: "hidden",
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: "100%",
-                background: `radial-gradient(circle at 0% 0%, 
-                  ${alpha(
-                    theme.palette.mode === "dark" ? "#fff" : "#000",
-                    0.03
-                  )} 0%, 
-                  transparent 50%)`,
-                pointerEvents: "none",
-              },
-            }}
-          >
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            borderRadius: 2,
+            bgcolor: "background.paper",
+            border: `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          {/* Blog Content */}
+          <Box>
+            <Typography variant="h3" gutterBottom fontWeight={800}>
+              {blog.title}
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 3,
+                mb: 4,
+                color: theme.palette.text.secondary,
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <PersonIcon />
+                <Typography>{blog.author_name}</Typography>
+              </Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <CalendarIcon />
+                <Typography>{formatDate(blog.created_at)}</Typography>
+              </Box>
+            </Box>
             {blog.image && (
               <Box
                 sx={{
                   width: "100%",
-                  height: { xs: 300, md: 500 },
-                  mb: 4,
-                  position: "relative",
-                  borderRadius: "24px",
+                  height: 400,
+                  borderRadius: 2,
                   overflow: "hidden",
-                  "&::after": {
-                    content: '""',
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background:
-                      theme.palette.mode === "dark"
-                        ? "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.2) 100%)"
-                        : "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 100%)",
-                    pointerEvents: "none",
-                  },
+                  mb: 4,
                 }}
               >
                 <img
@@ -358,290 +310,115 @@ const BlogPost: React.FC = () => {
                 />
               </Box>
             )}
-
-            <Typography
-              variant="h2"
-              gutterBottom
+            <Box
+              dangerouslySetInnerHTML={{ __html: blog.content }}
               sx={{
-                fontWeight: 900,
-                letterSpacing: -1.5,
-                color:
-                  theme.palette.mode === "dark"
-                    ? theme.palette.common.white
-                    : theme.palette.common.black,
-                fontSize: { xs: "2rem", md: "3rem" },
-                lineHeight: 1.2,
-                mb: 4,
-              }}
-            >
-              {blog.title}
-            </Typography>
-
-            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-              <Avatar sx={{ mr: 1 }}>
-                {blog.author_name[0].toUpperCase()}
-              </Avatar>
-              <Typography variant="subtitle1" color="text.secondary">
-                {blog.author_name} • {formatDate(blog.created_at)}
-              </Typography>
-            </Box>
-
-            <Typography
-              variant="body1"
-              component="div"
-              sx={{
-                whiteSpace: "pre-wrap",
-                lineHeight: 1.8,
-                fontSize: "1.1rem",
-                color:
-                  theme.palette.mode === "dark"
-                    ? alpha(theme.palette.common.white, 0.9)
-                    : alpha(theme.palette.common.black, 0.9),
-                "& p": {
-                  mb: 3,
-                  "&:last-child": {
-                    mb: 0,
-                  },
+                "& p": { mb: 2, lineHeight: 1.8 },
+                "& img": {
+                  maxWidth: "100%",
+                  height: "auto",
+                  borderRadius: 1,
                 },
               }}
-              dangerouslySetInnerHTML={{ __html: blog.content }}
             />
+          </Box>
 
-            <Divider sx={{ my: 6 }} />
+          {/* Comments Section */}
+          <Box sx={{ mt: 6 }}>
+            <Typography variant="h5" gutterBottom fontWeight={600}>
+              Comments ({comments.length})
+            </Typography>
 
-            <Box sx={{ mt: 6 }}>
-              <Typography
-                variant="h4"
-                gutterBottom
+            {/* Add Comment Form */}
+            <Box
+              component="form"
+              onSubmit={handleCommentSubmit}
+              sx={{ mb: 4, mt: 3 }}
+            >
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                placeholder="Write a comment..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
                 sx={{
-                  fontWeight: 800,
-                  letterSpacing: -0.5,
-                  color:
-                    theme.palette.mode === "dark"
-                      ? theme.palette.common.white
-                      : theme.palette.common.black,
-                  mb: 4,
+                  mb: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                  },
+                }}
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={!newComment.trim()}
+                startIcon={<SendIcon />}
+                sx={{
+                  borderRadius: 28,
+                  px: 3,
+                  py: 1,
+                  bgcolor:
+                    theme.palette.mode === "dark" ? "#ffffff" : "#000000",
+                  color: theme.palette.mode === "dark" ? "#000000" : "#ffffff",
+                  "&:hover": {
+                    bgcolor:
+                      theme.palette.mode === "dark"
+                        ? alpha("#ffffff", 0.9)
+                        : alpha("#000000", 0.8),
+                  },
                 }}
               >
-                Comments
-              </Typography>
-
-              {username ? (
-                <Box sx={{ mb: 4 }}>
-                  <form onSubmit={handleCommentSubmit}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={3}
-                      placeholder="Add a comment..."
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: "20px",
-                          backgroundColor:
-                            theme.palette.mode === "dark"
-                              ? alpha(theme.palette.common.white, 0.05)
-                              : alpha(theme.palette.common.black, 0.02),
-                          transition: "all 0.3s ease",
-                          "&:hover": {
-                            backgroundColor:
-                              theme.palette.mode === "dark"
-                                ? alpha(theme.palette.common.white, 0.08)
-                                : alpha(theme.palette.common.black, 0.04),
-                            transform: "translateY(-1px)",
-                          },
-                          "&.Mui-focused": {
-                            backgroundColor:
-                              theme.palette.mode === "dark"
-                                ? alpha(theme.palette.common.white, 0.1)
-                                : alpha(theme.palette.common.black, 0.05),
-                            transform: "translateY(-1px)",
-                            boxShadow:
-                              theme.palette.mode === "dark"
-                                ? "0 0 20px rgba(255, 255, 255, 0.1)"
-                                : "0 0 20px rgba(0, 0, 0, 0.1)",
-                          },
-                          "& fieldset": {
-                            borderColor: "transparent",
-                          },
-                          "&:hover fieldset": {
-                            borderColor:
-                              theme.palette.mode === "dark"
-                                ? alpha(theme.palette.common.white, 0.1)
-                                : alpha(theme.palette.common.black, 0.1),
-                          },
-                          "&.Mui-focused fieldset": {
-                            borderColor:
-                              theme.palette.mode === "dark"
-                                ? alpha(theme.palette.common.white, 0.2)
-                                : alpha(theme.palette.common.black, 0.2),
-                          },
-                        },
-                      }}
-                    />
-                    <Box
-                      sx={{
-                        mt: 2,
-                        display: "flex",
-                        justifyContent: "flex-end",
-                      }}
-                    >
-                      <Button
-                        variant="contained"
-                        endIcon={<SendIcon />}
-                        type="submit"
-                        disabled={!newComment.trim()}
-                        sx={{
-                          borderRadius: "28px",
-                          px: 4,
-                          py: 1.5,
-                          bgcolor:
-                            theme.palette.mode === "dark"
-                              ? theme.palette.common.white
-                              : theme.palette.common.black,
-                          color:
-                            theme.palette.mode === "dark"
-                              ? theme.palette.common.black
-                              : theme.palette.common.white,
-                          fontSize: "1rem",
-                          fontWeight: 600,
-                          textTransform: "none",
-                          boxShadow:
-                            theme.palette.mode === "dark"
-                              ? "0 0 20px rgba(255, 255, 255, 0.1)"
-                              : "0 0 20px rgba(0, 0, 0, 0.1)",
-                          "&:hover": {
-                            bgcolor:
-                              theme.palette.mode === "dark"
-                                ? alpha(theme.palette.common.white, 0.9)
-                                : alpha(theme.palette.common.black, 0.8),
-                            transform: "translateY(-2px)",
-                            boxShadow:
-                              theme.palette.mode === "dark"
-                                ? "0 0 30px rgba(255, 255, 255, 0.2)"
-                                : "0 0 30px rgba(0, 0, 0, 0.2)",
-                          },
-                          "&:active": {
-                            transform: "translateY(-1px)",
-                          },
-                          "&.Mui-disabled": {
-                            bgcolor:
-                              theme.palette.mode === "dark"
-                                ? alpha(theme.palette.common.white, 0.1)
-                                : alpha(theme.palette.common.black, 0.1),
-                            color:
-                              theme.palette.mode === "dark"
-                                ? alpha(theme.palette.common.white, 0.3)
-                                : alpha(theme.palette.common.black, 0.3),
-                          },
-                          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                        }}
-                      >
-                        Post Comment
-                      </Button>
-                    </Box>
-                  </form>
-                </Box>
-              ) : (
-                <Alert severity="info" sx={{ mb: 4, borderRadius: "16px" }}>
-                  Please log in to add comments
-                </Alert>
-              )}
-
-              {comments.map((comment) => (
-                <Paper
-                  key={comment.id}
-                  elevation={0}
-                  sx={{
-                    p: 3,
-                    mb: 2,
-                    borderRadius: "20px",
-                    backgroundColor:
-                      theme.palette.mode === "dark"
-                        ? alpha(theme.palette.common.white, 0.03)
-                        : alpha(theme.palette.common.black, 0.01),
-                    border: `1px solid ${
-                      theme.palette.mode === "dark"
-                        ? alpha(theme.palette.common.white, 0.1)
-                        : alpha(theme.palette.common.black, 0.05)
-                    }`,
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      backgroundColor:
-                        theme.palette.mode === "dark"
-                          ? alpha(theme.palette.common.white, 0.05)
-                          : alpha(theme.palette.common.black, 0.02),
-                      transform: "translateX(4px)",
-                    },
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor:
-                          theme.palette.mode === "dark"
-                            ? alpha(theme.palette.common.white, 0.1)
-                            : alpha(theme.palette.common.black, 0.1),
-                        width: 32,
-                        height: 32,
-                      }}
-                    >
-                      {comment.author.username[0].toUpperCase()}
-                    </Avatar>
-                    <Box>
-                      <Typography variant="subtitle2">
-                        {comment.author.username}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {formatDate(comment.created_at)}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      ml: 7,
-                      color:
-                        theme.palette.mode === "dark"
-                          ? alpha(theme.palette.common.white, 0.9)
-                          : alpha(theme.palette.common.black, 0.9),
-                    }}
-                  >
-                    {comment.content}
-                  </Typography>
-                </Paper>
-              ))}
+                Post Comment
+              </Button>
             </Box>
-          </Paper>
-        </Container>
-      </Box>
 
+            {/* Comments List */}
+            <CommentSection>
+              {comments && comments.length > 0 ? (
+                comments.map((comment) => (
+                  <CommentCard key={comment.id} elevation={0}>
+                    <CommentHeader>
+                      <Avatar sx={{ width: 40, height: 40 }}>
+                        {comment.author_name[0].toUpperCase()}
+                      </Avatar>
+                      <Box>
+                        <Typography variant="subtitle1" fontWeight={600}>
+                          {comment.author_name}
+                        </Typography>
+                        <CommentMeta>
+                          {formatDate(comment.created_at)}
+                        </CommentMeta>
+                      </Box>
+                    </CommentHeader>
+                    <CommentContent>{comment.content}</CommentContent>
+                  </CommentCard>
+                ))
+              ) : (
+                <Box textAlign="center" py={4}>
+                  <Typography color="text.secondary">
+                    No comments yet. Be the first to comment!
+                  </Typography>
+                </Box>
+              )}
+            </CommentSection>
+          </Box>
+        </Paper>
+      </Container>
+
+      {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            width: "100%",
-            maxWidth: 400,
-          },
-        }}
       >
         <DialogTitle>Delete Blog Post</DialogTitle>
         <DialogContent>
-          <Typography>
-            Are you sure you want to delete this blog post? This action cannot
-            be undone.
-          </Typography>
+          Are you sure you want to delete this blog post? This action cannot be
+          undone.
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            color="error"
-            variant="contained"
-          >
+          <Button onClick={handleDeleteConfirm} color="error">
             Delete
           </Button>
         </DialogActions>

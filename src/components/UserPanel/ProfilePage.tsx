@@ -18,6 +18,13 @@ import {
   CircularProgress,
   Avatar,
   Snackbar,
+  Dialog,
+  Paper,
+  Chip,
+  Badge,
+  Divider,
+  Tooltip,
+  TooltipProps,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -37,50 +44,76 @@ const MainContainer = styled(Box)(({ theme }) => ({
   minHeight: "100vh",
   backgroundImage:
     theme.palette.mode === "dark"
-      ? "radial-gradient(circle at 50% 0%, rgba(255,64,129,0.03) 0%, rgba(0,0,0,0) 50%)"
-      : "radial-gradient(circle at 50% 0%, rgba(255,64,129,0.02) 0%, rgba(0,0,0,0) 50%)",
+      ? `
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0) 70%),
+        radial-gradient(circle at 80% 10%, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 70%)
+      `
+      : `
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 70%),
+        radial-gradient(circle at 80% 10%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%)
+      `,
+  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+  position: "relative",
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: "400px",
+    background:
+      theme.palette.mode === "dark"
+        ? "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0) 100%)"
+        : "linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%)",
+    pointerEvents: "none",
+  },
 }));
 
 const ContentWrapper = styled(Container)(({ theme }) => ({
   padding: theme.spacing(4, 3),
   marginTop: 64,
   position: "relative",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "100vw",
-    height: "100%",
-    backgroundImage:
-      theme.palette.mode === "dark"
-        ? "linear-gradient(to bottom, rgba(255,64,129,0.03) 0%, rgba(0,0,0,0) 200px)"
-        : "linear-gradient(to bottom, rgba(255,64,129,0.02) 0%, rgba(0,0,0,0) 200px)",
-    pointerEvents: "none",
+  animation: "fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+  "@keyframes fadeIn": {
+    from: {
+      opacity: 0,
+      transform: "translateY(30px)",
+    },
+    to: {
+      opacity: 1,
+      transform: "translateY(0)",
+    },
   },
 }));
 
 const ProfileCard = styled(Box)(({ theme }) => ({
   background:
     theme.palette.mode === "dark"
-      ? "linear-gradient(145deg, rgba(20,20,20,0.9) 0%, rgba(30,30,30,0.9) 100%)"
-      : "linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(250,250,250,0.9) 100%)",
+      ? "linear-gradient(145deg, #141414 0%, #1A1A1A 100%)"
+      : "linear-gradient(145deg, #FFFFFF 0%, #F8F8F8 100%)",
   borderRadius: 32,
   padding: theme.spacing(5),
   marginBottom: theme.spacing(4),
   boxShadow:
     theme.palette.mode === "dark"
-      ? "0 8px 32px rgba(0, 0, 0, 0.3)"
-      : "0 8px 32px rgba(0, 0, 0, 0.06)",
-  backdropFilter: "blur(20px)",
+      ? "0 8px 32px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.2)"
+      : "0 8px 32px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.03)",
+  backdropFilter: "none",
   border: `1px solid ${
     theme.palette.mode === "dark"
-      ? "rgba(255,255,255,0.05)"
-      : "rgba(0,0,0,0.02)"
+      ? "rgba(255, 255, 255, 0.05)"
+      : "rgba(0, 0, 0, 0.03)"
   }`,
   position: "relative",
   overflow: "hidden",
+  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+  "&:hover": {
+    transform: "translateY(-4px)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 12px 40px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.4)"
+        : "0 12px 40px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.04)",
+  },
   "&::before": {
     content: '""',
     position: "absolute",
@@ -89,9 +122,11 @@ const ProfileCard = styled(Box)(({ theme }) => ({
     right: 0,
     height: "100%",
     background:
-      "linear-gradient(90deg, transparent, rgba(255,64,129,0.03), transparent)",
+      theme.palette.mode === "dark"
+        ? "linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent)"
+        : "linear-gradient(90deg, transparent, rgba(0,0,0,0.02), transparent)",
     transform: "translateX(-100%)",
-    animation: "shimmer 5s infinite",
+    animation: "shimmer 6s infinite",
   },
   "@keyframes shimmer": {
     "100%": {
@@ -103,69 +138,352 @@ const ProfileCard = styled(Box)(({ theme }) => ({
 const ProfileAvatar = styled(Avatar)(({ theme }) => ({
   width: 120,
   height: 120,
-  border: `4px solid ${theme.palette.background.paper}`,
-  boxShadow: "0 4px 14px rgba(0, 0, 0, 0.1)",
-  backgroundColor: theme.palette.mode === "dark" ? "#2A2A2A" : "#F5F5F5",
-  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
   fontSize: "2.5rem",
-  fontWeight: 700,
+  backgroundColor: theme.palette.mode === "dark" ? "#2C2C2C" : "#333333",
+  border: `3px solid ${theme.palette.background.paper}`,
+  boxShadow: `
+    0 4px 14px ${
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.2)"
+        : "rgba(0,0,0,0.2)"
+    },
+    0 0 0 2px ${theme.palette.background.paper},
+    0 0 0 4px ${
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.2)"
+        : "rgba(0,0,0,0.1)"
+    }
+  `,
+  transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+  cursor: "pointer",
+  "&:hover": {
+    transform: "scale(1.08) rotate(5deg)",
+    boxShadow: `
+      0 6px 20px ${
+        theme.palette.mode === "dark"
+          ? "rgba(255,255,255,0.3)"
+          : "rgba(0,0,0,0.3)"
+      },
+      0 0 0 4px ${theme.palette.background.paper},
+      0 0 0 8px ${
+        theme.palette.mode === "dark"
+          ? "rgba(255,255,255,0.2)"
+          : "rgba(0,0,0,0.2)"
+      }
+    `,
+  },
 }));
 
 const SocialButton = styled(IconButton)(({ theme }) => ({
   color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
-  backgroundColor: theme.palette.mode === "dark" ? "#1A1A1A" : "#F5F5F5",
-  borderRadius: 16,
+  backgroundColor: "transparent",
+  borderRadius: 14,
   padding: 12,
+  border: `1.5px solid ${
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.15)"
+      : "rgba(0, 0, 0, 0.1)"
+  }`,
   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  position: "relative",
+  overflow: "hidden",
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(0, 0, 0, 0.05)",
+    transform: "scale(0)",
+    transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    borderRadius: "50%",
+  },
   "&:hover": {
-    backgroundColor: theme.palette.mode === "dark" ? "#2A2A2A" : "#EBEBEB",
-    transform: "translateY(-2px) scale(1.05)",
-    boxShadow: "0 5px 15px rgba(0,0,0,0.1)",
+    backgroundColor: "transparent",
+    transform: "translateY(-2px)",
+    border: `1.5px solid ${
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.3)"
+        : "rgba(0, 0, 0, 0.2)"
+    }`,
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 4px 20px rgba(0, 0, 0, 0.3)"
+        : "0 4px 20px rgba(0, 0, 0, 0.15)",
+    "&::before": {
+      transform: "scale(1.5)",
+    },
+    "& .MuiSvgIcon-root": {
+      transform: "scale(1.1) rotate(5deg)",
+    },
   },
   "&:active": {
-    transform: "translateY(0) scale(0.95)",
+    transform: "translateY(0)",
+    boxShadow: "none",
+  },
+  "& .MuiSvgIcon-root": {
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    fontSize: "1.25rem",
   },
 }));
 
 const ActionButton = styled(Button)(({ theme }) => ({
-  borderRadius: 16,
-  padding: "12px 28px",
+  borderRadius: 12,
+  padding: theme.spacing(1.2, 3),
   textTransform: "none",
   fontWeight: 600,
-  backgroundColor: theme.palette.mode === "dark" ? "#2A2A2A" : "#F5F5F5",
-  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   "&:hover": {
-    backgroundColor: theme.palette.mode === "dark" ? "#3A3A3A" : "#EBEBEB",
+    transform: "translateY(-2px)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 4px 12px rgba(255,255,255,0.2)"
+        : "0 4px 12px rgba(0,0,0,0.2)",
   },
-  "&.outlined": {
-    borderColor: theme.palette.mode === "dark" ? "#3A3A3A" : "#E0E0E0",
-    backgroundColor: "transparent",
+  "&:active": {
+    transform: "translateY(0)",
+  },
+  "&.MuiButton-contained": {
+    backgroundColor: theme.palette.mode === "dark" ? "#FFFFFF" : "#333333",
+    color: theme.palette.mode === "dark" ? "#000000" : "#FFFFFF",
+    "&:hover": {
+      backgroundColor: theme.palette.mode === "dark" ? "#E0E0E0" : "#000000",
+    },
+  },
+  "&.MuiButton-outlined": {
+    borderColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.3)"
+        : "rgba(0,0,0,0.2)",
+    color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
     "&:hover": {
       backgroundColor:
         theme.palette.mode === "dark"
-          ? "rgba(255,255,255,0.05)"
+          ? "rgba(255,255,255,0.1)"
           : "rgba(0,0,0,0.05)",
     },
   },
 }));
+
 const TabButton = styled(Button)(({ theme }) => ({
-  color: theme.palette.text.secondary,
-  borderRadius: "4px 4px 0 0",
-  padding: theme.spacing(2, 4),
-  '&[data-active="true"]': {
+  borderRadius: 12,
+  padding: theme.spacing(1.5, 3),
+  textTransform: "none",
+  fontWeight: 600,
+  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  backgroundColor: "transparent",
+  border: `1px solid ${
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)"
+  }`,
+  "&:hover": {
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.1)"
+        : "rgba(0,0,0,0.05)",
+  },
+  "&.active": {
+    backgroundColor: theme.palette.mode === "dark" ? "#FFFFFF" : "#333333",
+    color: theme.palette.mode === "dark" ? "#000000" : "#FFFFFF",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 4px 12px rgba(255,255,255,0.2)"
+        : "0 4px 12px rgba(0,0,0,0.2)",
+  },
+}));
+
+const StyledChip = styled(Chip)(({ theme }) => ({
+  borderRadius: 8,
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "rgba(255,255,255,0.1)"
+      : "rgba(0,0,0,0.05)",
+  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  border: `1px solid ${
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)"
+  }`,
+  "& .MuiChip-deleteIcon": {
+    color:
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.7)"
+        : "rgba(0,0,0,0.7)",
+    "&:hover": {
+      color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+    },
+  },
+}));
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  "& .MuiBadge-badge": {
+    backgroundColor: theme.palette.mode === "dark" ? "#FFFFFF" : "#333333",
+    color: theme.palette.mode === "dark" ? "#000000" : "#FFFFFF",
+    boxShadow:
+      theme.palette.mode === "dark" ? "0 0 0 2px #1E1E1E" : "0 0 0 2px #FFFFFF",
+  },
+}));
+
+const StyledIconButton = styled(IconButton)(({ theme }) => ({
+  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "rgba(255,255,255,0.1)"
+      : "rgba(0,0,0,0.05)",
+  "&:hover": {
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.2)"
+        : "rgba(0,0,0,0.1)",
+  },
+}));
+
+const StyledDivider = styled(Divider)(({ theme }) => ({
+  borderColor:
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+}));
+
+const StyledTooltip = styled((props: TooltipProps) => <Tooltip {...props} />)(
+  ({ theme }) => ({
+    "& .MuiTooltip-tooltip": {
+      backgroundColor: theme.palette.mode === "dark" ? "#FFFFFF" : "#333333",
+      color: theme.palette.mode === "dark" ? "#000000" : "#FFFFFF",
+      boxShadow:
+        theme.palette.mode === "dark"
+          ? "0 4px 12px rgba(255,255,255,0.2)"
+          : "0 4px 12px rgba(0,0,0,0.2)",
+      fontSize: 12,
+      borderRadius: 8,
+    },
+  })
+);
+
+const UploadSection = styled(Box)(({ theme }) => ({
+  position: "fixed",
+  bottom: theme.spacing(4),
+  right: theme.spacing(4),
+  padding: theme.spacing(3),
+  borderRadius: 24,
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "rgba(26, 26, 26, 0.95)"
+      : "rgba(255, 255, 255, 0.95)",
+  backdropFilter: "blur(10px)",
+  border: `1px solid ${
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.1)"
+      : "rgba(0, 0, 0, 0.05)"
+  }`,
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  width: 320,
+  zIndex: 100,
+  boxShadow:
+    theme.palette.mode === "dark"
+      ? "0 8px 32px rgba(0, 0, 0, 0.4)"
+      : "0 8px 32px rgba(0, 0, 0, 0.1)",
+  transform: "translateY(0)",
+  "&:hover": {
+    transform: "translateY(-4px)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 12px 40px rgba(0, 0, 0, 0.5)"
+        : "0 12px 40px rgba(0, 0, 0, 0.15)",
+  },
+}));
+
+const UploadTitle = styled(Typography)(({ theme }) => ({
+  fontSize: "1.1rem",
+  fontWeight: 700,
+  marginBottom: theme.spacing(1),
+  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  letterSpacing: "-0.3px",
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(1),
+  "& .MuiSvgIcon-root": {
+    fontSize: "1.2rem",
     color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
-    borderBottom: `2px solid ${
-      theme.palette.mode === "dark" ? "#FFFFFF" : "#000000"
-    }`,
+  },
+}));
+
+const UploadDescription = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.secondary,
+  marginBottom: theme.spacing(2.5),
+  fontSize: "0.875rem",
+  lineHeight: 1.5,
+}));
+
+const UploadButton = styled(Button)(({ theme }) => ({
+  backgroundColor: "transparent",
+  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  border: `2px dashed ${
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.2)"
+      : "rgba(0, 0, 0, 0.15)"
+  }`,
+  borderRadius: 14,
+  padding: "12px 24px",
+  width: "100%",
+  fontSize: "0.9rem",
+  fontWeight: 600,
+  letterSpacing: "0.3px",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  position: "relative",
+  overflow: "hidden",
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background:
+      theme.palette.mode === "dark"
+        ? "linear-gradient(45deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06))"
+        : "linear-gradient(45deg, rgba(0,0,0,0.02), rgba(0,0,0,0.04))",
+    transform: "translateX(-100%)",
+    transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+  },
+  "&:hover": {
+    borderStyle: "solid",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.05)"
+        : "rgba(0, 0, 0, 0.03)",
+    transform: "translateY(-2px)",
+    borderColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.3)"
+        : "rgba(0, 0, 0, 0.25)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 4px 20px rgba(0, 0, 0, 0.3)"
+        : "0 4px 20px rgba(0, 0, 0, 0.15)",
+    "&::before": {
+      transform: "translateX(100%)",
+    },
+    "& .MuiSvgIcon-root": {
+      transform: "scale(1.1) rotate(180deg)",
+    },
+  },
+  "&:active": {
+    transform: "translateY(0)",
+  },
+  "& .MuiSvgIcon-root": {
+    fontSize: "1.25rem",
+    marginRight: theme.spacing(1),
+    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
   },
 }));
 
 const NameTypography = styled(Typography)(({ theme }) => ({
   color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
-  fontWeight: "bold",
+  fontWeight: 800,
   letterSpacing: "-0.5px",
-  fontSize: "2rem",
+  fontSize: "2.25rem",
   marginBottom: theme.spacing(1),
+  transition: "color 0.3s ease",
 }));
 
 const UsernameTypography = styled(Typography)(({ theme }) => ({
@@ -228,19 +546,6 @@ const LocationBox = styled(Box)(({ theme }) => ({
   width: "fit-content",
 }));
 
-const UploadButton = styled(ActionButton)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === "dark" ? "#2A2A2A" : "#FFFFFF",
-  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
-  position: "relative",
-  overflow: "hidden",
-  border: `1px solid ${
-    theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"
-  }`,
-  "&:hover": {
-    backgroundColor: theme.palette.mode === "dark" ? "#3A3A3A" : "#F5F5F5",
-  },
-}));
-
 interface AuthorDetails {
   user_id?: number;
   id?: number;
@@ -269,6 +574,7 @@ const ProfilePage: React.FC = () => {
   const [isLoadingSaved, setIsLoadingSaved] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [avatarKey, setAvatarKey] = useState(0);
 
   const handleSidebarToggle = useCallback(() => {
     console.log("Toggling sidebar. Current state:", sidebarOpen);
@@ -429,7 +735,9 @@ const ProfilePage: React.FC = () => {
   };
 
   const getInitials = (firstname: string, lastname: string) => {
-    return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
+    const firstInitial = firstname ? firstname[0].toUpperCase() : "";
+    const lastInitial = lastname ? lastname[0].toUpperCase() : "";
+    return `${firstInitial}${lastInitial}`;
   };
 
   const handlePaintingAction = async (action: string, paintingId: string) => {
@@ -463,34 +771,49 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleProfileUpdate = async (data: UserProfile) => {
-    if (!userId) {
-      enqueueSnackbar("User ID not found", { variant: "error" });
-      return;
-    }
+  const handleProfileUpdate = async (updatedProfile: UserProfile) => {
+    if (!userId) return;
 
     try {
       const formData = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (key === "profile_picture" && value instanceof File) {
-            formData.append(key, value);
-          } else {
-            formData.append(key, String(value));
-          }
+      Object.entries(updatedProfile).forEach(([key, value]) => {
+        if (value !== undefined) {
+          formData.append(key, value);
         }
       });
 
-      // Now userId is guaranteed to be a number
+      // First update the profile
       await userService.updateUserProfile(Number(userId), formData);
+
+      // Then fetch the updated profile
       const refreshedProfile = await userService.getUserProfile(Number(userId));
-      if (refreshedProfile) {
-        updateProfile(refreshedProfile);
-        enqueueSnackbar("Profile updated successfully", { variant: "success" });
+
+      // Update the profile in context
+      updateProfile(refreshedProfile);
+
+      // Force avatar refresh in all components
+      setAvatarKey((prev) => prev + 1);
+
+      // Update localStorage with new profile picture if it exists
+      if (
+        refreshedProfile.profile_picture &&
+        typeof refreshedProfile.profile_picture === "string"
+      ) {
+        const profilePicUrl = refreshedProfile.profile_picture.startsWith(
+          "http"
+        )
+          ? refreshedProfile.profile_picture
+          : `${MEDIA_URL}/${refreshedProfile.profile_picture.replace(
+              /^\//,
+              ""
+            )}`;
+        localStorage.setItem("lastProfilePicture", profilePicUrl);
       }
+
+      // Trigger a re-render of components using the profile picture
+      window.dispatchEvent(new Event("profilePictureUpdate"));
     } catch (error) {
       console.error("Error updating profile:", error);
-      enqueueSnackbar("Failed to update profile", { variant: "error" });
     }
   };
 
@@ -616,32 +939,54 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const renderProfileAvatar = (profile: UserProfile) => {
-    if (typeof profile.profile_picture === "string") {
+  const renderProfileAvatar = (userData: UserProfile) => {
+    if (
+      userData.profile_picture &&
+      typeof userData.profile_picture === "string" &&
+      userData.profile_picture.trim() !== ""
+    ) {
+      const profilePicUrl = userData.profile_picture.startsWith("http")
+        ? userData.profile_picture
+        : `${MEDIA_URL}/${userData.profile_picture.replace(/^\//, "")}`;
+
+      // Store in localStorage for persistence
+      localStorage.setItem("lastProfilePicture", profilePicUrl);
+
       return (
-        <Avatar
-          src={profile.profile_picture}
-          alt={profile.username}
-          sx={{ width: 120, height: 120 }}
+        <ProfileAvatar
+          key={avatarKey}
+          src={profilePicUrl}
+          alt={userData.username}
         />
       );
     }
 
-    // If no profile picture or it's a File object, show initials
+    // Try to get from localStorage if no current picture
+    const cachedUrl = localStorage.getItem("lastProfilePicture");
+    if (cachedUrl) {
+      return (
+        <ProfileAvatar
+          key={avatarKey}
+          src={cachedUrl}
+          alt={userData.username}
+        />
+      );
+    }
+
+    // Only show initials if there's no profile picture and no cached URL
     return (
-      <Avatar
-        sx={{
-          width: 120,
-          height: 120,
-          bgcolor: theme.palette.primary.main,
-          fontSize: "2.5rem",
-          fontWeight: 500,
-        }}
-      >
-        {getInitials(profile.firstname, profile.lastname)}
-      </Avatar>
+      <ProfileAvatar key={avatarKey}>
+        {getInitials(userData.firstname || "", userData.lastname || "")}
+      </ProfileAvatar>
     );
   };
+
+  // Update avatarKey when userProfile changes
+  useEffect(() => {
+    if (userProfile?.profile_picture) {
+      setAvatarKey((prev) => prev + 1);
+    }
+  }, [userProfile?.profile_picture]);
 
   if (isLoading) {
     return (
@@ -677,6 +1022,7 @@ const ProfilePage: React.FC = () => {
     <MainContainer>
       <Navbar onSidebarToggle={handleSidebarToggle} />
       <SideBar
+        key={avatarKey}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         userData={userProfile}
@@ -721,7 +1067,8 @@ const ProfilePage: React.FC = () => {
                     Follow
                   </ActionButton>
                   <ActionButton
-                    variant="contained"
+                    className="outlined"
+                    variant="outlined"
                     startIcon={<EmailOutlinedIcon />}
                   >
                     Message
@@ -797,25 +1144,15 @@ const ProfilePage: React.FC = () => {
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            justifyContent: "center",
             mb: 4,
             borderBottom: `1px solid ${
               theme.palette.mode === "dark" ? "#2A2A2A" : "#EFEFEF"
             }`,
             pb: 1,
-            position: "relative",
           }}
         >
-          <Box
-            sx={{
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)",
-              display: "flex",
-              gap: 2,
-            }}
-          >
+          <Box sx={{ display: "flex", gap: 2 }}>
             <TabButton
               onClick={() => setActiveTab("posts")}
               data-active={activeTab === "posts"}
@@ -829,16 +1166,23 @@ const ProfilePage: React.FC = () => {
               Saved
             </TabButton>
           </Box>
-          <Box sx={{ visibility: "hidden" }}>
-            <TabButton>Posts</TabButton>
-          </Box>
+        </Box>
+
+        <UploadSection>
+          <UploadTitle>
+            <AddIcon /> Share Your Artwork
+          </UploadTitle>
+          <UploadDescription>
+            Showcase your paintings to the world. Upload high-quality images of
+            your artwork.
+          </UploadDescription>
           <UploadButton
             startIcon={<AddIcon />}
             onClick={() => setUploadDialogOpen(true)}
           >
             Upload Painting
           </UploadButton>
-        </Box>
+        </UploadSection>
 
         {(isLoadingPaintings && activeTab === "posts") ||
         (isLoadingSaved && activeTab === "saved") ? (

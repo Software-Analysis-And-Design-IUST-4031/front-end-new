@@ -71,25 +71,25 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   position: "relative",
   width: "100%",
   paddingTop: "100%",
-  borderRadius: theme.shape.borderRadius * 2,
+  borderRadius: theme.shape.borderRadius * 3,
   overflow: "hidden",
   cursor: "pointer",
-  transition: "all 0.3s ease",
+  transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
   backgroundColor: theme.palette.mode === "dark" ? "#1A1A1A" : "#FFFFFF",
   border: `1px solid ${
     theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"
   }`,
   "&:hover": {
-    transform: "translateY(-4px)",
+    transform: "translateY(-8px)",
     boxShadow:
       theme.palette.mode === "dark"
-        ? "0 8px 24px rgba(0,0,0,0.4)"
-        : "0 8px 24px rgba(0,0,0,0.1)",
+        ? "0 16px 40px rgba(0,0,0,0.5), 0 8px 24px rgba(255,255,255,0.1)"
+        : "0 16px 40px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.05)",
     "& .overlay": {
       opacity: 1,
     },
     "& img": {
-      transform: "scale(1.05)",
+      transform: "scale(1.1)",
     },
   },
 }));
@@ -110,7 +110,7 @@ const PaintingImage = styled("img")({
   width: "100%",
   height: "100%",
   objectFit: "cover",
-  transition: "transform 0.5s ease",
+  transition: "transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
 });
 
 const Overlay = styled(Box)(({ theme }) => ({
@@ -121,55 +121,85 @@ const Overlay = styled(Box)(({ theme }) => ({
   bottom: 0,
   background:
     theme.palette.mode === "dark"
-      ? "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)"
-      : "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%)",
+      ? "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.3) 100%)"
+      : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.2) 100%)",
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
-  padding: theme.spacing(2),
+  padding: theme.spacing(3),
   opacity: 0,
-  transition: "opacity 0.3s ease",
+  transition: "opacity 0.4s ease",
 }));
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
   color: "#fff",
-  backgroundColor: "rgba(255,255,255,0.1)",
-  backdropFilter: "blur(4px)",
-  transition: "all 0.2s ease",
+  backgroundColor: "rgba(255,255,255,0.15)",
+  backdropFilter: "blur(8px)",
+  padding: theme.spacing(1.2),
+  transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
   "&:hover": {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    transform: "scale(1.1)",
+    backgroundColor: "rgba(255,255,255,0.25)",
+    transform: "scale(1.15) rotate(8deg)",
   },
   "&.liked": {
     color: theme.palette.error.main,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    backgroundColor: "rgba(255,59,48,0.3)",
   },
   "&.saved": {
-    color: theme.palette.primary.main,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    color: "#FFD700",
+    backgroundColor: "rgba(255,215,0,0.2)",
   },
 }));
 
 const PaintingTitle = styled(Typography)(({ theme }) => ({
   color: "#fff",
-  fontWeight: 600,
-  textShadow: "0 2px 4px rgba(0,0,0,0.2)",
+  fontSize: "1.25rem",
+  fontWeight: 700,
   marginBottom: theme.spacing(1),
+  textShadow: "0 2px 4px rgba(0,0,0,0.3)",
+  transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+  transform: "translateY(10px)",
+  ".overlay:hover &": {
+    transform: "translateY(0)",
+  },
+}));
+
+const PaintingDescription = styled(Typography)(({ theme }) => ({
+  color: "rgba(255,255,255,0.95)",
+  fontSize: "0.875rem",
+  fontWeight: 500,
+  textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+  opacity: 0,
+  transform: "translateY(10px)",
+  transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+  transitionDelay: "0.1s",
+  ".overlay:hover &": {
+    opacity: 1,
+    transform: "translateY(0)",
+  },
 }));
 
 const PaintingPrice = styled(Typography)(({ theme }) => ({
   color: "#fff",
-  fontWeight: 500,
-  opacity: 0.9,
-  textShadow: "0 2px 4px rgba(0,0,0,0.2)",
+  fontSize: "1.1rem",
+  fontWeight: 800,
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(0.5),
+  textShadow: "0 2px 4px rgba(0,0,0,0.3)",
+  "& .currency": {
+    fontSize: "0.8em",
+    opacity: 0.95,
+  },
 }));
 
 const ActionButtonsContainer = styled(Box)(({ theme }) => ({
   display: "flex",
-  gap: theme.spacing(1),
+  gap: theme.spacing(1.5),
   transform: "translateY(20px)",
   opacity: 0,
-  transition: "all 0.3s ease",
+  transition: "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
+  filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.3))",
   ".overlay:hover &": {
     transform: "translateY(0)",
     opacity: 1,
@@ -178,17 +208,37 @@ const ActionButtonsContainer = styled(Box)(({ theme }) => ({
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialog-paper": {
-    borderRadius: theme.shape.borderRadius * 2,
-    backgroundColor: theme.palette.mode === "dark" ? "#1A1A1A" : "#FFFFFF",
+    borderRadius: theme.shape.borderRadius * 3,
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(26,26,26,0.98)"
+        : "rgba(255,255,255,0.98)",
+    backdropFilter: "blur(20px)",
+    border: `1px solid ${
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.1)"
+        : "rgba(0,0,0,0.05)"
+    }`,
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 24px 48px rgba(0,0,0,0.4)"
+        : "0 24px 48px rgba(0,0,0,0.1)",
     overflow: "hidden",
   },
   "& .MuiDialogTitle-root": {
-    backgroundColor: theme.palette.mode === "dark" ? "#242424" : "#F8F8F8",
+    padding: theme.spacing(3),
+    background:
+      theme.palette.mode === "dark"
+        ? "linear-gradient(145deg, rgba(26,26,26,0.95) 0%, rgba(32,32,32,0.95) 100%)"
+        : "linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(250,250,250,0.95) 100%)",
     borderBottom: `1px solid ${
       theme.palette.mode === "dark"
         ? "rgba(255,255,255,0.1)"
-        : "rgba(0,0,0,0.1)"
+        : "rgba(0,0,0,0.05)"
     }`,
+  },
+  "& .MuiDialogContent-root": {
+    padding: theme.spacing(4),
   },
 }));
 
@@ -956,7 +1006,11 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
               onClick={() => handlePaintingClick(painting)}
             >
               <ImageContainer>
-                <PaintingImage src={painting.imageUrl} alt={painting.title} />
+                <PaintingImage
+                  src={getImageUrl(painting)}
+                  alt={painting.title}
+                  onError={() => handleImageError(painting.id)}
+                />
                 <Overlay className="overlay">
                   <Box
                     sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
@@ -998,37 +1052,16 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                         )}
                       </ActionButton>
                     </Tooltip>
-                    <Tooltip title="Share">
-                      <ActionButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAction("share", painting);
-                        }}
-                      >
-                        <ShareIcon />
-                      </ActionButton>
-                    </Tooltip>
-                    <Tooltip title="Delete">
-                      <ActionButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAction("delete", painting);
-                        }}
-                      >
-                        <DeleteOutlineIcon />
-                      </ActionButton>
-                    </Tooltip>
                   </Box>
                   <Box>
-                    <Typography variant="h6" sx={{ color: "#fff", mb: 1 }}>
-                      {painting.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "rgba(255,255,255,0.8)" }}
-                    >
+                    <PaintingTitle variant="h6">{painting.title}</PaintingTitle>
+                    <PaintingDescription>
                       {painting.description}
-                    </Typography>
+                    </PaintingDescription>
+                    <PaintingPrice>
+                      <span className="currency">€</span>
+                      {painting.price}
+                    </PaintingPrice>
                   </Box>
                 </Overlay>
               </ImageContainer>
@@ -1085,152 +1118,112 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
       >
         {selectedPainting && (
           <>
-            <CloseButton onClick={() => setSelectedPainting(null)}>
-              <CloseIcon />
-            </CloseButton>
-            <DetailDialogContent>
-              <MainContent>
-                <ImageSection>
-                  <DetailImage
-                    src={getImageUrl(selectedPainting)}
-                    alt={selectedPainting.title}
-                    onError={() => handleImageError(selectedPainting.id)}
-                    onClick={(e) =>
-                      handleImageClick(e, getImageUrl(selectedPainting))
-                    }
-                  />
-                  <ImageControls onClick={(e) => e.stopPropagation()}>
-                    <ImageControlButton
-                      onClick={(e) =>
-                        handleImageClick(e, getImageUrl(selectedPainting))
-                      }
-                    >
-                      <ZoomOutMapIcon />
-                    </ImageControlButton>
-                  </ImageControls>
-                </ImageSection>
-                <InfoSection>
-                  <DetailTitle variant="h4">
+            <DialogTitle>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
                     {selectedPainting.title}
-                  </DetailTitle>
-
-                  <StatsSection>
-                    <StatItem>
-                      <StatIcon>
-                        <FavoriteIcon />
-                      </StatIcon>
-                      <Box>
-                        <StatValue>{selectedPainting.likes}</StatValue>
-                        <StatLabel>Likes</StatLabel>
-                      </Box>
-                    </StatItem>
-                    <StatItem>
-                      <StatIcon>
-                        <LocalOfferIcon />
-                      </StatIcon>
-                      <Box>
-                        <StatValue>
-                          {formatPrice(selectedPainting.price)}
-                        </StatValue>
-                        <StatLabel>Price</StatLabel>
-                      </Box>
-                    </StatItem>
-                  </StatsSection>
-
-                  <TagsContainer>
-                    {selectedPainting.style && (
-                      <Tag>
-                        <PaletteIcon sx={{ fontSize: "1rem", mr: 0.5 }} />
-                        {selectedPainting.style}
-                      </Tag>
-                    )}
-                    {selectedPainting.material && (
-                      <Tag>{selectedPainting.material}</Tag>
-                    )}
-                    {(selectedPainting.horizontalDepth ||
-                      selectedPainting.verticalDepth) && (
-                      <Tag>
-                        {selectedPainting.horizontalDepth}cm ×{" "}
-                        {selectedPainting.verticalDepth}cm
-                      </Tag>
-                    )}
-                  </TagsContainer>
-
-                  <DetailField>
-                    <FieldLabel>Description</FieldLabel>
-                    <FieldValue>
-                      {selectedPainting.description ||
-                        "No description available"}
-                    </FieldValue>
-                  </DetailField>
-
-                  {selectedPainting.style && (
-                    <DetailField>
-                      <FieldLabel>Style</FieldLabel>
-                      <FieldValue>{selectedPainting.style}</FieldValue>
-                    </DetailField>
-                  )}
-
-                  {selectedPainting.material && (
-                    <DetailField>
-                      <FieldLabel>Material</FieldLabel>
-                      <FieldValue>{selectedPainting.material}</FieldValue>
-                    </DetailField>
-                  )}
-
-                  <DetailField>
-                    <FieldLabel>Created</FieldLabel>
-                    <FieldValue>
-                      {new Date(selectedPainting.createdAt).toLocaleDateString(
-                        undefined,
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        }
-                      )}
-                    </FieldValue>
-                  </DetailField>
-                </InfoSection>
-              </MainContent>
-
-              <AuthorSection>
-                <AuthorAvatar
-                  src={selectedPainting.author?.avatarUrl || undefined}
+                  </Typography>
+                  <Typography variant="subtitle1" color="text.secondary">
+                    Created on{" "}
+                    {new Date(selectedPainting.createdAt).toLocaleDateString()}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      fontWeight: 700,
+                      color:
+                        theme.palette.mode === "dark" ? "#FFD700" : "#B8860B",
+                    }}
+                  >
+                    ${selectedPainting.price}
+                  </Typography>
+                  <CloseButton onClick={() => setSelectedPainting(null)}>
+                    <CloseIcon />
+                  </CloseButton>
+                </Box>
+              </Box>
+            </DialogTitle>
+            <DialogContent>
+              <Box
+                sx={{
+                  width: "100%",
+                  paddingTop: "75%",
+                  position: "relative",
+                  mb: 3,
+                  borderRadius: 3,
+                  overflow: "hidden",
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? "0 8px 32px rgba(0,0,0,0.4)"
+                      : "0 8px 32px rgba(0,0,0,0.1)",
+                }}
+              >
+                <Box
+                  component="img"
+                  src={getImageUrl(selectedPainting)}
+                  alt={selectedPainting.title}
                   sx={{
-                    bgcolor: theme.palette.primary.main,
-                    color: theme.palette.primary.contrastText,
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? "rgba(0,0,0,0.5)"
+                        : "rgba(0,0,0,0.02)",
+                    padding: 2,
                   }}
-                >
-                  {selectedPainting.author?.name?.charAt(0) || "?"}
-                </AuthorAvatar>
-                <AuthorInfo>
-                  <Typography variant="h6">
-                    {selectedPainting.author?.name || "Artist Unavailable"}
-                  </Typography>
-                  <Typography variant="body1">
-                    <PersonIcon />
-                    {selectedPainting.author?.username
-                      ? `@${selectedPainting.author.username}`
-                      : "Profile not available"}
-                  </Typography>
-                </AuthorInfo>
-                {selectedPainting.author && (
-                  <AuthorActions>
-                    <Tooltip title="Follow Artist">
-                      <IconButton size="small">
-                        <PersonAddIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Message Artist">
-                      <IconButton size="small">
-                        <ChatIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </AuthorActions>
-                )}
-              </AuthorSection>
-            </DetailDialogContent>
+                />
+              </Box>
+              <Typography
+                variant="body1"
+                sx={{
+                  fontSize: "1.1rem",
+                  lineHeight: 1.7,
+                  color:
+                    theme.palette.mode === "dark"
+                      ? "rgba(255,255,255,0.9)"
+                      : "rgba(0,0,0,0.8)",
+                }}
+              >
+                {selectedPainting.description}
+              </Typography>
+            </DialogContent>
+            <DialogActions
+              sx={{
+                p: 3,
+                gap: 2,
+                borderTop: `1px solid ${
+                  theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.1)"
+                    : "rgba(0,0,0,0.05)"
+                }`,
+              }}
+            >
+              <Button
+                onClick={() => setSelectedPainting(null)}
+                variant="outlined"
+                sx={{
+                  borderRadius: 2,
+                  textTransform: "none",
+                  px: 3,
+                  py: 1,
+                }}
+              >
+                Close
+              </Button>
+            </DialogActions>
           </>
         )}
       </DetailDialog>
