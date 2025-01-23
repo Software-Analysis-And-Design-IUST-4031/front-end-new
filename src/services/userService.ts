@@ -226,14 +226,14 @@ export const userService = {
     }
   },
 
-  unlikePainting: async (paintingId: number): Promise<LikeResponse> => {
-    try {
-      const response = await api.post<LikeResponse>(`/painting/paintings/${paintingId}/unlike/`);
-      return response.data;
-    } catch (err: any) {
-      throw err;
-    }
-  },
+  // unlikePainting: async (paintingId: number): Promise<LikeResponse> => {
+  //   try {
+  //     const response = await api.post<LikeResponse>(`/painting/paintings/${paintingId}/unlike/`);
+  //     return response.data;
+  //   } catch (err: any) {
+  //     throw err;
+  //   }
+  // },
 
   GetlikePainting: async (paintingId: number) => {
     try {
@@ -245,22 +245,34 @@ export const userService = {
     }
   },
 
-  toggleLikePainting: async (paintingId: number, isCurrentlyLiked: boolean): Promise<LikeResponse> => {
-    try {
-      const response = isCurrentlyLiked 
-        ? await userService.unlikePainting(paintingId)
-        : await userService.likePainting(paintingId);
-      return response;
-    } catch (err: any) {
-      // If the error is because the painting is already in the desired state,
-      // get the current likes count and return it
-      if (err.response?.status === 400) {
-        const currentLikes = await userService.GetlikePainting(paintingId);
-        return { likes_count: currentLikes };
-      }
-      throw err;
-    }
+
+  toggleLikePainting: async (paintingId: number): Promise<void> => {
+    await api.post(`/painting/paintings/${paintingId}/Unlike/`);
   },
+
+  Getstatuslikepainting: async (paintingId: number, userId: number): Promise<boolean> => {
+    const response = await api.get<{ user_id: number; painting_id: number; liked: boolean }>(
+      `/painting/user/${userId}/paintings/${paintingId}/liked/`
+    );
+    return response.data.liked; // Extract and return the `like` status directly
+  },
+
+  // toggleLikePainting: async (paintingId: number, isCurrentlyLiked: boolean): Promise<LikeResponse> => {
+  //   try {
+  //     const response = isCurrentlyLiked 
+  //       ? await userService.unlikePainting(paintingId)
+  //       : await userService.likePainting(paintingId);
+  //     return response;
+  //   } catch (err: any) {
+  //     // If the error is because the painting is already in the desired state,
+  //     // get the current likes count and return it
+  //     if (err.response?.status === 400) {
+  //       const currentLikes = await userService.GetlikePainting(paintingId);
+  //       return { likes_count: currentLikes };
+  //     }
+  //     throw err;
+  //   }
+  // },
 
   getUserLikes: async (userId: number): Promise<number[]> => {
     const response = await api.get<number[]>(`/user/${userId}/detailFavorites/`);
