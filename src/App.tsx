@@ -18,7 +18,7 @@ import GalleriesPage from "./components/Gallery/GalleriesPage";
 import ProfilePage from "./components/UserPanel/ProfilePage";
 import { AuthProvider } from "./context/AuthContext";
 import { ColorModeProvider, useColorMode } from "./context/ColorModeContext";
-
+import ChatPage from "./components/chatpage/chatpage";
 export { useColorMode };
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -99,6 +99,13 @@ function App() {
                     <ProfilePage />
                   </ProtectedRoute>
                 }
+              />
+              <Route path = "/chatpage" 
+                element = {
+                  <ProtectedRoute>
+                    <ChatPage/>
+                  </ProtectedRoute>
+                } 
               />
             </Routes>
           </AuthProvider>

@@ -60,6 +60,36 @@ interface CitiesResponse {
   cities: string[];
 }
 
+type LikeResponse2 = {
+  painting_id: number;
+  likes_count : number; 
+};
+
+interface UsernameResponse {
+  username: string;
+}
+
+interface UserIdResponse {
+  user_id: number;
+}
+
+interface ChatResponse {
+  chats: { username: string; user_id: number; chat_id: number }[];
+}
+
+interface UserProps {
+  id: number;
+  name: string;
+  chat_id: number;
+}
+
+interface MessageProps {
+  date: string; // Timestamp of the message
+  text: string; // Content of the message
+  sender: string; // 'me' or 'another_user'
+}
+
+
 export const userService = {
   login: async (username: string, password: string): Promise<LoginResponse> => {
     try {
@@ -311,5 +341,83 @@ export const userService = {
       console.log('Using mock city data due to error');
       return getMockCities(country);
     }
-  }
+  } , 
+
+  fetchChats: async (): Promise<UserProps[]> => {
+    try {
+      const response = await api.get<ChatResponse>('/chat/chats/', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      return response.data.chats.map(chat => ({
+        id: chat.user_id,
+        name: chat.username,
+        chat_id: chat.chat_id,
+      }));
+    } catch (error) {
+      console.error('Error fetching chats:', error);
+      throw new Error('Could not fetch chats');
+    }
+  },
+
+
+  sendMessage : async (chat_id: number, content: string): Promise<void> => {
+    try {
+      const response = await api.post(`/chat/chats/${chat_id}/`, { content }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      console.log('Message sent:', response.data);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw new Error('Could not send message');
+    }
+  },
+
+  fetchMessages: async (chatId: number): Promise<MessageProps[]> => {
+    try {
+      const response = await api.get<{ sender: string; content: string; timestamp: string ; chat : number}[]>(
+        `/chat/messages/${chatId}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+      console.log('Fetched messages:', response.data);
+  
+      // Map the API response to match the MessageProps interface
+      return response.data.map((message) => ({
+        text: message.content,
+        sender: message.sender === localStorage.getItem('username') ? 'me' : 'another_user',
+        date: message.timestamp,
+      }));
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      throw new Error('Could not fetch messages');
+    }
+  },
+
+  startChat: async (participant: string): Promise<void> => {
+    try {
+      const response = await api.post(
+        '/chat/chats/', // API endpoint
+        { participant }, // Request body
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`, // Include token
+            'Content-Type': 'application/json', // Set content type
+          },
+        }
+      );
+      console.log('Chat started successfully:', response.data);
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      throw new Error('Could not start chat');
+    }
+  },
+
+
 };
