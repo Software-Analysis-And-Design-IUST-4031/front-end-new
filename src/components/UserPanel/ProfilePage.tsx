@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useParams , useNavigate} from 'react-router-dom';
 import { useTheme } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
 import { useAuth } from "../../context/AuthContext";
@@ -6,6 +7,7 @@ import { userService } from "../../services/userService";
 import { BackendPainting, Painting, UserProfile } from "../../types";
 import { MEDIA_URL } from "../../services/api";
 import api from "../../services/api";
+import { PiChatsLight } from "react-icons/pi";
 import {
   Container,
   Box,
@@ -269,7 +271,59 @@ const ProfilePage: React.FC = () => {
   const [isLoadingSaved, setIsLoadingSaved] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { userId2} = useParams();
+  const [userProfile2 , setUserProfile2] = useState<any>() ;
+  const [userId3 , setUserId3] = useState<number>(0);
+  const navigate = useNavigate();
 
+
+
+    useEffect(() => {  
+    // console.log("userid " + userId);
+    // console.log("profile " + userProfile);
+    // console.log("userId2 " + userId2);
+    // console.log("userprofile2 " + userProfile2);
+    const fetchUserProfile = async () => {  
+      if (userId2) {  
+        try {  
+          setUserId3(parseInt(userId2));
+          const profile : any = await userService.getUserProfile(parseInt(userId2)); // Get profile for the userId  
+          setUserProfile2(profile); // Update the profile state  
+        } catch (error) {  
+          console.error('Error fetching user profile:', error);  
+        }   
+      }   
+      else 
+      {
+        let user__id = localStorage.getItem("userId");
+        if (user__id)
+        {
+          try {  
+            setUserId3(parseInt(user__id));
+            const profile : any = await userService.getUserProfile(parseInt(user__id)); // Get profile for the userId  
+            setUserProfile2(profile); // Update the profile state  
+          } catch (error) {  
+            console.error('Error fetching user profile:', error);  
+          }  
+        }
+
+        // if (userProfile && userId)
+        // {
+        //   setUserId3(userId);
+        //   setUserProfile2(userProfile);
+        // }
+
+      }
+    };  
+    
+    fetchUserProfile();  
+    console.log("userid " + userId);
+    console.log("profile " + userProfile);
+    console.log("userId2 " + userId2);
+    console.log("userprofile2 " + userProfile2);
+
+  }, [userId2]); // Add userId2 as a dependenc
+  const userIdFromStorage = localStorage.getItem("userId");
   const handleSidebarToggle = useCallback(() => {
     console.log("Toggling sidebar. Current state:", sidebarOpen);
     setSidebarOpen((prev) => !prev);
@@ -464,7 +518,7 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleProfileUpdate = async (data: UserProfile) => {
-    if (!userId) {
+    if (!userId3) {
       enqueueSnackbar("User ID not found", { variant: "error" });
       return;
     }
@@ -482,8 +536,8 @@ const ProfilePage: React.FC = () => {
       });
 
       // Now userId is guaranteed to be a number
-      await userService.updateUserProfile(Number(userId), formData);
-      const refreshedProfile = await userService.getUserProfile(Number(userId));
+      await userService.updateUserProfile(Number(userId3), formData);
+      const refreshedProfile = await userService.getUserProfile(Number(userId3));
       if (refreshedProfile) {
         updateProfile(refreshedProfile);
         enqueueSnackbar("Profile updated successfully", { variant: "success" });
@@ -496,7 +550,7 @@ const ProfilePage: React.FC = () => {
 
   useEffect(() => {
     const fetchPaintings = async () => {
-      if (!userId) {
+      if (!userId3) {
         console.log("No userId available, skipping painting fetch");
         return;
       }
@@ -509,8 +563,8 @@ const ProfilePage: React.FC = () => {
           // First try with the with-author endpoint
           try {
             const [paintingsResponse, userLikes] = await Promise.all([
-              userService.getUserPaintingsWithAuthor(userId),
-              userService.getUserLikes(userId),
+              userService.getUserPaintingsWithAuthor(userId3),
+              userService.getUserLikes(userId3),
             ]);
             console.log("Paintings response with author:", paintingsResponse);
 
@@ -534,8 +588,8 @@ const ProfilePage: React.FC = () => {
 
             // Fallback to regular paintings endpoint
             const [paintingsResponse, userLikes] = await Promise.all([
-              userService.getUserPaintings(userId),
-              userService.getUserLikes(userId),
+              userService.getUserPaintings(userId3),
+              userService.getUserLikes(userId3),
             ]);
             console.log("Paintings response from fallback:", paintingsResponse);
 
@@ -574,11 +628,11 @@ const ProfilePage: React.FC = () => {
     };
 
     fetchPaintings();
-  }, [userId, activeTab]);
+  }, [userId3, activeTab]);
 
   const handleUpload = async (data: FormData) => {
     try {
-      if (!userId) {
+      if (!userId3) {
         console.error("No userId available for upload");
         return;
       }
@@ -589,8 +643,8 @@ const ProfilePage: React.FC = () => {
 
       // Fetch both updated paintings and likes after successful upload
       const [paintingsResponse, userLikes] = await Promise.all([
-        userService.getUserPaintings(userId),
-        userService.getUserLikes(userId),
+        userService.getUserPaintings(userId3),
+        userService.getUserLikes(userId3),
       ]);
       console.log("Updated paintings after upload:", paintingsResponse);
 
@@ -658,7 +712,7 @@ const ProfilePage: React.FC = () => {
     );
   }
 
-  if (!userProfile) {
+  if (!userProfile2) {
     return (
       <Box
         sx={{
@@ -679,13 +733,13 @@ const ProfilePage: React.FC = () => {
       <SideBar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        userData={userProfile}
+        userData={userProfile2}
         onProfileUpdate={handleProfileUpdate}
       />
       <ContentWrapper maxWidth="lg">
         <ProfileCard>
           <Box sx={{ display: "flex", gap: 5, alignItems: "flex-start" }}>
-            {renderProfileAvatar(userProfile)}
+            {renderProfileAvatar(userProfile2)}
             <Box sx={{ flex: 1 }}>
               <Box
                 sx={{
@@ -705,39 +759,67 @@ const ProfilePage: React.FC = () => {
                     }}
                   >
                     <NameTypography>
-                      {userProfile.firstname} {userProfile.lastname}
+                      {userProfile2.firstname} {userProfile2.lastname}
                     </NameTypography>
                     <EditProfileButton
-                      userData={userProfile}
+                      userData={userProfile2}
                       onProfileUpdate={handleProfileUpdate}
                     />
                   </Box>
                   <UsernameTypography>
-                    @{userProfile.username}
+                    @{userProfile2.username}
                   </UsernameTypography>
                 </Box>
                 <Box sx={{ display: "flex", gap: 2 }}>
                   <ActionButton className="outlined" variant="outlined">
                     Follow
                   </ActionButton>
-                  <ActionButton
+                  {/* <ActionButton
                     variant="contained"
                     startIcon={<EmailOutlinedIcon />}
                   >
                     Message
-                  </ActionButton>
+                  </ActionButton> */}
+                    { userIdFromStorage && parseInt(userIdFromStorage) !== userId3 &&
+                      <ActionButton
+                        variant="contained"
+                        startIcon={<EmailOutlinedIcon />}
+                        onClick={async () => {
+                          try {
+                            // Assuming 'username' is available in your component's props or state
+                            await userService.startChat(userProfile2.username);
+                            // navigate('/chatpage') ;
+                            navigate('/chatpage', { state: { username: userProfile2.username } });
+                            alert('Chat started successfully!');
+                          } catch (error) {
+                            // navigate('/chatpage') ;
+                            navigate('/chatpage', { state: { username: userProfile2.username } });
+                          }
+                        }}
+                      >
+                        Message
+                      </ActionButton>
+                    }
+                    { userIdFromStorage && parseInt(userIdFromStorage) === userId3 &&
+                      <ActionButton
+                        variant="contained"
+                        onClick = {() => navigate('/chatpage')}
+                      >
+                        <PiChatsLight style={{ fontSize: '2rem' }} />
+                      </ActionButton>
+                    }
                 </Box>
               </Box>
 
               <BioTypography variant="body1">
-                {userProfile.biography || "No biography added yet."}
+                {userProfile2.biography || "No biography added yet."}
               </BioTypography>
 
-              {(userProfile.city || userProfile.country) && (
+              {(userProfile2.city || userProfile2.country) && (
                 <LocationBox>
                   <LocationOnIcon fontSize="small" />
                   <Typography variant="body2">
-                    {[userProfile.city, userProfile.country]
+                    {[userProfile2.city, userProfile2.country]
                       .filter(Boolean)
                       .join(", ")}
                   </Typography>
@@ -747,7 +829,7 @@ const ProfilePage: React.FC = () => {
               <StatsContainer>
                 <StatsItem>
                   <Typography variant="h5" fontWeight="600">
-                    {userProfile.number_of_paintings || 0}
+                    {userProfile2.number_of_paintings || 0}
                   </Typography>
                   <Typography
                     variant="body2"
@@ -759,7 +841,7 @@ const ProfilePage: React.FC = () => {
                 </StatsItem>
                 <StatsItem>
                   <Typography variant="h5" fontWeight="600">
-                    {userProfile.followers || 0}
+                    {userProfile2.followers || 0}
                   </Typography>
                   <Typography
                     variant="body2"
@@ -771,7 +853,7 @@ const ProfilePage: React.FC = () => {
                 </StatsItem>
                 <StatsItem>
                   <Typography variant="h5" fontWeight="600">
-                    {userProfile.following || 0}
+                    {userProfile2.following || 0}
                   </Typography>
                   <Typography
                     variant="body2"
@@ -783,10 +865,10 @@ const ProfilePage: React.FC = () => {
                 </StatsItem>
               </StatsContainer>
 
-              {userProfile.favorite_painter && (
+              {userProfile2.favorite_painter && (
                 <Box sx={{ display: "flex", gap: 1.5, mt: 4 }}>
                   <Typography variant="body2" color="text.secondary">
-                    Favorite Painter: {userProfile.favorite_painter}
+                    Favorite Painter: {userProfile2.favorite_painter}
                   </Typography>
                 </Box>
               )}
@@ -832,12 +914,16 @@ const ProfilePage: React.FC = () => {
           <Box sx={{ visibility: "hidden" }}>
             <TabButton>Posts</TabButton>
           </Box>
+          { userIdFromStorage && parseInt(userIdFromStorage) === userId3 &&
+          (
           <UploadButton
             startIcon={<AddIcon />}
             onClick={() => setUploadDialogOpen(true)}
           >
             Upload Painting
           </UploadButton>
+          )
+          }
         </Box>
 
         {(isLoadingPaintings && activeTab === "posts") ||
