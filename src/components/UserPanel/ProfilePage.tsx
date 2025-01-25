@@ -38,6 +38,7 @@ import ThemeCustomizer from "./ThemeCustomizer";
 import UploadPaintingDialog from "./UploadPaintingDialog";
 import SideBar from "./SideBar";
 import EditProfileButton from "./EditProfileButton";
+import { useParams, useNavigate } from "react-router-dom";
 
 const MainContainer = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#0A0A0A" : "#FAFAFA",
@@ -564,7 +565,14 @@ interface PaintingWithAuthor extends BackendPainting {
 
 const ProfilePage: React.FC = () => {
   const theme = useTheme();
-  const { userProfile, userId, isLoading, updateProfile } = useAuth();
+  const {
+    userProfile: loggedInProfile,
+    userId: loggedInUserId,
+    isLoading,
+    updateProfile,
+  } = useAuth();
+  const { userId: urlUserId } = useParams();
+  const [viewedProfile, setViewedProfile] = useState<UserProfile | null>(null);
   const { enqueueSnackbar } = useSnackbar();
   const [activeTab, setActiveTab] = useState<"posts" | "saved">("posts");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -575,6 +583,31 @@ const ProfilePage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [avatarKey, setAvatarKey] = useState(0);
+  const navigate = useNavigate();
+
+  // Determine which profile to show
+  const isOwnProfile = !urlUserId || Number(urlUserId) === loggedInUserId;
+  const userProfile = isOwnProfile ? loggedInProfile : viewedProfile;
+  const userId = isOwnProfile ? loggedInUserId : Number(urlUserId);
+
+  // Fetch other user's profile if needed
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!urlUserId || Number(urlUserId) === loggedInUserId) {
+        return;
+      }
+
+      try {
+        const profile = await userService.getUserProfile(Number(urlUserId));
+        setViewedProfile(profile);
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+        enqueueSnackbar("Failed to load user profile", { variant: "error" });
+      }
+    };
+
+    fetchUserProfile();
+  }, [urlUserId, loggedInUserId]);
 
   const handleSidebarToggle = useCallback(() => {
     console.log("Toggling sidebar. Current state:", sidebarOpen);
@@ -585,153 +618,63 @@ const ProfilePage: React.FC = () => {
     console.log("Sidebar state changed:", sidebarOpen);
   }, [sidebarOpen]);
 
-  const transformPaintings = async (
-    backendPaintings: BackendPainting[]
-  ): Promise<Painting[]> => {
-    if (!Array.isArray(backendPaintings)) {
-      console.error("Invalid backendPaintings:", backendPaintings);
-      return [];
-    }
-
-    return Promise.all(
-      backendPaintings.map(async (painting) => {
-        if (!painting) {
-          console.error("Invalid painting object:", painting);
-          return null;
-        }
-
-        // Construct the image URL
-        let imageUrl =
-          "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy02ODM6Qj9DQDY1NT9GPzE/RU1NW2NbYFRkZGQ+Smxsb2v/2wBDARUXFx4aHiUeHiVrOjQ6a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2v/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="; // Default gray image
-        if (painting.image) {
-          // Check if it's a base64 image
-          if (painting.image.startsWith("data:")) {
-            imageUrl = painting.image;
-          } else {
-            // Remove any leading slashes and 'media/' from the path
-            const cleanPath = painting.image.replace(/^\/?(media\/)?/, "");
-            imageUrl = painting.image.startsWith("http")
-              ? painting.image
-              : `${MEDIA_URL}/media/${cleanPath}`;
-          }
-        }
-
-        // Try to get author information from the backend
-        let authorInfo;
-        try {
-          const authorResponse = await api.get<PaintingWithAuthor>(
-            `/painting/${painting.painting_id}/with-author/`
-          );
-          const paintingWithAuthor = authorResponse.data;
-          const authorData =
-            paintingWithAuthor.author || paintingWithAuthor.artist_details;
-          console.log("Author data for painting:", {
-            paintingId: painting.painting_id,
-            authorData,
-            rawPainting: authorResponse.data,
-          });
-
-          if (
-            authorData &&
-            (authorData.firstname || authorData.lastname || authorData.username)
-          ) {
-            authorInfo = {
-              id: String(
-                authorData.user_id || authorData.id || painting.artist || ""
-              ),
-              username: authorData.username || "anonymous",
-              name:
-                `${authorData.firstname || ""} ${
-                  authorData.lastname || ""
-                }`.trim() || "Unknown Artist",
-              avatarUrl: authorData.profile_picture || undefined,
-              bio: authorData.biography || undefined,
-              email: authorData.email,
-            };
-          } else if (painting.artist) {
-            // If we have an artist ID but no details, try to fetch the user profile
-            const artistProfile = await userService.getUserProfile(
-              painting.artist
-            );
-            authorInfo = {
-              id: String(artistProfile.user_id || ""),
-              username: artistProfile.username || "anonymous",
-              name:
-                `${artistProfile.firstname || ""} ${
-                  artistProfile.lastname || ""
-                }`.trim() || "Unknown Artist",
-              avatarUrl: artistProfile.profile_picture?.toString() || undefined,
-              bio: artistProfile.biography || undefined,
-              email: artistProfile.email,
-            };
-          }
-        } catch (error) {
-          console.error(
-            `Error fetching author data for painting ${painting.painting_id}:`,
-            error
-          );
-          if (painting.artist) {
+  const transformPaintings = async (backendPaintings: PaintingWithAuthor[]) => {
+    try {
+      const transformedPaintings = await Promise.all(
+        backendPaintings.map(async (painting) => {
+          // Get author details if not already included
+          let authorData = painting.artist_name;
+          if (!authorData && painting.artist) {
             try {
-              const artistProfile = await userService.getUserProfile(
+              const userDetails = await userService.getUserProfile(
                 painting.artist
               );
-              authorInfo = {
-                id: String(artistProfile.user_id || ""),
-                username: artistProfile.username || "anonymous",
-                name:
-                  `${artistProfile.firstname || ""} ${
-                    artistProfile.lastname || ""
-                  }`.trim() || "Unknown Artist",
-                avatarUrl:
-                  artistProfile.profile_picture?.toString() || undefined,
-                bio: artistProfile.biography || undefined,
-                email: artistProfile.email,
-              };
-            } catch (profileError) {
-              console.error(
-                `Error fetching artist profile for ID ${painting.artist}:`,
-                profileError
-              );
-              authorInfo = {
-                id: String(painting.artist || ""),
-                username: "anonymous",
-                name: "Unknown Artist",
-                avatarUrl: undefined,
-                bio: undefined,
-                email: undefined,
-              };
+              authorData = `${userDetails.firstname} ${userDetails.lastname}`;
+            } catch (error) {
+              console.error("Error fetching author details:", error);
+              authorData = "Unknown Artist";
             }
-          } else {
-            authorInfo = {
-              id: "",
-              username: "anonymous",
-              name: "Unknown Artist",
-              avatarUrl: undefined,
-              bio: undefined,
-              email: undefined,
-            };
           }
-        }
 
-        return {
-          id: String(painting.painting_id || ""),
-          imageUrl,
-          title: painting.title || "Untitled",
-          description: painting.description || "",
-          price: painting.price || "",
-          year: String(painting.year || ""),
-          style: painting.style || "",
-          material: painting.material || "",
-          horizontalDepth: painting.horizontal_depth || "",
-          verticalDepth: painting.vertical_depth || "",
-          likes: painting.likes || 0,
-          isLiked: painting.is_liked || false,
-          isSaved: false,
-          createdAt: painting.creation_date || new Date().toISOString(),
-          author: authorInfo,
-        };
-      })
-    ).then((results) => results.filter(Boolean) as Painting[]);
+          // Use the likes and is_liked values directly from the backend painting data
+          const transformed: Painting = {
+            id: painting.painting_id.toString(),
+            imageUrl: painting.image
+              ? painting.image.startsWith("http")
+                ? painting.image
+                : `${MEDIA_URL}/${painting.image.replace(/^\//, "")}`
+              : "https://via.placeholder.com/400x400?text=No+Image",
+            title: painting.title || "Untitled",
+            description: painting.description || "No description",
+            price: painting.price || "0",
+            likes: painting.likes || 0,
+            isLiked: painting.is_liked || false,
+            isSaved: false, // TODO: Implement saved status
+            createdAt: painting.creation_date || new Date().toISOString(),
+            style: painting.style || "Unknown",
+            material: painting.material || "Unknown",
+            horizontalDepth: painting.horizontal_depth || "Unknown",
+            verticalDepth: painting.vertical_depth || "Unknown",
+            author: authorData
+              ? {
+                  id: painting.artist?.toString() || "0",
+                  username: "",
+                  name: authorData,
+                  avatarUrl: "",
+                }
+              : undefined,
+          };
+
+          return transformed;
+        })
+      );
+
+      console.log("Transformed paintings:", transformedPaintings);
+      return transformedPaintings;
+    } catch (error) {
+      console.error("Error transforming paintings:", error);
+      throw error;
+    }
   };
 
   const getInitials = (firstname: string, lastname: string) => {
@@ -741,33 +684,55 @@ const ProfilePage: React.FC = () => {
   };
 
   const handlePaintingAction = async (action: string, paintingId: string) => {
-    if (action === "delete") {
-      if (!userId) {
-        enqueueSnackbar("Please log in to delete paintings", {
-          variant: "error",
-        });
-        return;
-      }
+    if (action === "like") {
+      // Find the painting in state
+      const targetPainting = paintings.find((p) => p.id === paintingId);
+      if (!targetPainting) return;
 
       try {
-        setIsDeleting(true);
-        await userService.deletePainting(paintingId);
-        setPaintings((prevPaintings) =>
-          prevPaintings.filter((p) => p.id !== paintingId)
+        // Optimistic update
+        setPaintings((prevPaintings: Painting[]) =>
+          prevPaintings.map(
+            (painting: Painting): Painting =>
+              painting.id === paintingId
+                ? {
+                    ...painting,
+                    isLiked: !painting.isLiked,
+                    likes: painting.likes + (painting.isLiked ? -1 : 1),
+                  }
+                : painting
+          )
         );
-        enqueueSnackbar("Painting deleted successfully", {
-          variant: "success",
-        });
+
+        // Call the API
+        if (targetPainting.isLiked) {
+          await userService.unlikePainting(parseInt(paintingId));
+          enqueueSnackbar("Painting unliked!", { variant: "success" });
+        } else {
+          await userService.likePainting(parseInt(paintingId));
+          enqueueSnackbar("Painting liked!", { variant: "success" });
+        }
       } catch (error: any) {
-        console.error("Error deleting painting:", error);
-        enqueueSnackbar(error || "Failed to delete painting", {
+        console.error("Error toggling like:", error);
+        // Revert the optimistic update on error
+        setPaintings((prevPaintings: Painting[]) =>
+          prevPaintings.map(
+            (painting: Painting): Painting =>
+              painting.id === paintingId
+                ? {
+                    ...painting,
+                    isLiked: targetPainting.isLiked,
+                    likes: targetPainting.likes,
+                  }
+                : painting
+          )
+        );
+        enqueueSnackbar(error.message || "Failed to toggle like", {
           variant: "error",
         });
-      } finally {
-        setIsDeleting(false);
       }
-    } else if (action === "like") {
-      // ... other actions
+    } else if (action === "save") {
+      // ... existing save logic ...
     }
   };
 
@@ -850,6 +815,27 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleMessageClick = async (username: string) => {
+    try {
+      // Try to create a chat with the user
+      const chatData = await userService.createChat(username);
+      navigate("/chat", { state: { username } });
+    } catch (error: any) {
+      if (
+        error.response?.status === 400 &&
+        error.response?.data?.detail?.includes("already exists")
+      ) {
+        // If chat already exists, just navigate to it
+        navigate("/chat", { state: { username } });
+      } else {
+        console.error("Error creating chat:", error);
+        enqueueSnackbar("Failed to start chat. Please try again.", {
+          variant: "error",
+        });
+      }
+    }
+  };
+
   useEffect(() => {
     const fetchPaintings = async () => {
       if (!userId) {
@@ -864,10 +850,9 @@ const ProfilePage: React.FC = () => {
 
           // First try with the with-author endpoint
           try {
-            const [paintingsResponse, userLikes] = await Promise.all([
-              userService.getUserPaintingsWithAuthor(userId),
-              userService.getUserLikes(userId),
-            ]);
+            // Get fresh data from the backend
+            const paintingsResponse =
+              await userService.getUserPaintingsWithAuthor(userId);
             console.log("Paintings response with author:", paintingsResponse);
 
             if (
@@ -877,10 +862,31 @@ const ProfilePage: React.FC = () => {
               throw new Error("Invalid paintings data");
             }
 
-            const transformedPaintings = await transformPaintings(
-              paintingsResponse.paintings
+            // Get fresh like status for each painting
+            const paintingsWithLikes = await Promise.all(
+              paintingsResponse.paintings.map(async (painting) => {
+                const likesCount = await userService.GetlikePainting(
+                  painting.painting_id
+                );
+                const isLiked = await userService.checkUserLikedPainting(
+                  userId,
+                  painting.painting_id
+                );
+                return {
+                  ...painting,
+                  likes: likesCount,
+                  is_liked: isLiked,
+                };
+              })
             );
-            console.log("Transformed paintings:", transformedPaintings);
+
+            const transformedPaintings = await transformPaintings(
+              paintingsWithLikes
+            );
+            console.log(
+              "Transformed paintings with fresh like data:",
+              transformedPaintings
+            );
             setPaintings(transformedPaintings);
           } catch (error) {
             console.error(
@@ -888,11 +894,10 @@ const ProfilePage: React.FC = () => {
               error
             );
 
-            // Fallback to regular paintings endpoint
-            const [paintingsResponse, userLikes] = await Promise.all([
-              userService.getUserPaintings(userId),
-              userService.getUserLikes(userId),
-            ]);
+            // Fallback to regular paintings endpoint with the same like status check
+            const paintingsResponse = await userService.getUserPaintings(
+              userId
+            );
             console.log("Paintings response from fallback:", paintingsResponse);
 
             if (
@@ -904,11 +909,29 @@ const ProfilePage: React.FC = () => {
               return;
             }
 
+            // Get fresh like status for each painting
+            const paintingsWithLikes = await Promise.all(
+              paintingsResponse.paintings.map(async (painting) => {
+                const likesCount = await userService.GetlikePainting(
+                  painting.painting_id
+                );
+                const isLiked = await userService.checkUserLikedPainting(
+                  userId,
+                  painting.painting_id
+                );
+                return {
+                  ...painting,
+                  likes: likesCount,
+                  is_liked: isLiked,
+                };
+              })
+            );
+
             const transformedPaintings = await transformPaintings(
-              paintingsResponse.paintings
+              paintingsWithLikes
             );
             console.log(
-              "Transformed paintings from fallback:",
+              "Transformed paintings from fallback with fresh like data:",
               transformedPaintings
             );
             setPaintings(transformedPaintings);
@@ -920,9 +943,7 @@ const ProfilePage: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching paintings:", error);
-        enqueueSnackbar("Failed to load paintings. Please try again later.", {
-          variant: "error",
-        });
+        enqueueSnackbar("Failed to load paintings", { variant: "error" });
       } finally {
         setIsLoadingPaintings(false);
         setIsLoadingSaved(false);
@@ -930,7 +951,7 @@ const ProfilePage: React.FC = () => {
     };
 
     fetchPaintings();
-  }, [userId, activeTab]);
+  }, [userId, activeTab, enqueueSnackbar]);
 
   const handleUpload = async (data: FormData) => {
     try {
@@ -1054,13 +1075,15 @@ const ProfilePage: React.FC = () => {
   return (
     <MainContainer>
       <Navbar onSidebarToggle={handleSidebarToggle} />
-      <SideBar
-        key={avatarKey}
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        userData={userProfile}
-        onProfileUpdate={handleProfileUpdate}
-      />
+      {isOwnProfile && (
+        <SideBar
+          key={avatarKey}
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          userData={userProfile}
+          onProfileUpdate={handleProfileUpdate}
+        />
+      )}
       <ContentWrapper maxWidth="lg">
         <ProfileCard>
           <Box sx={{ display: "flex", gap: 5, alignItems: "flex-start" }}>
@@ -1086,26 +1109,33 @@ const ProfilePage: React.FC = () => {
                     <NameTypography>
                       {userProfile.firstname} {userProfile.lastname}
                     </NameTypography>
-                    <EditProfileButton
-                      userData={userProfile}
-                      onProfileUpdate={handleProfileUpdate}
-                    />
+                    {isOwnProfile && (
+                      <EditProfileButton
+                        userData={userProfile}
+                        onProfileUpdate={handleProfileUpdate}
+                      />
+                    )}
                   </Box>
                   <UsernameTypography>
                     @{userProfile.username}
                   </UsernameTypography>
                 </Box>
                 <Box sx={{ display: "flex", gap: 2 }}>
-                  <ActionButton className="outlined" variant="outlined">
-                    Follow
-                  </ActionButton>
-                  <ActionButton
-                    className="outlined"
-                    variant="outlined"
-                    startIcon={<EmailOutlinedIcon />}
-                  >
-                    Message
-                  </ActionButton>
+                  {!isOwnProfile && (
+                    <>
+                      <ActionButton className="outlined" variant="outlined">
+                        Follow
+                      </ActionButton>
+                      <ActionButton
+                        className="outlined"
+                        variant="outlined"
+                        startIcon={<EmailOutlinedIcon />}
+                        onClick={() => handleMessageClick(userProfile.username)}
+                      >
+                        Message
+                      </ActionButton>
+                    </>
+                  )}
                 </Box>
               </Box>
 
@@ -1201,21 +1231,23 @@ const ProfilePage: React.FC = () => {
           </Box>
         </Box>
 
-        <UploadSection>
-          <UploadTitle>
-            <AddIcon /> Share Your Artwork
-          </UploadTitle>
-          <UploadDescription>
-            Showcase your paintings to the world. Upload high-quality images of
-            your artwork.
-          </UploadDescription>
-          <UploadButton
-            startIcon={<AddIcon />}
-            onClick={() => setUploadDialogOpen(true)}
-          >
-            Upload Painting
-          </UploadButton>
-        </UploadSection>
+        {isOwnProfile && (
+          <UploadSection>
+            <UploadTitle>
+              <AddIcon /> Share Your Artwork
+            </UploadTitle>
+            <UploadDescription>
+              Showcase your paintings to the world. Upload high-quality images
+              of your artwork.
+            </UploadDescription>
+            <UploadButton
+              startIcon={<AddIcon />}
+              onClick={() => setUploadDialogOpen(true)}
+            >
+              Upload Painting
+            </UploadButton>
+          </UploadSection>
+        )}
 
         {(isLoadingPaintings && activeTab === "posts") ||
         (isLoadingSaved && activeTab === "saved") ? (

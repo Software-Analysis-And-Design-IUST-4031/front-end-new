@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Box, IconButton, Typography, CircularProgress } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  Typography,
+  CircularProgress,
+  Snackbar,
+  Alert,
+  useTheme,
+} from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { userService } from "../../services/userService";
+import { styled, keyframes } from "@mui/material/styles";
 
 interface LikeButtonProps {
   paintingId: number;
@@ -12,93 +21,145 @@ interface LikeButtonProps {
   likesCount?: number;
 }
 
+// Enhanced pop animation
+const popAnimation = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+`;
+
+// Enhanced floating animation
+const floatAnimation = keyframes`
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-20px) scale(1.2);
+    opacity: 0;
+  }
+`;
+
+const HeartIcon = styled(FavoriteIcon)(({ theme }) => ({
+  color: "#FF3B30",
+  animation: `${popAnimation} 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)`,
+  filter: "drop-shadow(0 2px 4px rgba(255,59,48,0.3))",
+}));
+
+const FloatingHeart = styled(Box)({
+  position: "absolute",
+  animation: `${floatAnimation} 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+  pointerEvents: "none",
+  zIndex: 10,
+});
+
 const LikeButton: React.FC<LikeButtonProps> = ({
   paintingId,
   onClick,
   sx,
-  isLiked: controlledIsLiked,
-  likesCount: controlledLikesCount,
+  isLiked: initialIsLiked,
+  likesCount: initialLikesCount,
 }) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const theme = useTheme();
+  const [isLiked, setIsLiked] = useState(initialIsLiked || false);
+  const [likesCount, setLikesCount] = useState(initialLikesCount || 0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showFloatingHeart, setShowFloatingHeart] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Use controlled values if provided
-  const effectiveIsLiked = controlledIsLiked ?? isLiked;
-  const effectiveLikesCount = controlledLikesCount ?? likesCount;
+  // Sync with props
+  useEffect(() => {
+    if (initialIsLiked !== undefined) setIsLiked(initialIsLiked);
+    if (initialLikesCount !== undefined) setLikesCount(initialLikesCount);
+  }, [initialIsLiked, initialLikesCount]);
 
-  const fetchLikeStatus = async () => {
-    // Only fetch if not controlled
-    if (controlledIsLiked !== undefined && controlledLikesCount !== undefined) {
-      setIsLoading(false);
+  // Fetch initial state
+  useEffect(() => {
+    const fetchLikeState = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        if (!userId) return;
+
+        const [currentLikeStatus, currentLikeCount] = await Promise.all([
+          userService.checkUserLikedPainting(parseInt(userId), paintingId),
+          userService.GetlikePainting(paintingId),
+        ]);
+
+        setIsLiked(currentLikeStatus);
+        setLikesCount(currentLikeCount);
+      } catch (error) {
+        console.error("Error fetching like state:", error);
+      }
+    };
+
+    if (initialIsLiked === undefined || initialLikesCount === undefined) {
+      fetchLikeState();
+    }
+  }, [paintingId, initialIsLiked, initialLikesCount]);
+
+  const handleLikeAction = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      setError("Please log in to like paintings");
       return;
     }
 
-    try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) return;
+    if (isLoading) return;
 
-      const count = await userService.GetlikePainting(paintingId);
-      const likeStatus = await userService.checkUserLikedPainting(
+    try {
+      setIsLoading(true);
+
+      // Get current state before any action
+      const currentLikeStatus = await userService.checkUserLikedPainting(
         parseInt(userId),
         paintingId
       );
 
-      setLikesCount(count);
-      setIsLiked(likeStatus.hasLiked);
+      // Only proceed if the state is different from what we think it is
+      if (currentLikeStatus === isLiked) {
+        // Make API call based on current state
+        if (currentLikeStatus) {
+          // Currently liked, so unlike
+          await userService.unlikePainting(paintingId);
+        } else {
+          // Currently unliked, so like
+          await userService.likePainting(paintingId);
+        }
+
+        // Get the updated state
+        const [newLikeStatus, newLikeCount] = await Promise.all([
+          userService.checkUserLikedPainting(parseInt(userId), paintingId),
+          userService.GetlikePainting(paintingId),
+        ]);
+
+        // Show animation only when liking
+        if (newLikeStatus && !currentLikeStatus) {
+          setShowFloatingHeart(true);
+          setTimeout(() => setShowFloatingHeart(false), 500);
+        }
+
+        // Update state with verified data
+        setIsLiked(newLikeStatus);
+        setLikesCount(newLikeCount);
+
+        // Notify parent if needed
+        if (onClick) onClick(e);
+      }
     } catch (error) {
-      console.error("Error fetching like status:", error);
-      setError("Failed to load like status");
-    }
-  };
-
-  useEffect(() => {
-    const loadInitialState = async () => {
-      setIsLoading(true);
-      setError(null);
-      await fetchLikeStatus();
-      setIsLoading(false);
-    };
-
-    loadInitialState();
-  }, [paintingId, controlledIsLiked, controlledLikesCount]);
-
-  const handleLikeClick = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isLoading) return;
-
-    // If controlled, just call onClick
-    if (controlledIsLiked !== undefined) {
-      onClick?.(e);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const newIsLiked = !effectiveIsLiked;
-
-      // Make the API call first
-      if (newIsLiked) {
-        await userService.likePainting(paintingId);
-      } else {
-        await userService.unlikePainting(paintingId);
-      }
-
-      // Update UI after successful API call
-      setIsLiked(newIsLiked);
-      const newCount = await userService.GetlikePainting(paintingId);
-      setLikesCount(newCount);
-
-      // Notify parent component only when liking
-      if (newIsLiked && onClick) {
-        onClick(e);
-      }
-    } catch (error: any) {
-      console.error("Error toggling like:", error);
+      console.error("Like action error:", error);
       setError("Failed to update like status");
+
+      // Fetch current state on error
+      const [currentLikeStatus, currentLikeCount] = await Promise.all([
+        userService.checkUserLikedPainting(parseInt(userId), paintingId),
+        userService.GetlikePainting(paintingId),
+      ]);
+
+      // Update with actual state from backend
+      setIsLiked(currentLikeStatus);
+      setLikesCount(currentLikeCount);
     } finally {
       setIsLoading(false);
     }
@@ -107,70 +168,64 @@ const LikeButton: React.FC<LikeButtonProps> = ({
   return (
     <Box
       sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 0.5,
         position: "relative",
-        color: (theme) => (theme.palette.mode === "dark" ? "#fff" : "inherit"),
+        display: "inline-flex",
+        alignItems: "center",
         ...sx,
       }}
     >
       <IconButton
-        onClick={handleLikeClick}
+        onClick={handleLikeAction}
         disabled={isLoading}
-        className={effectiveIsLiked ? "liked" : ""}
         size="small"
         sx={{
-          color: effectiveIsLiked ? "#FF3B30" : "inherit",
-          p: 0.5,
-          transition: "all 0.3s ease",
+          color: isLiked
+            ? "#FF3B30"
+            : theme.palette.mode === "dark"
+            ? "#fff"
+            : "#000",
+          transition: "all 0.2s ease",
           "&:hover": {
             transform: "scale(1.1)",
-            backgroundColor: "rgba(255,255,255,0.1)",
           },
-          opacity: isLoading ? 0.7 : 1,
-          backgroundColor: "rgba(255,255,255,0.1)",
-          backdropFilter: "blur(4px)",
         }}
       >
         {isLoading ? (
           <CircularProgress size={20} color="inherit" />
-        ) : effectiveIsLiked ? (
-          <FavoriteIcon sx={{ color: "#FF3B30" }} />
+        ) : isLiked ? (
+          <HeartIcon />
         ) : (
           <FavoriteBorderIcon />
         )}
       </IconButton>
+
+      {showFloatingHeart && (
+        <FloatingHeart>
+          <FavoriteIcon sx={{ color: "#FF3B30" }} />
+        </FloatingHeart>
+      )}
+
       <Typography
         variant="body2"
         sx={{
           ml: 0.5,
-          minWidth: "20px",
-          transition: "all 0.3s ease",
-          opacity: isLoading ? 0.7 : 1,
-          color: (theme) =>
-            theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
-          textShadow: "0 2px 4px rgba(0,0,0,0.2)",
-          fontWeight: 600,
+          userSelect: "none",
+          color: theme.palette.mode === "dark" ? "#fff" : "inherit",
         }}
       >
-        {effectiveLikesCount}
+        {likesCount}
       </Typography>
-      {error && (
-        <Typography
-          variant="caption"
-          color="error"
-          sx={{
-            position: "absolute",
-            bottom: -20,
-            left: 0,
-            whiteSpace: "nowrap",
-            textShadow: "0 1px 2px rgba(0,0,0,0.3)",
-          }}
-        >
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={3000}
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert onClose={() => setError(null)} severity="error">
           {error}
-        </Typography>
-      )}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -21,6 +21,11 @@ import {
   keyframes,
   Theme,
   SxProps,
+  Dialog as ShareDialog,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -41,6 +46,12 @@ import ZoomOutMapIcon from "@mui/icons-material/ZoomOutMap";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import TelegramIcon from "@mui/icons-material/Telegram";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import FacebookIcon from "@mui/icons-material/Facebook";
+import TwitterIcon from "@mui/icons-material/Twitter";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import InstagramIcon from "@mui/icons-material/Instagram";
 import { userService } from "../../services/userService";
 import { css } from "@emotion/react";
 
@@ -664,39 +675,12 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
   const [localPaintings, setLocalPaintings] = useState<Painting[]>(paintings);
   const theme = useTheme();
   const { enqueueSnackbar } = useSnackbar();
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   // Update local paintings when props change
   useEffect(() => {
     setLocalPaintings(paintings);
   }, [paintings]);
-
-  const updatePaintingLikeStatus = (paintingId: string, isLiked: boolean) => {
-    // Update in local paintings array
-    setLocalPaintings((prevPaintings) =>
-      prevPaintings.map((p) => {
-        if (p.id === paintingId) {
-          return {
-            ...p,
-            isLiked,
-            likes: isLiked ? p.likes + 1 : p.likes - 1,
-          };
-        }
-        return p;
-      })
-    );
-
-    // Update in selected painting if open
-    if (selectedPainting?.id === paintingId) {
-      setSelectedPainting((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          isLiked,
-          likes: isLiked ? prev.likes + 1 : prev.likes - 1,
-        };
-      });
-    }
-  };
 
   const handleLike = async (e: React.MouseEvent, paintingId: string) => {
     e.stopPropagation();
@@ -706,21 +690,47 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
     const targetPainting = localPaintings.find((p) => p.id === paintingId);
     if (!targetPainting) return;
 
-    // Only show heart animation when liking (not when unliking)
-    if (!targetPainting.isLiked) {
-      setShowHeart(true);
-      setLikedPaintingId(paintingId);
-      setTimeout(() => {
-        setShowHeart(false);
-        setLikedPaintingId(null);
-      }, 800);
+    try {
+      // Call the API first
+      onAction("like", paintingId);
+
+      // Then update UI optimistically
+      setLocalPaintings((prevPaintings) =>
+        prevPaintings.map((painting) =>
+          painting.id === paintingId
+            ? {
+                ...painting,
+                isLiked: !painting.isLiked,
+                likes: painting.likes + (painting.isLiked ? -1 : 1),
+              }
+            : painting
+        )
+      );
+
+      // Show heart animation only when liking
+      if (!targetPainting.isLiked) {
+        setShowHeart(true);
+        setLikedPaintingId(paintingId);
+        setTimeout(() => {
+          setShowHeart(false);
+          setLikedPaintingId(null);
+        }, 800);
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      // Revert optimistic update on error
+      setLocalPaintings((prevPaintings) =>
+        prevPaintings.map((painting) =>
+          painting.id === paintingId
+            ? {
+                ...painting,
+                isLiked: targetPainting.isLiked,
+                likes: targetPainting.likes,
+              }
+            : painting
+        )
+      );
     }
-
-    // Update like status locally first for immediate feedback
-    updatePaintingLikeStatus(paintingId, !targetPainting.isLiked);
-
-    // Notify parent component
-    onAction("like", paintingId);
   };
 
   const handleDoubleClick = (e: React.MouseEvent, paintingId: string) => {
@@ -761,6 +771,63 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
     e.stopPropagation();
     e.preventDefault();
     setZoomLevel(1);
+  };
+
+  const handleShare = async (e: React.MouseEvent, painting: Painting) => {
+    e.stopPropagation();
+    setShareDialogOpen(true);
+  };
+
+  const handleShareOption = (platform: string, painting: Painting) => {
+    const shareUrl = `${window.location.origin}/profile?paintingId=${painting.id}`;
+    const shareText = `${painting.title}\n\n${painting.description}`;
+
+    const shareLinks = {
+      telegram: `https://t.me/share/url?url=${encodeURIComponent(
+        shareUrl
+      )}&text=${encodeURIComponent(
+        `Check out this painting: ${painting.title}\n\n${painting.description}`
+      )}`,
+      instagram: `instagram://share?text=${encodeURIComponent(
+        `Check out this painting: ${painting.title}\n\n${shareUrl}`
+      )}`,
+      whatsapp: `https://api.whatsapp.com/send?text=${encodeURIComponent(
+        `${shareText}\n${shareUrl}`
+      )}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+        shareUrl
+      )}`,
+      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(
+        shareUrl
+      )}&text=${encodeURIComponent(painting.title)}`,
+    };
+
+    if (platform === "copy") {
+      navigator.clipboard.writeText(shareUrl);
+      enqueueSnackbar("Link copied to clipboard!", { variant: "success" });
+    } else if (platform === "instagram") {
+      // Try to open Instagram app first
+      window.location.href = shareLinks.instagram;
+
+      // Fallback after a short delay if app didn't open
+      setTimeout(() => {
+        enqueueSnackbar(
+          "Instagram app not found. You can copy the link and share it manually.",
+          { variant: "info", autoHideDuration: 5000 }
+        );
+      }, 2000);
+    } else {
+      const width = 600;
+      const height = 400;
+      const left = window.innerWidth / 2 - width / 2;
+      const top = window.innerHeight / 2 - height / 2;
+      window.open(
+        shareLinks[platform as keyof typeof shareLinks],
+        "_blank",
+        `width=${width},height=${height},left=${left},top=${top}`
+      );
+    }
+    setShareDialogOpen(false);
   };
 
   const dialogContentSx: SxProps<Theme> = {
@@ -818,6 +885,14 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                           onClick={(e) => handleLike(e, painting.id)}
                           isLiked={painting.isLiked}
                           likesCount={painting.likes}
+                          sx={{
+                            "& .MuiIconButton-root": {
+                              backgroundColor: (theme: Theme) =>
+                                theme.palette.mode === "dark"
+                                  ? "rgba(255,255,255,0.1)"
+                                  : "rgba(0,0,0,0.1)",
+                            },
+                          }}
                         />
                         <ActionButton
                           onClick={(e) => {
@@ -1085,12 +1160,20 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                       isLiked={selectedPainting.isLiked}
                       likesCount={selectedPainting.likes}
                       sx={{
+                        transform: "scale(1.2)",
                         "& .MuiIconButton-root": {
                           backgroundColor: (theme: Theme) =>
                             theme.palette.mode === "dark"
                               ? "rgba(255,255,255,0.1)"
                               : "rgba(0,0,0,0.1)",
-                          padding: "12px",
+                          padding: "16px",
+                          "& svg": {
+                            fontSize: "28px",
+                          },
+                        },
+                        "& .MuiTypography-root": {
+                          fontSize: "1.2rem",
+                          fontWeight: 600,
                         },
                       }}
                     />
@@ -1099,7 +1182,7 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                     variant="outlined"
                     fullWidth
                     startIcon={<ShareIcon />}
-                    onClick={(e) => onAction("share", selectedPainting.id)}
+                    onClick={(e) => handleShare(e, selectedPainting)}
                   >
                     Share
                   </Button>
@@ -1136,6 +1219,179 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
           </YesButton>
         </DeleteDialogActions>
       </DeleteDialog>
+
+      {selectedPainting && (
+        <ShareDialog
+          open={shareDialogOpen}
+          onClose={() => setShareDialogOpen(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              width: "100%",
+              maxWidth: "400px",
+              backgroundColor:
+                theme.palette.mode === "dark" ? "#1A1A1A" : "#FFFFFF",
+              boxShadow:
+                theme.palette.mode === "dark"
+                  ? "0 8px 32px rgba(0,0,0,0.8)"
+                  : "0 8px 32px rgba(0,0,0,0.1)",
+              "& .MuiList-root": {
+                padding: 2,
+              },
+              "& .MuiListItemText-primary": {
+                color: theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
+                fontSize: "1rem",
+                fontWeight: 500,
+              },
+              "& .MuiListItem-root": {
+                transition: "all 0.2s ease",
+                margin: "4px 0",
+                padding: "12px 16px",
+              },
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              borderBottom: 1,
+              borderColor:
+                theme.palette.mode === "dark"
+                  ? "rgba(255,255,255,0.1)"
+                  : "divider",
+              pb: 2,
+              pt: 2.5,
+              px: 3,
+              fontWeight: 600,
+              color: theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
+              fontSize: "1.25rem",
+              backgroundColor:
+                theme.palette.mode === "dark" ? "#242424" : "#F8F8F8",
+            }}
+          >
+            Share Painting
+          </DialogTitle>
+          <DialogContent sx={{ p: 2 }}>
+            <List>
+              <ListItem
+                component="div"
+                onClick={() => handleShareOption("telegram", selectedPainting)}
+                sx={{
+                  cursor: "pointer",
+                  borderRadius: 2,
+                  mb: 1,
+                  "&:hover": {
+                    backgroundColor: "rgba(0, 136, 204, 0.15)",
+                    transform: "translateY(-1px)",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 42 }}>
+                  <TelegramIcon sx={{ color: "#0088cc", fontSize: 24 }} />
+                </ListItemIcon>
+                <ListItemText primary="Share on Telegram" />
+              </ListItem>
+              <ListItem
+                component="div"
+                onClick={() => handleShareOption("instagram", selectedPainting)}
+                sx={{
+                  cursor: "pointer",
+                  borderRadius: 2,
+                  mb: 1,
+                  "&:hover": {
+                    backgroundColor: "rgba(228, 64, 95, 0.15)",
+                    transform: "translateY(-1px)",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 42 }}>
+                  <InstagramIcon sx={{ color: "#E4405F", fontSize: 24 }} />
+                </ListItemIcon>
+                <ListItemText primary="Share on Instagram" />
+              </ListItem>
+              <ListItem
+                component="div"
+                onClick={() => handleShareOption("whatsapp", selectedPainting)}
+                sx={{
+                  cursor: "pointer",
+                  borderRadius: 2,
+                  mb: 1,
+                  "&:hover": {
+                    backgroundColor: "rgba(37, 211, 102, 0.15)",
+                    transform: "translateY(-1px)",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 42 }}>
+                  <WhatsAppIcon sx={{ color: "#25D366", fontSize: 24 }} />
+                </ListItemIcon>
+                <ListItemText primary="Share on WhatsApp" />
+              </ListItem>
+              <ListItem
+                component="div"
+                onClick={() => handleShareOption("facebook", selectedPainting)}
+                sx={{
+                  cursor: "pointer",
+                  borderRadius: 2,
+                  mb: 1,
+                  "&:hover": {
+                    backgroundColor: "rgba(24, 119, 242, 0.15)",
+                    transform: "translateY(-1px)",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 42 }}>
+                  <FacebookIcon sx={{ color: "#1877F2", fontSize: 24 }} />
+                </ListItemIcon>
+                <ListItemText primary="Share on Facebook" />
+              </ListItem>
+              <ListItem
+                component="div"
+                onClick={() => handleShareOption("twitter", selectedPainting)}
+                sx={{
+                  cursor: "pointer",
+                  borderRadius: 2,
+                  mb: 1,
+                  "&:hover": {
+                    backgroundColor: "rgba(29, 161, 242, 0.15)",
+                    transform: "translateY(-1px)",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 42 }}>
+                  <TwitterIcon sx={{ color: "#1DA1F2", fontSize: 24 }} />
+                </ListItemIcon>
+                <ListItemText primary="Share on Twitter" />
+              </ListItem>
+              <ListItem
+                component="div"
+                onClick={() => handleShareOption("copy", selectedPainting)}
+                sx={{
+                  cursor: "pointer",
+                  borderRadius: 2,
+                  "&:hover": {
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? "rgba(255, 255, 255, 0.1)"
+                        : "rgba(0, 0, 0, 0.04)",
+                    transform: "translateY(-1px)",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 42 }}>
+                  <ContentCopyIcon
+                    sx={{
+                      color:
+                        theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
+                      fontSize: 24,
+                    }}
+                  />
+                </ListItemIcon>
+                <ListItemText primary="Copy Link" />
+              </ListItem>
+            </List>
+          </DialogContent>
+        </ShareDialog>
+      )}
     </>
   );
 };

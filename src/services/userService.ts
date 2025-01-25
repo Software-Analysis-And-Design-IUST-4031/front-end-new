@@ -47,8 +47,8 @@ export interface UpdateProfileData {
 
 interface LikeResponse {
   likes_count: number;
-  message?: string;
-  error?: string;
+  message: string;
+  hasLiked: boolean;
 }
 
 // Add interfaces for the API responses
@@ -63,6 +63,18 @@ interface CitiesResponse {
 interface UpdateProfileResponse {
   message: string;
   user: UserProfile;
+}
+
+interface ChatMessage {
+  sender: string;
+  content: string;
+  timestamp: string;
+}
+
+interface ChatParticipant {
+  username: string;
+  user_id: number;
+  chat_id: number;
 }
 
 const formatDateForBackend = (date: string | null | undefined): string | null => {
@@ -267,48 +279,125 @@ export const userService = {
     }
   },
 
-  likePainting: async (paintingId: number) => {
+  likePainting: async (paintingId: number): Promise<LikeResponse> => {
     try {
-      const response = await api.post<LikeResponse>(`/painting/paintings/${paintingId}/like/`);
-      return response.data;
-    } catch (err: any) {
-      throw err;
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      
+      if (!token || !userId) {
+        throw new Error('Please log in to like paintings');
+      }
+
+      // First check if already liked
+      const isLiked = await userService.checkUserLikedPainting(parseInt(userId), paintingId);
+      if (isLiked) {
+        const likesCount = await userService.GetlikePainting(paintingId);
+        return {
+          likes_count: likesCount,
+          message: "Already liked",
+          hasLiked: true
+        };
+      }
+
+      // Like the painting
+      await api.post(`/painting/paintings/${paintingId}/like/`, {});
+      
+      // Get updated like count
+      const likesCount = await userService.GetlikePainting(paintingId);
+
+      return {
+        likes_count: likesCount,
+        message: "Liked successfully",
+        hasLiked: true
+      };
+    } catch (error) {
+      console.error('Error liking painting:', error);
+      throw error;
     }
   },
 
   unlikePainting: async (paintingId: number): Promise<LikeResponse> => {
     try {
-      const response = await api.post<LikeResponse>(`/painting/paintings/${paintingId}/Unlike/`);
-      return response.data;
-    } catch (err: any) {
-      throw err;
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      
+      if (!token || !userId) {
+        throw new Error('Please log in to unlike paintings');
+      }
+
+      // First check if already unliked
+      const isLiked = await userService.checkUserLikedPainting(parseInt(userId), paintingId);
+      if (!isLiked) {
+        const likesCount = await userService.GetlikePainting(paintingId);
+        return {
+          likes_count: likesCount,
+          message: "Already unliked",
+          hasLiked: false
+        };
+      }
+
+      // Unlike the painting
+      await api.post(`/painting/paintings/${paintingId}/Unlike/`, {});
+      
+      // Get updated like count
+      const likesCount = await userService.GetlikePainting(paintingId);
+
+      return {
+        likes_count: likesCount,
+        message: "Unliked successfully",
+        hasLiked: false
+      };
+    } catch (error) {
+      console.error('Error unliking painting:', error);
+      throw error;
     }
   },
 
-  GetlikePainting: async (paintingId: number) => {
+  toggleLikePainting: async (paintingId: number): Promise<LikeResponse> => {
     try {
-      const response = await api.get<LikeResponse>(`/painting/paintings/${paintingId}/likes/`);
-      return (response.data as LikeResponse).likes_count || 0;
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      
+      if (!token || !userId) {
+        throw new Error('Please log in to like/unlike paintings');
+      }
+
+      // Get current like status
+      const isLiked = await userService.checkUserLikedPainting(parseInt(userId), paintingId);
+      
+      // Call appropriate function based on current status
+      if (isLiked) {
+        return await userService.unlikePainting(paintingId);
+      } else {
+        return await userService.likePainting(paintingId);
+      }
     } catch (error) {
-      console.error('Error getting painting likes:', error);
+      console.error('Error toggling like:', error);
+      throw error;
+    }
+  },
+
+  GetlikePainting: async (paintingId: number): Promise<number> => {
+    try {
+      const response = await api.get<{ painting_id: number, likes_count: number }>(
+        `/painting/paintings/${paintingId}/likes/`
+      );
+      return response.data.likes_count;
+    } catch (error) {
+      console.error('Error getting likes count:', error);
       return 0;
     }
   },
 
-  toggleLikePainting: async (paintingId: number, isCurrentlyLiked: boolean): Promise<LikeResponse> => {
+  checkUserLikedPainting: async (userId: number, paintingId: number): Promise<boolean> => {
     try {
-      const response = isCurrentlyLiked 
-        ? await userService.unlikePainting(paintingId)
-        : await userService.likePainting(paintingId);
-      return response;
-    } catch (err: any) {
-      // If the error is because the painting is already in the desired state,
-      // get the current likes count and return it
-      if (err.response?.status === 400) {
-        const currentLikes = await userService.GetlikePainting(paintingId);
-        return { likes_count: currentLikes };
-      }
-      throw err;
+      const response = await api.get<{ liked: boolean }>(
+        `/painting/user/${userId}/paintings/${paintingId}/liked/`
+      );
+      return response.data.liked;
+    } catch (error) {
+      console.error('Error checking like status:', error);
+      return false;
     }
   },
 
@@ -393,13 +482,46 @@ export const userService = {
     }
   },
 
-  async checkUserLikedPainting(userId: number, paintingId: number): Promise<{ hasLiked: boolean }> {
+  fetchChats: async (): Promise<ChatParticipant[]> => {
     try {
-      const response = await api.get<{ liked: boolean }>(`/painting/user/${userId}/paintings/${paintingId}/liked/`);
-      return { hasLiked: response.data.liked };
+      const response = await api.get('/chat/chats/');
+      return response.data.chats;
     } catch (error) {
-      console.error('Error checking if user liked painting:', error);
-      return { hasLiked: false };
+      console.error('Error fetching chats:', error);
+      throw error;
     }
-  }
+  },
+
+  fetchMessages: async (chatId: number): Promise<ChatMessage[]> => {
+    try {
+      const response = await api.get(`/chat/messages/${chatId}/`);
+      return response.data.map((msg: any) => ({
+        text: msg.content,
+        sender: msg.sender === localStorage.getItem('username') ? 'me' : 'another_user',
+        date: msg.timestamp
+      }));
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      throw error;
+    }
+  },
+
+  sendMessage: async (chatId: number, content: string): Promise<void> => {
+    try {
+      await api.post(`/chat/messages/${chatId}/`, { content });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
+    }
+  },
+
+  createChat: async (participantUsername: string): Promise<any> => {
+    try {
+      const response = await api.post('/chat/chats/', { participant: participantUsername });
+      return response.data;
+    } catch (error) {
+      console.error('Error creating chat:', error);
+      throw error;
+    }
+  },
 };

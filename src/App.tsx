@@ -16,6 +16,7 @@ import BlogPost from "./components/Blog/BlogPost";
 import BlogEditor from "./components/Blog/BlogEditor";
 import GalleriesPage from "./components/Gallery/GalleriesPage";
 import ProfilePage from "./components/UserPanel/ProfilePage";
+import ChatPage from "./components/chatpage/chatpage";
 import { AuthProvider } from "./context/AuthContext";
 import { ColorModeProvider, useColorMode } from "./context/ColorModeContext";
 
@@ -97,6 +98,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile/:userId"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chat"
+                element={
+                  <ProtectedRoute>
+                    <ChatPage />
                   </ProtectedRoute>
                 }
               />

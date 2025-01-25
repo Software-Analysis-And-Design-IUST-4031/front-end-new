@@ -17,6 +17,7 @@ import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   Close as CloseIcon,
+  Chat as ChatIcon,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import { UserProfile } from "../../types";
@@ -391,6 +392,13 @@ const SideBar: React.FC<SideBarProps> = ({
             <NavButton onClick={() => handleNavigation("/profile")}>
               <PersonIcon />
               {!minimized && <Typography>Profile</Typography>}
+            </NavButton>
+          </Tooltip>
+
+          <Tooltip title="Messages" placement={minimized ? "right" : "top"}>
+            <NavButton onClick={() => handleNavigation("/chat")}>
+              <ChatIcon />
+              {!minimized && <Typography>Messages</Typography>}
             </NavButton>
           </Tooltip>
 

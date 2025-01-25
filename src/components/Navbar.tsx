@@ -20,6 +20,8 @@ import Brightness7Icon from "@mui/icons-material/Brightness7";
 import whiteLogo from "../assets/white_on_trans.png";
 import blackLogo from "../assets/black_on_trans.png";
 import MenuIcon from "@mui/icons-material/Menu";
+import ChatIcon from "@mui/icons-material/Chat";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 
 const StyledTabs = styled(Tabs)(({ theme }) => ({
   "& .MuiTabs-indicator": {
@@ -90,6 +92,7 @@ const NavigationSection = styled(Box)(({ theme }) => ({
 const UserInfo = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
+  gap: theme.spacing(1),
   padding: theme.spacing(1, 2),
   borderRadius: theme.shape.borderRadius,
   backgroundColor:
@@ -104,6 +107,35 @@ const UserInfo = styled(Box)(({ theme }) => ({
         ? "rgba(255,255,255,0.08)"
         : "rgba(0,0,0,0.05)",
     transform: "translateY(-2px)",
+  },
+}));
+
+const CoinDisplay = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(0.5),
+  padding: theme.spacing(0.5, 1.5),
+  borderRadius: theme.shape.borderRadius * 2,
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "rgba(255, 215, 0, 0.15)"
+      : "rgba(184, 134, 11, 0.12)",
+  border: `1px solid ${
+    theme.palette.mode === "dark"
+      ? "rgba(255, 215, 0, 0.3)"
+      : "rgba(184, 134, 11, 0.25)"
+  }`,
+  boxShadow:
+    theme.palette.mode === "dark"
+      ? "0 2px 8px rgba(255, 215, 0, 0.1)"
+      : "0 2px 8px rgba(184, 134, 11, 0.1)",
+  transition: "all 0.2s ease-in-out",
+  "&:hover": {
+    transform: "translateY(-1px)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 4px 12px rgba(255, 215, 0, 0.15)"
+        : "0 4px 12px rgba(184, 134, 11, 0.15)",
   },
 }));
 
@@ -131,7 +163,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSidebarToggle }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const { toggleColorMode } = useColorMode();
-  const { username, logout } = useAuth();
+  const { username, userProfile, logout } = useAuth();
 
   const currentPath = location.pathname.split("/")[1] || "home";
 
@@ -189,7 +221,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSidebarToggle }) => {
           </LogoContainer>
 
           <NavigationSection>
-            {currentPath === "profile" && onSidebarToggle && (
+            {onSidebarToggle && (
               <IconButton
                 onClick={(e) => {
                   e.stopPropagation();
@@ -215,6 +247,11 @@ const Navbar: React.FC<NavbarProps> = ({ onSidebarToggle }) => {
               onChange={handleChange}
               aria-label="navigation tabs"
               centered
+              sx={{
+                "& .MuiTabs-flexContainer": {
+                  gap: theme.spacing(4),
+                },
+              }}
             >
               {navItems.map((item) => (
                 <StyledTab
@@ -231,6 +268,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSidebarToggle }) => {
                 right: theme.spacing(3),
                 display: "flex",
                 alignItems: "center",
+                ml: 8,
               }}
             >
               {username && (
@@ -241,10 +279,31 @@ const Navbar: React.FC<NavbarProps> = ({ onSidebarToggle }) => {
                       color:
                         theme.palette.mode === "dark" ? "#E4E6EB" : "#44546F",
                       fontWeight: 500,
+                      marginRight: theme.spacing(2),
                     }}
                   >
                     {username}
                   </Typography>
+                  <CoinDisplay>
+                    <MonetizationOnIcon
+                      sx={{
+                        color:
+                          theme.palette.mode === "dark" ? "#FFD700" : "#B8860B",
+                        fontSize: "1.2rem",
+                      }}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color:
+                          theme.palette.mode === "dark" ? "#FFD700" : "#B8860B",
+                        fontWeight: 700,
+                        fontSize: "0.95rem",
+                      }}
+                    >
+                      {userProfile?.coins || 0}
+                    </Typography>
+                  </CoinDisplay>
                 </UserInfo>
               )}
               <Tooltip title="Logout">

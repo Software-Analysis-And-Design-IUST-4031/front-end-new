@@ -8,6 +8,7 @@ export interface UserProfile {
   is_active: boolean;
   is_admin: boolean;
   date_joined: string;
+  coins: number;
   nickname?: string;
   phone_number?: string;
   date_of_birth?: string;
@@ -57,7 +58,6 @@ export interface Painting {
   title: string;
   description: string;
   price: string;
-  year: string;
   style: string;
   material: string;
   horizontalDepth: string;
@@ -66,6 +66,12 @@ export interface Painting {
   isLiked: boolean;
   isSaved: boolean;
   createdAt: string;
+  author?: {
+    id: string;
+    username: string;
+    name: string;
+    avatarUrl?: string;
+  };
 }
 
 export interface LoginResponse {
