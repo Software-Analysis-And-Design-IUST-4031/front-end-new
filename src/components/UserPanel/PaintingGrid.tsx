@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Grid,
   Box,
@@ -18,6 +18,9 @@ import {
   alpha,
   Snackbar,
   Avatar,
+  keyframes,
+  Theme,
+  SxProps,
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -37,6 +40,9 @@ import ChatIcon from "@mui/icons-material/Chat";
 import ZoomOutMapIcon from "@mui/icons-material/ZoomOutMap";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import { userService } from "../../services/userService";
+import { css } from "@emotion/react";
 
 interface Painting {
   id: string;
@@ -132,22 +138,18 @@ const Overlay = styled(Box)(({ theme }) => ({
 }));
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
-  color: "#fff",
-  backgroundColor: "rgba(255,255,255,0.15)",
-  backdropFilter: "blur(8px)",
-  padding: theme.spacing(1.2),
-  transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  backgroundColor: "transparent",
+  transition: "all 0.3s ease",
+  padding: theme.spacing(1),
   "&:hover": {
-    backgroundColor: "rgba(255,255,255,0.25)",
-    transform: "scale(1.15) rotate(8deg)",
-  },
-  "&.liked": {
-    color: theme.palette.error.main,
-    backgroundColor: "rgba(255,59,48,0.3)",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.1)"
+        : "rgba(0,0,0,0.1)",
   },
   "&.saved": {
-    color: "#FFD700",
-    backgroundColor: "rgba(255,215,0,0.2)",
+    color: "#FF3B30",
   },
 }));
 
@@ -179,6 +181,40 @@ const PaintingDescription = styled(Typography)(({ theme }) => ({
   },
 }));
 
+const StyledCoinIcon = styled(MonetizationOnIcon)(({ theme }) => ({
+  background:
+    theme.palette.mode === "dark"
+      ? "linear-gradient(135deg, #FFD700 0%, #FDB931 50%, #FFD700 100%)"
+      : "linear-gradient(135deg, #FFD700 0%, #FDB931 50%, #FFD700 100%)",
+  borderRadius: "50%",
+  padding: 4,
+  fontSize: "1.5rem",
+  boxShadow:
+    theme.palette.mode === "dark"
+      ? "0 0 10px rgba(255, 215, 0, 0.3)"
+      : "0 0 10px rgba(253, 185, 49, 0.3)",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  animation: "coinShine 3s infinite",
+  "@keyframes coinShine": {
+    "0%": {
+      filter: "brightness(100%)",
+    },
+    "50%": {
+      filter: "brightness(120%)",
+    },
+    "100%": {
+      filter: "brightness(100%)",
+    },
+  },
+  "&:hover": {
+    transform: "scale(1.1) rotate(15deg)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 0 15px rgba(255, 215, 0, 0.5)"
+        : "0 0 15px rgba(253, 185, 49, 0.5)",
+  },
+}));
+
 const PaintingPrice = styled(Typography)(({ theme }) => ({
   color: "#fff",
   fontSize: "1.1rem",
@@ -187,10 +223,6 @@ const PaintingPrice = styled(Typography)(({ theme }) => ({
   alignItems: "center",
   gap: theme.spacing(0.5),
   textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-  "& .currency": {
-    fontSize: "0.8em",
-    opacity: 0.95,
-  },
 }));
 
 const ActionButtonsContainer = styled(Box)(({ theme }) => ({
@@ -206,39 +238,59 @@ const ActionButtonsContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
+const heartBeatAnimation = keyframes`
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.5); opacity: 0.8; }
+  100% { transform: scale(2); opacity: 0; }
+`;
+
+const HeartAnimation = styled(Box)(({ theme }) => ({
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  zIndex: 1000,
+  pointerEvents: "none",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  "& svg": {
+    fontSize: "120px",
+    color: "#FF3B30",
+    filter: "drop-shadow(0 0 20px rgba(255,59,48,0.5))",
+    animation: `${heartBeatAnimation} 800ms ease-out forwards`,
+  },
+}));
+
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialog-paper": {
-    borderRadius: theme.shape.borderRadius * 3,
-    backgroundColor:
+    borderRadius: `${theme.shape.borderRadius * 3}px`,
+    backgroundColor: theme.palette.mode === "dark" ? "#111111" : "#FFFFFF",
+    maxWidth: "1300px",
+    width: "95vw",
+    maxHeight: "92vh",
+    margin: theme.spacing(2),
+    overflow: "hidden",
+    boxShadow:
       theme.palette.mode === "dark"
-        ? "rgba(26,26,26,0.98)"
-        : "rgba(255,255,255,0.98)",
-    backdropFilter: "blur(20px)",
+        ? "0 25px 50px -12px rgba(0,0,0,0.95), 0 0 100px rgba(0,0,0,0.5)"
+        : "0 25px 50px -12px rgba(0,0,0,0.3), 0 0 100px rgba(0,0,0,0.1)",
     border: `1px solid ${
       theme.palette.mode === "dark"
         ? "rgba(255,255,255,0.1)"
         : "rgba(0,0,0,0.05)"
     }`,
-    boxShadow:
-      theme.palette.mode === "dark"
-        ? "0 24px 48px rgba(0,0,0,0.4)"
-        : "0 24px 48px rgba(0,0,0,0.1)",
-    overflow: "hidden",
-  },
-  "& .MuiDialogTitle-root": {
-    padding: theme.spacing(3),
     background:
       theme.palette.mode === "dark"
-        ? "linear-gradient(145deg, rgba(26,26,26,0.95) 0%, rgba(32,32,32,0.95) 100%)"
-        : "linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(250,250,250,0.95) 100%)",
-    borderBottom: `1px solid ${
-      theme.palette.mode === "dark"
-        ? "rgba(255,255,255,0.1)"
-        : "rgba(0,0,0,0.05)"
-    }`,
+        ? "linear-gradient(145deg, #111111 0%, #1A1A1A 100%)"
+        : "linear-gradient(145deg, #FFFFFF 0%, #F8F8F8 100%)",
   },
-  "& .MuiDialogContent-root": {
-    padding: theme.spacing(4),
+  "& .MuiBackdrop-root": {
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(0,0,0,0.92)"
+        : "rgba(255,255,255,0.95)",
+    backdropFilter: "blur(20px) saturate(180%)",
   },
 }));
 
@@ -383,32 +435,37 @@ const DetailDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialog-paper": {
     borderRadius: theme.shape.borderRadius * 3,
     backgroundColor: theme.palette.mode === "dark" ? "#111111" : "#FFFFFF",
-    maxWidth: "1000px",
-    width: "90vw",
-    maxHeight: "85vh",
+    maxWidth: "1300px",
+    width: "95vw",
+    maxHeight: "92vh",
     margin: theme.spacing(2),
     overflow: "hidden",
     boxShadow:
       theme.palette.mode === "dark"
-        ? "0 25px 50px -12px rgba(0,0,0,0.9)"
-        : "0 25px 50px -12px rgba(0,0,0,0.25)",
+        ? "0 25px 50px -12px rgba(0,0,0,0.95), 0 0 100px rgba(0,0,0,0.5)"
+        : "0 25px 50px -12px rgba(0,0,0,0.3), 0 0 100px rgba(0,0,0,0.1)",
     border: `1px solid ${
       theme.palette.mode === "dark"
         ? "rgba(255,255,255,0.1)"
-        : "rgba(0,0,0,0.1)"
+        : "rgba(0,0,0,0.05)"
     }`,
-    animation: "dialogFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
     background:
       theme.palette.mode === "dark"
         ? "linear-gradient(145deg, #111111 0%, #1A1A1A 100%)"
         : "linear-gradient(145deg, #FFFFFF 0%, #F8F8F8 100%)",
+    "& .MuiTypography-root": {
+      color: theme.palette.mode === "dark" ? "#FFFFFF !important" : "inherit",
+    },
+    "& .MuiIconButton-root": {
+      color: theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
+    },
   },
   "& .MuiBackdrop-root": {
     backgroundColor:
       theme.palette.mode === "dark"
-        ? "rgba(0,0,0,0.85)"
-        : "rgba(255,255,255,0.92)",
-    backdropFilter: "blur(12px) saturate(180%)",
+        ? "rgba(0,0,0,0.92)"
+        : "rgba(255,255,255,0.95)",
+    backdropFilter: "blur(20px) saturate(180%)",
   },
 }));
 
@@ -417,20 +474,21 @@ const DetailDialogContent = styled(DialogContent)(({ theme }) => ({
   flexDirection: "column",
   padding: 0,
   height: "100%",
-  maxHeight: "90vh",
+  maxHeight: "92vh",
   overflow: "hidden",
   position: "relative",
+  backgroundColor: theme.palette.mode === "dark" ? "#111111" : "#FFFFFF",
 }));
 
 const MainContent = styled(Box)(({ theme }) => ({
   display: "grid",
   gridTemplateColumns: "60% 40%",
-  gap: theme.spacing(2.5),
-  padding: theme.spacing(2.5),
+  gap: theme.spacing(4),
+  padding: theme.spacing(4),
   height: "calc(100% - 70px)",
   overflow: "auto",
   "&::-webkit-scrollbar": {
-    width: "5px",
+    width: "6px",
   },
   "&::-webkit-scrollbar-thumb": {
     background:
@@ -447,81 +505,50 @@ const MainContent = styled(Box)(({ theme }) => ({
 
 const ImageSection = styled(Box)(({ theme }) => ({
   position: "relative",
-  width: "100%",
-  minHeight: "350px",
-  maxHeight: "65vh",
-  backgroundColor: theme.palette.mode === "dark" ? "#000" : "#f5f5f5",
+  borderRadius: theme.shape.borderRadius * 3,
+  overflow: "hidden",
+  backgroundColor: theme.palette.mode === "dark" ? "#000000" : "#FFFFFF",
+  boxShadow:
+    theme.palette.mode === "dark"
+      ? "0 20px 40px rgba(0,0,0,0.6)"
+      : "0 20px 40px rgba(0,0,0,0.15)",
+  border: `1px solid ${
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"
+  }`,
+  height: "100%",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  overflow: "hidden",
-  borderRadius: theme.shape.borderRadius * 2,
-  cursor: "zoom-in",
-  transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-}));
-
-const DetailImage = styled("img")({
-  width: "100%",
-  height: "100%",
-  objectFit: "contain",
-  transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-  filter: "brightness(1.02) contrast(1.02)",
-  "&:hover": {
-    transform: "scale(1.03)",
-    filter: "brightness(1.05) contrast(1.05)",
+  "&:hover .zoom-controls": {
+    opacity: 1,
   },
-});
+}));
 
 const InfoSection = styled(Box)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
-  gap: theme.spacing(2),
-  padding: theme.spacing(2),
-  backgroundColor:
-    theme.palette.mode === "dark"
-      ? "rgba(255,255,255,0.03)"
-      : "rgba(0,0,0,0.02)",
-  borderRadius: theme.shape.borderRadius * 2,
+  gap: theme.spacing(3),
+  padding: theme.spacing(3),
   height: "100%",
-  overflow: "auto",
+  overflowY: "auto",
   "&::-webkit-scrollbar": {
-    width: "4px",
+    width: "6px",
   },
   "&::-webkit-scrollbar-thumb": {
     background:
       theme.palette.mode === "dark"
         ? "rgba(255,255,255,0.2)"
         : "rgba(0,0,0,0.2)",
-    borderRadius: "10px",
+    borderRadius: "20px",
   },
 }));
 
-const DetailTitle = styled(Typography)(({ theme }) => ({
-  fontSize: "2rem",
-  fontWeight: 700,
-  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
-  marginBottom: theme.spacing(1.5),
-  lineHeight: 1.2,
-  letterSpacing: "-0.01em",
-  position: "relative",
-  "&:after": {
-    content: '""',
-    position: "absolute",
-    bottom: -6,
-    left: 0,
-    width: "40px",
-    height: "2px",
-    background: theme.palette.mode === "dark" ? "#E0E0E0" : "#333333",
-    borderRadius: "2px",
-  },
-}));
-
-const DetailField = styled(Box)(({ theme }) => ({
+const DetailItem = styled(Box)(({ theme }) => ({
   display: "flex",
-  flexDirection: "column",
-  gap: theme.spacing(0.75),
-  padding: theme.spacing(2),
-  borderRadius: theme.shape.borderRadius * 1.5,
+  alignItems: "flex-start",
+  gap: theme.spacing(2),
+  padding: theme.spacing(2.5),
+  borderRadius: theme.shape.borderRadius * 2,
   backgroundColor:
     theme.palette.mode === "dark"
       ? "rgba(255,255,255,0.03)"
@@ -531,804 +558,584 @@ const DetailField = styled(Box)(({ theme }) => ({
       ? "rgba(255,255,255,0.05)"
       : "rgba(0,0,0,0.03)"
   }`,
-  transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+  transition: "all 0.3s ease",
+  "& .MuiTypography-root": {
+    color: theme.palette.mode === "dark" ? "#FFFFFF !important" : "inherit",
+  },
   "&:hover": {
     backgroundColor:
       theme.palette.mode === "dark"
-        ? "rgba(255,255,255,0.04)"
+        ? "rgba(255,255,255,0.05)"
         : "rgba(0,0,0,0.03)",
     transform: "translateX(4px)",
-    boxShadow:
-      theme.palette.mode === "dark"
-        ? "0 4px 15px rgba(0,0,0,0.3)"
-        : "0 4px 15px rgba(0,0,0,0.06)",
   },
 }));
 
-const FieldLabel = styled(Typography)(({ theme }) => ({
-  color: theme.palette.mode === "dark" ? "#999" : "#666",
-  fontSize: "0.875rem",
-  fontWeight: 600,
-  textTransform: "uppercase",
-  letterSpacing: "0.05em",
-}));
-
-const FieldValue = styled(Typography)(({ theme }) => ({
-  color: theme.palette.text.primary,
-  fontSize: "1.1rem",
-  fontWeight: 500,
-  lineHeight: 1.5,
+const DetailIcon = styled(Box)(({ theme }) => ({
+  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: theme.spacing(1),
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor:
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
 }));
 
 const AuthorSection = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
-  gap: theme.spacing(1.5),
-  padding: theme.spacing(2, 3),
-  backgroundColor:
-    theme.palette.mode === "dark"
-      ? "rgba(0,0,0,0.8)"
-      : "rgba(255,255,255,0.98)",
-  borderTop: `1px solid ${
-    theme.palette.mode === "dark"
-      ? "rgba(255,255,255,0.08)"
-      : "rgba(0,0,0,0.08)"
-  }`,
-  position: "sticky",
-  bottom: 0,
-  left: 0,
-  right: 0,
-  width: "100%",
-  maxWidth: "100%",
-  backdropFilter: "blur(8px)",
-  zIndex: 10,
-  boxShadow:
-    theme.palette.mode === "dark"
-      ? "0 -4px 20px rgba(0,0,0,0.4)"
-      : "0 -4px 20px rgba(0,0,0,0.08)",
-  transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-  margin: 0,
-}));
-
-const AuthorAvatar = styled(Avatar)(({ theme }) => ({
-  width: 42,
-  height: 42,
-  border: `2px solid ${theme.palette.mode === "dark" ? "#2A2A2A" : "#E0E0E0"}`,
-  boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
-  transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-  backgroundColor: theme.palette.mode === "dark" ? "#2A2A2A" : "#F5F5F5",
-  flexShrink: 0,
-  cursor: "pointer",
-  "&:hover": {
-    transform: "scale(1.08)",
-    boxShadow: `0 0 0 3px ${
-      theme.palette.mode === "dark"
-        ? "rgba(255,255,255,0.1)"
-        : "rgba(0,0,0,0.1)"
-    }`,
-  },
-}));
-
-const AuthorInfo = styled(Box)(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  gap: theme.spacing(0.3),
-  minWidth: 0,
-  flex: "0 1 auto",
-  maxWidth: "200px",
-  "& .MuiTypography-h6": {
-    fontSize: "0.9rem",
-    fontWeight: 600,
-    color: theme.palette.text.primary,
-    lineHeight: 1.2,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  },
-  "& .MuiTypography-body1": {
-    fontSize: "0.8rem",
-    color: theme.palette.text.secondary,
-    fontWeight: 500,
-    lineHeight: 1.3,
-    display: "flex",
-    alignItems: "center",
-    gap: theme.spacing(0.4),
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    "& svg": {
-      fontSize: "0.8rem",
-      opacity: 0.7,
-      flexShrink: 0,
-    },
-  },
-}));
-
-const AuthorActions = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  gap: theme.spacing(1),
-  marginLeft: "auto",
-  flexShrink: 0,
-  "& .MuiIconButton-root": {
-    width: 34,
-    height: 34,
-    color: theme.palette.text.secondary,
-    backgroundColor:
-      theme.palette.mode === "dark"
-        ? "rgba(255,255,255,0.06)"
-        : "rgba(0,0,0,0.04)",
-    padding: theme.spacing(0.8),
-    transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-    "&:hover": {
-      backgroundColor:
-        theme.palette.mode === "dark"
-          ? "rgba(255,255,255,0.1)"
-          : "rgba(0,0,0,0.08)",
-      transform: "translateY(-2px)",
-      color: theme.palette.mode === "dark" ? "#fff" : "#000",
-    },
-  },
-}));
-
-const StatsSection = styled(Box)(({ theme }) => ({
-  display: "grid",
-  gridTemplateColumns: "repeat(2, 1fr)",
-  gap: theme.spacing(1.5),
-  marginBottom: theme.spacing(2.5),
-  padding: theme.spacing(1.5),
-  borderRadius: theme.shape.borderRadius * 1.5,
-  backgroundColor:
-    theme.palette.mode === "dark"
-      ? "rgba(255,255,255,0.02)"
-      : "rgba(0,0,0,0.01)",
-  border: `1px solid ${
-    theme.palette.mode === "dark"
-      ? "rgba(255,255,255,0.04)"
-      : "rgba(0,0,0,0.02)"
-  }`,
-}));
-
-const StatItem = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  gap: theme.spacing(1.25),
-  padding: theme.spacing(1.25),
-  borderRadius: theme.shape.borderRadius,
+  gap: theme.spacing(2),
+  padding: theme.spacing(3),
+  borderRadius: theme.shape.borderRadius * 2,
   backgroundColor:
     theme.palette.mode === "dark"
       ? "rgba(255,255,255,0.03)"
       : "rgba(0,0,0,0.02)",
   border: `1px solid ${
     theme.palette.mode === "dark"
-      ? "rgba(255,255,255,0.04)"
-      : "rgba(0,0,0,0.02)"
+      ? "rgba(255,255,255,0.05)"
+      : "rgba(0,0,0,0.03)"
   }`,
-  transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+  marginBottom: theme.spacing(3),
+  transition: "all 0.3s ease",
+  "& .MuiTypography-root": {
+    color: theme.palette.mode === "dark" ? "#FFFFFF !important" : "inherit",
+  },
   "&:hover": {
     backgroundColor:
       theme.palette.mode === "dark"
-        ? "rgba(255,255,255,0.04)"
+        ? "rgba(255,255,255,0.05)"
         : "rgba(0,0,0,0.03)",
-    transform: "translateY(-2px)",
-    boxShadow:
-      theme.palette.mode === "dark"
-        ? "0 4px 15px rgba(0,0,0,0.3)"
-        : "0 4px 15px rgba(0,0,0,0.06)",
   },
 }));
 
-const StatIcon = styled(Box)(({ theme }) => ({
+const ZoomControls = styled(Box)(({ theme }) => ({
+  position: "absolute",
+  bottom: theme.spacing(3),
+  right: theme.spacing(3),
   display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: 36,
-  height: 36,
-  borderRadius: "12px",
-  backgroundColor:
-    theme.palette.mode === "dark"
-      ? "rgba(255,255,255,0.08)"
-      : "rgba(0,0,0,0.04)",
-  color: theme.palette.mode === "dark" ? "#E0E0E0" : "#333333",
-  "& svg": {
-    fontSize: "1.1rem",
-  },
-}));
-
-const StatValue = styled(Typography)(({ theme }) => ({
-  fontSize: "1.1rem",
-  fontWeight: 600,
-  color: theme.palette.text.primary,
-  lineHeight: 1,
-}));
-
-const StatLabel = styled(Typography)(({ theme }) => ({
-  fontSize: "0.7rem",
-  fontWeight: 500,
-  color: theme.palette.text.secondary,
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-}));
-
-const TagsContainer = styled(Box)(({ theme }) => ({
-  display: "flex",
-  flexWrap: "wrap",
   gap: theme.spacing(1),
-  marginBottom: theme.spacing(3),
-}));
-
-const Tag = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(0.75, 2),
-  borderRadius: theme.shape.borderRadius * 4,
+  opacity: 0,
+  transition: "opacity 0.3s ease",
   backgroundColor:
     theme.palette.mode === "dark"
-      ? "rgba(255,255,255,0.05)"
-      : "rgba(0,0,0,0.03)",
-  color: theme.palette.mode === "dark" ? "#E0E0E0" : "#666666",
-  fontSize: "0.875rem",
-  fontWeight: 500,
-  display: "flex",
-  alignItems: "center",
-  gap: theme.spacing(0.75),
-  transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-  cursor: "pointer",
+      ? "rgba(0,0,0,0.85)"
+      : "rgba(255,255,255,0.95)",
+  padding: theme.spacing(1),
+  borderRadius: theme.shape.borderRadius * 3,
+  backdropFilter: "blur(10px)",
   border: `1px solid ${
     theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"
   }`,
-  "&:hover": {
-    backgroundColor:
-      theme.palette.mode === "dark"
-        ? "rgba(255,255,255,0.1)"
-        : "rgba(0,0,0,0.05)",
-    transform: "translateY(-2px)",
-    boxShadow:
-      theme.palette.mode === "dark"
-        ? "0 4px 12px rgba(0,0,0,0.4)"
-        : "0 4px 12px rgba(0,0,0,0.1)",
+  boxShadow:
+    theme.palette.mode === "dark"
+      ? "0 8px 32px rgba(0,0,0,0.5)"
+      : "0 8px 32px rgba(0,0,0,0.1)",
+}));
+
+const LikeButtonStyled = styled(LikeButton)(({ theme }) => ({
+  "& .MuiIconButton-root": {
+    color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+    "&:hover": {
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255,255,255,0.1)"
+          : "rgba(0,0,0,0.1)",
+    },
+    "&.liked": {
+      color: "#FF3B30",
+    },
   },
-}));
-
-const formatPrice = (price: string | number | undefined) => {
-  if (!price) return "N/A";
-  const numericPrice = typeof price === "string" ? parseFloat(price) : price;
-  return !isNaN(numericPrice) ? `$${numericPrice.toLocaleString()}` : "N/A";
-};
-
-const FullScreenImageDialog = styled(Dialog)(({ theme }) => ({
-  "& .MuiDialog-paper": {
-    margin: 0,
-    maxWidth: "100vw",
-    maxHeight: "100vh",
-    width: "100vw",
-    height: "100vh",
-    backgroundColor:
-      theme.palette.mode === "dark"
-        ? "rgba(0,0,0,0.95)"
-        : "rgba(255,255,255,0.98)",
-    backgroundImage:
-      theme.palette.mode === "dark"
-        ? "radial-gradient(circle at center, rgba(30,30,30,0.95) 0%, rgba(0,0,0,0.98) 100%)"
-        : "radial-gradient(circle at center, rgba(255,255,255,0.98) 0%, rgba(245,245,245,0.95) 100%)",
+  "& .MuiTypography-root": {
+    color: theme.palette.mode === "dark" ? "#FFFFFF !important" : "inherit",
   },
-}));
-
-const FullScreenImage = styled("img")(({ theme }) => ({
-  maxWidth: "95vw",
-  maxHeight: "90vh",
-  objectFit: "contain",
-  transition: "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-  filter: "brightness(1.02) contrast(1.02)",
-  cursor: "move",
-  userSelect: "none",
-}));
-
-const ImageControls = styled(Box)(({ theme }) => ({
-  position: "absolute",
-  top: 0,
-  left: 0,
-  right: 0,
-  padding: theme.spacing(2),
-  display: "flex",
-  justifyContent: "flex-end",
-  gap: theme.spacing(1),
-  background:
-    "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 100%)",
-  opacity: 0,
-  transition: "opacity 0.3s ease",
-  zIndex: 10,
-  "&:hover": {
-    opacity: 1,
-  },
-}));
-
-const ImageControlButton = styled(IconButton)(({ theme }) => ({
-  color: "#fff",
-  backgroundColor: "rgba(0,0,0,0.3)",
-  backdropFilter: "blur(4px)",
-  "&:hover": {
-    backgroundColor: "rgba(0,0,0,0.5)",
-    transform: "scale(1.1)",
-  },
-  transition: "all 0.2s ease",
-}));
-
-const FullScreenControls = styled(Box)(({ theme }) => ({
-  position: "fixed",
-  top: theme.spacing(2),
-  right: theme.spacing(2),
-  display: "flex",
-  gap: theme.spacing(1),
-  zIndex: 1300,
 }));
 
 const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
-  const theme = useTheme();
-  const { enqueueSnackbar } = useSnackbar();
   const [selectedPainting, setSelectedPainting] = useState<Painting | null>(
     null
   );
-  const [paintingToDelete, setPaintingToDelete] = useState<Painting | null>(
-    null
-  );
-  const [loading, setLoading] = useState(false);
-  const [imageErrors, setImageErrors] = useState<{ [key: string]: boolean }>(
-    {}
-  );
-  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
-  const [imageScale, setImageScale] = useState(1);
-  const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [paintingToDelete, setPaintingToDelete] = useState<string | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [showHeart, setShowHeart] = useState(false);
+  const [likedPaintingId, setLikedPaintingId] = useState<string | null>(null);
+  const [localPaintings, setLocalPaintings] = useState<Painting[]>(paintings);
+  const theme = useTheme();
+  const { enqueueSnackbar } = useSnackbar();
+
+  // Update local paintings when props change
+  useEffect(() => {
+    setLocalPaintings(paintings);
+  }, [paintings]);
+
+  const updatePaintingLikeStatus = (paintingId: string, isLiked: boolean) => {
+    // Update in local paintings array
+    setLocalPaintings((prevPaintings) =>
+      prevPaintings.map((p) => {
+        if (p.id === paintingId) {
+          return {
+            ...p,
+            isLiked,
+            likes: isLiked ? p.likes + 1 : p.likes - 1,
+          };
+        }
+        return p;
+      })
+    );
+
+    // Update in selected painting if open
+    if (selectedPainting?.id === paintingId) {
+      setSelectedPainting((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          isLiked,
+          likes: isLiked ? prev.likes + 1 : prev.likes - 1,
+        };
+      });
+    }
+  };
+
+  const handleLike = async (e: React.MouseEvent, paintingId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    // Find the painting in local state
+    const targetPainting = localPaintings.find((p) => p.id === paintingId);
+    if (!targetPainting) return;
+
+    // Only show heart animation when liking (not when unliking)
+    if (!targetPainting.isLiked) {
+      setShowHeart(true);
+      setLikedPaintingId(paintingId);
+      setTimeout(() => {
+        setShowHeart(false);
+        setLikedPaintingId(null);
+      }, 800);
+    }
+
+    // Update like status locally first for immediate feedback
+    updatePaintingLikeStatus(paintingId, !targetPainting.isLiked);
+
+    // Notify parent component
+    onAction("like", paintingId);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent, paintingId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    // Find the painting in local state
+    const targetPainting = localPaintings.find((p) => p.id === paintingId);
+
+    // Only trigger like on double-click if the painting is not already liked
+    if (targetPainting && !targetPainting.isLiked) {
+      handleLike(e, paintingId);
+    }
+  };
 
   const handlePaintingClick = (painting: Painting) => {
     setSelectedPainting(painting);
   };
 
-  const handleClose = () => {
+  const handleCloseDetail = () => {
     setSelectedPainting(null);
+    setZoomLevel(1);
   };
 
-  const handleAction = async (actionType: string, painting: Painting) => {
-    if (actionType === "delete") {
-      setPaintingToDelete(painting);
-    } else {
-      onAction(actionType, painting.id);
-    }
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!paintingToDelete) return;
-
-    setLoading(true);
-    try {
-      await onAction("delete", paintingToDelete.id);
-      setPaintingToDelete(null);
-      enqueueSnackbar("Painting deleted successfully", { variant: "success" });
-    } catch (error: any) {
-      console.error("Error deleting painting:", error);
-      enqueueSnackbar(error.message || "Failed to delete painting", {
-        variant: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setPaintingToDelete(null);
-  };
-
-  const getImageUrl = (painting: Painting) => {
-    if (imageErrors[painting.id]) {
-      return "https://via.placeholder.com/400x400?text=Image+Not+Available";
-    }
-    return painting.imageUrl;
-  };
-
-  const handleImageError = (paintingId: string) => {
-    setImageErrors((prev) => ({ ...prev, [paintingId]: true }));
-  };
-
-  const handleImageClick = (e: React.MouseEvent, imageUrl: string) => {
+  const handleZoomIn = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setFullScreenImage(imageUrl);
-    setImageScale(1);
-    setPosition({ x: 0, y: 0 });
+    e.preventDefault();
+    setZoomLevel((prev) => Math.min(prev + 0.25, 3));
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleZoomOut = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (imageScale > 1) {
-      setIsDragging(true);
-      setDragStart({
-        x: e.clientX - position.x,
-        y: e.clientY - position.y,
-      });
-    }
+    e.preventDefault();
+    setZoomLevel((prev) => Math.max(prev - 0.25, 0.5));
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleResetZoom = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isDragging && imageScale > 1) {
-      const newX = e.clientX - dragStart.x;
-      const newY = e.clientY - dragStart.y;
-
-      // Calculate bounds based on zoom level
-      const bounds = {
-        x: Math.abs((window.innerWidth * imageScale - window.innerWidth) / 2),
-        y: Math.abs((window.innerHeight * imageScale - window.innerHeight) / 2),
-      };
-
-      // Constrain movement within bounds
-      const constrainedX = Math.min(Math.max(newX, -bounds.x), bounds.x);
-      const constrainedY = Math.min(Math.max(newY, -bounds.y), bounds.y);
-
-      setPosition({
-        x: constrainedX,
-        y: constrainedY,
-      });
-    }
+    e.preventDefault();
+    setZoomLevel(1);
   };
 
-  const handleMouseUp = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsDragging(false);
+  const dialogContentSx: SxProps<Theme> = {
+    backgroundColor: theme.palette.mode === "dark" ? "#1A1A1A" : "#FFFFFF",
+    color: theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
+    "& *": {
+      color: theme.palette.mode === "dark" ? "#FFFFFF !important" : "inherit",
+    },
   };
 
-  const handleZoom = (e: React.MouseEvent, factor: number) => {
-    e.stopPropagation();
-    setImageScale((prev) => {
-      const newScale = Math.min(Math.max(prev * factor, 1), 3);
-      if (newScale === 1) {
-        // Reset position when zooming out completely
-        setPosition({ x: 0, y: 0 });
-      }
-      return newScale;
-    });
-  };
-
-  const handleFullScreenClose = (e: React.MouseEvent) => {
-    // Only close if clicking on the backdrop
-    if (e.target === e.currentTarget) {
-      setFullScreenImage(null);
-      setImageScale(1);
-      setPosition({ x: 0, y: 0 });
-    }
+  const dialogTitleSx: SxProps<Theme> = {
+    backgroundColor: theme.palette.mode === "dark" ? "#242424" : "#F8F8F8",
+    color: theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
+    "& *": {
+      color: "inherit",
+    },
   };
 
   return (
     <>
       <Grid container spacing={3}>
-        {paintings.map((painting) => (
+        {localPaintings.map((painting) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={painting.id}>
-            <StyledPaper
-              elevation={0}
+            <Box
               onClick={() => handlePaintingClick(painting)}
+              onDoubleClick={(e) => handleDoubleClick(e, painting.id)}
+              sx={{ position: "relative" }}
             >
-              <ImageContainer>
-                <PaintingImage
-                  src={getImageUrl(painting)}
-                  alt={painting.title}
-                  onError={() => handleImageError(painting.id)}
-                />
-                <Overlay className="overlay">
-                  <Box
-                    sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
-                  >
-                    <Tooltip title={painting.isLiked ? "Unlike" : "Like"}>
-                      <ActionButton
-                        className={painting.isLiked ? "liked" : ""}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAction("like", painting);
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
+              <StyledPaper>
+                <ImageContainer>
+                  <PaintingImage src={painting.imageUrl} alt={painting.title} />
+                  <Overlay className="overlay">
+                    <Box>
+                      <PaintingTitle variant="h6">
+                        {painting.title}
+                      </PaintingTitle>
+                      <PaintingDescription>
+                        {painting.description}
+                      </PaintingDescription>
+                    </Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-end",
+                      }}
+                    >
+                      <PaintingPrice>
+                        <StyledCoinIcon />
+                        {painting.price}
+                      </PaintingPrice>
+                      <ActionButtonsContainer>
+                        <LikeButtonStyled
+                          paintingId={parseInt(painting.id)}
+                          onClick={(e) => handleLike(e, painting.id)}
+                          isLiked={painting.isLiked}
+                          likesCount={painting.likes}
+                        />
+                        <ActionButton
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAction("save", painting.id);
+                          }}
+                          className={painting.isSaved ? "saved" : ""}
+                        >
+                          {painting.isSaved ? (
+                            <BookmarkIcon />
+                          ) : (
+                            <BookmarkBorderIcon />
+                          )}
+                        </ActionButton>
+                        <ActionButton
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPaintingToDelete(painting.id);
+                            setDeleteDialogOpen(true);
                           }}
                         >
-                          <LikeButton paintingId={parseInt(painting.id)} />
-                          <Typography variant="caption" sx={{ color: "#fff" }}>
-                            {painting.likes}
-                          </Typography>
-                        </Box>
-                      </ActionButton>
-                    </Tooltip>
-                    <Tooltip title={painting.isSaved ? "Unsave" : "Save"}>
-                      <ActionButton
-                        className={painting.isSaved ? "saved" : ""}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAction("save", painting);
-                        }}
-                      >
-                        {painting.isSaved ? (
-                          <BookmarkIcon />
-                        ) : (
-                          <BookmarkBorderIcon />
-                        )}
-                      </ActionButton>
-                    </Tooltip>
-                  </Box>
-                  <Box>
-                    <PaintingTitle variant="h6">{painting.title}</PaintingTitle>
-                    <PaintingDescription>
-                      {painting.description}
-                    </PaintingDescription>
-                    <PaintingPrice>
-                      <span className="currency">€</span>
-                      {painting.price}
-                    </PaintingPrice>
-                  </Box>
-                </Overlay>
-              </ImageContainer>
-            </StyledPaper>
+                          <DeleteOutlineIcon />
+                        </ActionButton>
+                      </ActionButtonsContainer>
+                    </Box>
+                  </Overlay>
+                </ImageContainer>
+              </StyledPaper>
+              {showHeart && likedPaintingId === painting.id && (
+                <HeartAnimation>
+                  <FavoriteIcon />
+                </HeartAnimation>
+              )}
+            </Box>
           </Grid>
         ))}
       </Grid>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={!!paintingToDelete}
-        onClose={handleCancelDelete}
-        maxWidth="xs"
-        fullWidth
-      >
-        <DialogTitle>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <WarningIcon>
-              <DeleteOutlineIcon />
-            </WarningIcon>
-            <Typography variant="h6">Delete Painting</Typography>
-          </Box>
-        </DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to delete "{paintingToDelete?.title}"? This
-            action cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <DialogButton
-            variant="outlined"
-            onClick={handleCancelDelete}
-            disabled={loading}
-          >
-            Cancel
-          </DialogButton>
-          <DialogButton
-            variant="contained"
-            color="error"
-            onClick={handleConfirmDelete}
-            disabled={loading}
-          >
-            {loading ? <CircularProgress size={24} /> : "Delete"}
-          </DialogButton>
-        </DialogActions>
-      </Dialog>
-
-      {/* Painting Detail Dialog */}
-      <DetailDialog
-        open={!!selectedPainting}
-        onClose={() => setSelectedPainting(null)}
-        maxWidth={false}
-      >
-        {selectedPainting && (
-          <>
-            <DialogTitle>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Box>
-                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-                    {selectedPainting.title}
-                  </Typography>
-                  <Typography variant="subtitle1" color="text.secondary">
-                    Created on{" "}
-                    {new Date(selectedPainting.createdAt).toLocaleDateString()}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      fontWeight: 700,
-                      color:
-                        theme.palette.mode === "dark" ? "#FFD700" : "#B8860B",
-                    }}
-                  >
-                    ${selectedPainting.price}
-                  </Typography>
-                  <CloseButton onClick={() => setSelectedPainting(null)}>
-                    <CloseIcon />
-                  </CloseButton>
-                </Box>
-              </Box>
-            </DialogTitle>
-            <DialogContent>
-              <Box
-                sx={{
-                  width: "100%",
-                  paddingTop: "75%",
-                  position: "relative",
-                  mb: 3,
-                  borderRadius: 3,
-                  overflow: "hidden",
-                  boxShadow:
-                    theme.palette.mode === "dark"
-                      ? "0 8px 32px rgba(0,0,0,0.4)"
-                      : "0 8px 32px rgba(0,0,0,0.1)",
-                }}
-              >
+      {selectedPainting && (
+        <DetailDialog
+          open={Boolean(selectedPainting)}
+          onClose={handleCloseDetail}
+          maxWidth={false}
+        >
+          <DetailDialogContent>
+            <CloseButton onClick={handleCloseDetail}>
+              <CloseIcon />
+            </CloseButton>
+            <MainContent>
+              <ImageSection>
                 <Box
-                  component="img"
-                  src={getImageUrl(selectedPainting)}
-                  alt={selectedPainting.title}
                   sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
+                    position: "relative",
                     width: "100%",
                     height: "100%",
-                    objectFit: "contain",
-                    backgroundColor:
-                      theme.palette.mode === "dark"
-                        ? "rgba(0,0,0,0.5)"
-                        : "rgba(0,0,0,0.02)",
-                    padding: 2,
+                    overflow: "auto",
                   }}
-                />
-              </Box>
-              <Typography
-                variant="body1"
-                sx={{
-                  fontSize: "1.1rem",
-                  lineHeight: 1.7,
-                  color:
-                    theme.palette.mode === "dark"
-                      ? "rgba(255,255,255,0.9)"
-                      : "rgba(0,0,0,0.8)",
-                }}
-              >
-                {selectedPainting.description}
-              </Typography>
-            </DialogContent>
-            <DialogActions
-              sx={{
-                p: 3,
-                gap: 2,
-                borderTop: `1px solid ${
-                  theme.palette.mode === "dark"
-                    ? "rgba(255,255,255,0.1)"
-                    : "rgba(0,0,0,0.05)"
-                }`,
-              }}
-            >
-              <Button
-                onClick={() => setSelectedPainting(null)}
-                variant="outlined"
-                sx={{
-                  borderRadius: 2,
-                  textTransform: "none",
-                  px: 3,
-                  py: 1,
-                }}
-              >
-                Close
-              </Button>
-            </DialogActions>
-          </>
-        )}
-      </DetailDialog>
+                  onDoubleClick={(e) =>
+                    handleDoubleClick(e, selectedPainting.id)
+                  }
+                >
+                  <img
+                    src={selectedPainting.imageUrl}
+                    alt={selectedPainting.title}
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      transform: `scale(${zoomLevel})`,
+                      transformOrigin: "top left",
+                      transition: "transform 0.3s ease",
+                    }}
+                  />
+                  {showHeart && likedPaintingId === selectedPainting.id && (
+                    <HeartAnimation>
+                      <FavoriteIcon />
+                    </HeartAnimation>
+                  )}
+                  <ZoomControls
+                    className="zoom-controls"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                    }}
+                  >
+                    <Tooltip title="Zoom Out">
+                      <IconButton
+                        size="small"
+                        onClick={handleZoomOut}
+                        disabled={zoomLevel <= 0.5}
+                      >
+                        <ZoomOutIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Reset Zoom">
+                      <IconButton size="small" onClick={handleResetZoom}>
+                        <ZoomOutMapIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Zoom In">
+                      <IconButton
+                        size="small"
+                        onClick={handleZoomIn}
+                        disabled={zoomLevel >= 3}
+                      >
+                        <ZoomInIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </ZoomControls>
+                </Box>
+              </ImageSection>
+              <InfoSection>
+                {selectedPainting.author && (
+                  <AuthorSection>
+                    <Avatar
+                      src={selectedPainting.author.avatarUrl}
+                      alt={selectedPainting.author.name}
+                      sx={{ width: 56, height: 56 }}
+                    >
+                      {selectedPainting.author.name.charAt(0)}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="h6" fontWeight={600}>
+                        {selectedPainting.author.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        @{selectedPainting.author.username}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ marginLeft: "auto" }}>
+                      <Tooltip title="Follow Artist">
+                        <IconButton>
+                          <PersonAddIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Message Artist">
+                        <IconButton>
+                          <ChatIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </AuthorSection>
+                )}
 
-      <FullScreenImageDialog
-        open={!!fullScreenImage}
-        onClose={(e: any) => handleFullScreenClose(e)}
-        onClick={(e: any) => handleFullScreenClose(e)}
-        BackdropProps={{
-          onClick: (e) => handleFullScreenClose(e),
-        }}
+                <Typography
+                  variant="h4"
+                  fontWeight={700}
+                  gutterBottom
+                  sx={{
+                    color:
+                      theme.palette.mode === "dark"
+                        ? "#FFFFFF !important"
+                        : "inherit",
+                    textShadow:
+                      theme.palette.mode === "dark"
+                        ? "0 2px 4px rgba(0,0,0,0.5)"
+                        : "none",
+                  }}
+                >
+                  {selectedPainting.title}
+                </Typography>
+
+                <DetailItem>
+                  <DetailIcon>
+                    <PaletteIcon />
+                  </DetailIcon>
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Style & Material
+                    </Typography>
+                    <Typography variant="body1">
+                      {selectedPainting.style} • {selectedPainting.material}
+                    </Typography>
+                  </Box>
+                </DetailItem>
+
+                <DetailItem>
+                  <DetailIcon>
+                    <LocalOfferIcon />
+                  </DetailIcon>
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Price
+                    </Typography>
+                    <Typography
+                      variant="h6"
+                      fontWeight={600}
+                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                    >
+                      <StyledCoinIcon />
+                      {selectedPainting.price}
+                    </Typography>
+                  </Box>
+                </DetailItem>
+
+                <DetailItem>
+                  <DetailIcon>
+                    <VisibilityIcon />
+                  </DetailIcon>
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Dimensions
+                    </Typography>
+                    <Typography variant="body1">
+                      {selectedPainting.horizontalDepth} ×{" "}
+                      {selectedPainting.verticalDepth}
+                    </Typography>
+                  </Box>
+                </DetailItem>
+
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{
+                    backgroundColor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? "rgba(255,255,255,0.03)"
+                        : "rgba(0,0,0,0.02)",
+                    padding: 3,
+                    borderRadius: (theme) => theme.shape.borderRadius * 2,
+                    marginTop: 2,
+                    border: (theme) =>
+                      `1px solid ${
+                        theme.palette.mode === "dark"
+                          ? "rgba(255,255,255,0.05)"
+                          : "rgba(0,0,0,0.03)"
+                      }`,
+                    lineHeight: 1.7,
+                  }}
+                >
+                  {selectedPainting.description}
+                </Typography>
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 2,
+                    marginTop: "auto",
+                    paddingTop: 3,
+                    "& .MuiButton-root": {
+                      borderRadius: (theme: Theme) =>
+                        theme.shape.borderRadius * 2,
+                      padding: "12px 24px",
+                      textTransform: "none",
+                      fontWeight: 600,
+                      transition: "all 0.3s ease",
+                      color: (theme: Theme) =>
+                        theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
+                      "&:hover": {
+                        transform: "translateY(-2px)",
+                      },
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      flex: 1,
+                    }}
+                  >
+                    <LikeButtonStyled
+                      paintingId={parseInt(selectedPainting.id)}
+                      onClick={(e) => handleLike(e, selectedPainting.id)}
+                      isLiked={selectedPainting.isLiked}
+                      likesCount={selectedPainting.likes}
+                      sx={{
+                        "& .MuiIconButton-root": {
+                          backgroundColor: (theme: Theme) =>
+                            theme.palette.mode === "dark"
+                              ? "rgba(255,255,255,0.1)"
+                              : "rgba(0,0,0,0.1)",
+                          padding: "12px",
+                        },
+                      }}
+                    />
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<ShareIcon />}
+                    onClick={(e) => onAction("share", selectedPainting.id)}
+                  >
+                    Share
+                  </Button>
+                </Box>
+              </InfoSection>
+            </MainContent>
+          </DetailDialogContent>
+        </DetailDialog>
+      )}
+
+      <DeleteDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
       >
-        <Box
-          sx={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "relative",
-            overflow: "hidden",
-          }}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <FullScreenControls onClick={(e) => e.stopPropagation()}>
-            <ImageControlButton
-              onClick={(e) => {
-                e.stopPropagation();
-                handleZoom(e, 1.2);
-              }}
-              disabled={imageScale >= 3}
-            >
-              <ZoomInIcon />
-            </ImageControlButton>
-            <ImageControlButton
-              onClick={(e) => {
-                e.stopPropagation();
-                handleZoom(e, 0.8);
-              }}
-              disabled={imageScale <= 1}
-            >
-              <ZoomOutIcon />
-            </ImageControlButton>
-            <ImageControlButton
-              onClick={(e) => {
-                e.stopPropagation();
-                setFullScreenImage(null);
-              }}
-            >
-              <CloseIcon />
-            </ImageControlButton>
-          </FullScreenControls>
-          {fullScreenImage && (
-            <Box
-              sx={{
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "100%",
-                height: "100%",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <FullScreenImage
-                src={fullScreenImage}
-                alt="Full screen view"
-                onMouseDown={handleMouseDown}
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  transform: `scale(${imageScale}) translate(${position.x}px, ${position.y}px)`,
-                  cursor:
-                    imageScale > 1
-                      ? isDragging
-                        ? "grabbing"
-                        : "grab"
-                      : "default",
-                }}
-                draggable={false}
-              />
-            </Box>
-          )}
-          {imageScale > 1 && (
-            <Typography
-              sx={{
-                position: "fixed",
-                bottom: 16,
-                left: "50%",
-                transform: "translateX(-50%)",
-                color: "rgba(255,255,255,0.7)",
-                backgroundColor: "rgba(0,0,0,0.5)",
-                padding: "4px 12px",
-                borderRadius: 2,
-                fontSize: "0.875rem",
-                pointerEvents: "none",
-              }}
-            >
-              Click and drag to move
-            </Typography>
-          )}
-        </Box>
-      </FullScreenImageDialog>
+        <DeleteDialogTitle>Delete Painting?</DeleteDialogTitle>
+        <DeleteDialogContent>
+          <WarningIcon>
+            <DeleteOutlineIcon />
+          </WarningIcon>
+          Are you sure you want to delete this painting? This action cannot be
+          undone.
+        </DeleteDialogContent>
+        <DeleteDialogActions>
+          <NoButton onClick={() => setDeleteDialogOpen(false)}>Cancel</NoButton>
+          <YesButton
+            onClick={() => {
+              if (paintingToDelete) {
+                onAction("delete", paintingToDelete);
+                setDeleteDialogOpen(false);
+              }
+            }}
+          >
+            Delete
+          </YesButton>
+        </DeleteDialogActions>
+      </DeleteDialog>
     </>
   );
 };

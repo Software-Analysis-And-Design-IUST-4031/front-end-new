@@ -65,6 +65,17 @@ interface UpdateProfileResponse {
   user: UserProfile;
 }
 
+const formatDateForBackend = (date: string | null | undefined): string | null => {
+  if (!date) return null;
+  try {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString().split('T')[0];
+  } catch (e) {
+    return null;
+  }
+};
+
 export const userService = {
   login: async (username: string, password: string): Promise<LoginResponse> => {
     try {
@@ -106,25 +117,43 @@ export const userService = {
   },
 
   getUserProfile: async (userId: number): Promise<UserProfile> => {
-    const response = await api.get<UserProfile>(`/user/${userId}/detail/`);
-    return response.data;
+    try {
+      const response = await api.get<UserProfile>(`/user/${userId}/detail/`);
+      console.log('Fetched user profile:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      throw error;
+    }
   },
 
   async updateUserProfile(userId: number, data: FormData): Promise<void> {
     try {
-      // Log the FormData contents for debugging
-      const formDataEntries = Array.from(data.entries()).map(([key, value]) => ({
-        key,
-        value: value instanceof File ? {
-          name: value.name,
-          type: value.type,
-          size: value.size
-        } : value
-      }));
+      // Log the incoming data
+      console.log('Updating profile - Raw FormData:', Object.fromEntries(data.entries()));
 
-      console.log('Updating profile with data:', {
-        userId,
-        formDataEntries
+      // Validate userId
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+
+      // Format date_of_birth if present
+      const dateOfBirth = data.get('date_of_birth');
+      if (dateOfBirth) {
+        const formattedDate = formatDateForBackend(dateOfBirth.toString());
+        if (formattedDate) {
+          data.set('date_of_birth', formattedDate);
+        } else {
+          data.delete('date_of_birth');
+        }
+      }
+
+      // Log the request URL and headers
+      console.log('Making request to:', `/user/${userId}/updateEditProfile/`);
+      console.log('Request headers:', {
+        'Content-Type': 'multipart/form-data',
+        Accept: 'application/json',
+        Authorization: 'Bearer <token>' // Token will be added by axios interceptor
       });
 
       const response = await api.put<UpdateProfileResponse>(`/user/${userId}/updateEditProfile/`, data, {
@@ -138,6 +167,8 @@ export const userService = {
         throw new Error('No response data received');
       }
 
+      console.log('Profile update response:', response.data);
+
       // If there's a profile picture in the response, update the cache
       if (response.data.user && response.data.user.profile_picture && typeof response.data.user.profile_picture === 'string') {
         const profilePicUrl = response.data.user.profile_picture.startsWith('http')
@@ -145,25 +176,22 @@ export const userService = {
           : `${MEDIA_URL}/${response.data.user.profile_picture.replace(/^\//, '')}`;
         localStorage.setItem('lastProfilePicture', profilePicUrl);
       }
-
-      console.log('Profile update response:', response.data);
     } catch (error: any) {
       console.error('Error updating profile:', {
-        error: {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        }
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
       });
 
-      if (error.response?.status === 400) {
-        const errorDetails = error.response.data.details || {};
-        console.error('Validation errors:', errorDetails);
-        throw {
-          error: 'Invalid data',
-          details: errorDetails,
-          message: error.response.data.error || error.message
-        };
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        throw new Error('Please log in again to update your profile.');
+      } else if (error.response?.status === 400) {
+        const errorDetails = error.response.data?.details || error.response.data?.error;
+        throw new Error(errorDetails ? JSON.stringify(errorDetails) : 'Invalid data provided.');
+      } else if (error.response?.status === 413) {
+        throw new Error('Profile picture is too large. Please choose a smaller image.');
       }
 
       throw error.response?.data?.error || error.message || 'Failed to update profile';
@@ -250,7 +278,7 @@ export const userService = {
 
   unlikePainting: async (paintingId: number): Promise<LikeResponse> => {
     try {
-      const response = await api.post<LikeResponse>(`/painting/paintings/${paintingId}/unlike/`);
+      const response = await api.post<LikeResponse>(`/painting/paintings/${paintingId}/Unlike/`);
       return response.data;
     } catch (err: any) {
       throw err;
@@ -362,6 +390,16 @@ export const userService = {
       // Fallback to mock data on error
       console.log('Using mock city data due to error');
       return getMockCities(country);
+    }
+  },
+
+  async checkUserLikedPainting(userId: number, paintingId: number): Promise<{ hasLiked: boolean }> {
+    try {
+      const response = await api.get<{ liked: boolean }>(`/painting/user/${userId}/paintings/${paintingId}/liked/`);
+      return { hasLiked: response.data.liked };
+    } catch (error) {
+      console.error('Error checking if user liked painting:', error);
+      return { hasLiked: false };
     }
   }
 };

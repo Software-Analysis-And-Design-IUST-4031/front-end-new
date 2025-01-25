@@ -602,7 +602,7 @@ const ProfilePage: React.FC = () => {
 
         // Construct the image URL
         let imageUrl =
-          "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy02ODM6Qj9DQDY1NT9GPzE/RU1NW2NbYFRkZGQ+Smxsb2v/2wBDARUXFx4aHiUeHiVrOjQ6a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2v/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="; // Default gray image
+          "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy02ODM6Qj9DQDY1NT9GPzE/RU1NW2NbYFRkZGQ+Smxsb2v/2wBDARUXFx4aHiUeHiVrOjQ6a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2v/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="; // Default gray image
         if (painting.image) {
           // Check if it's a base64 image
           if (painting.image.startsWith("data:")) {
@@ -775,21 +775,45 @@ const ProfilePage: React.FC = () => {
     if (!userId) return;
 
     try {
-      const formData = new FormData();
-      Object.entries(updatedProfile).forEach(([key, value]) => {
-        if (value !== undefined) {
-          formData.append(key, value);
-        }
-      });
+      console.log("Starting profile update with data:", updatedProfile);
+
+      // If updatedProfile is already FormData, use it directly
+      let formData: FormData;
+      if (updatedProfile instanceof FormData) {
+        formData = updatedProfile;
+      } else {
+        // Create new FormData if it's a regular object
+        formData = new FormData();
+        Object.entries(updatedProfile).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            if (value instanceof File) {
+              formData.append(key, value);
+            } else if (typeof value === "boolean") {
+              formData.append(key, String(value));
+            } else {
+              formData.append(key, String(value));
+            }
+          }
+        });
+      }
+
+      // Log what's being sent
+      console.log("Sending FormData entries:");
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ": " + pair[1]);
+      }
 
       // First update the profile
       await userService.updateUserProfile(Number(userId), formData);
+      console.log("Profile update successful, fetching updated profile...");
 
       // Then fetch the updated profile
       const refreshedProfile = await userService.getUserProfile(Number(userId));
+      console.log("Fetched updated profile:", refreshedProfile);
 
       // Update the profile in context
       updateProfile(refreshedProfile);
+      console.log("Updated profile in context");
 
       // Force avatar refresh in all components
       setAvatarKey((prev) => prev + 1);
@@ -810,10 +834,19 @@ const ProfilePage: React.FC = () => {
         localStorage.setItem("lastProfilePicture", profilePicUrl);
       }
 
-      // Trigger a re-render of components using the profile picture
-      window.dispatchEvent(new Event("profilePictureUpdate"));
-    } catch (error) {
-      console.error("Error updating profile:", error);
+      // Show success message
+      enqueueSnackbar("Profile updated successfully", { variant: "success" });
+    } catch (error: any) {
+      console.error("Error updating profile:", {
+        error,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      const errorMessage =
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to update profile";
+      enqueueSnackbar(errorMessage, { variant: "error" });
     }
   };
 

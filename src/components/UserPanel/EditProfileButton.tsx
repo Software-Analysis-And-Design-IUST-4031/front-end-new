@@ -584,6 +584,8 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     "The Hay Wain - John Constable",
   ]);
 
+  const [fieldErrors, setFieldErrors] = useState<Record<FormField, string>>({});
+
   useEffect(() => {
     const fetchCountries = async () => {
       try {
@@ -673,18 +675,82 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     setIsSubmitting(true);
 
     try {
-      const updatedProfile: UserProfile = {
-        ...formValues,
-        profile_picture:
-          formValues.profile_picture instanceof File
-            ? formValues.profile_picture
-            : undefined,
-      };
+      // Create FormData
+      const formData = new FormData();
 
-      await onProfileUpdate(updatedProfile);
+      // Log form values before processing
+      console.log("Form values before processing:", formValues);
+
+      // Handle each field
+      Object.entries(formValues).forEach(([key, value]) => {
+        // Skip undefined/null values
+        if (value === undefined || value === null) return;
+
+        // Handle different field types
+        if (key === "date_of_birth" && value) {
+          // Ensure date is in YYYY-MM-DD format
+          const date = new Date(value);
+          if (!isNaN(date.getTime())) {
+            formData.append(key, date.toISOString().split("T")[0]);
+          }
+        } else if (key === "profile_picture") {
+          if (value instanceof File) {
+            formData.append(key, value);
+          }
+          // Don't append if it's a string URL - the backend already has it
+        } else if (key === "is_gallery") {
+          // Ensure boolean is sent as string "true" or "false"
+          formData.append(key, String(Boolean(value)));
+        } else if (value !== "") {
+          // Convert all other values to string
+          formData.append(key, String(value));
+        }
+      });
+
+      // Explicitly append required fields
+      const requiredFields = [
+        "firstname",
+        "lastname",
+        "nickname",
+        "email",
+        "phone_number",
+        "country",
+        "city",
+        "biography",
+        "description",
+      ];
+
+      requiredFields.forEach((field) => {
+        if (formValues[field] && !formData.has(field)) {
+          formData.append(field, String(formValues[field]));
+        }
+      });
+
+      // Log FormData entries before sending
+      console.log("FormData entries being sent:");
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ": " + pair[1]);
+      }
+
+      await onProfileUpdate(formData);
       handleClose();
-    } catch (error) {
-      console.error("Error updating profile:", error);
+
+      // Show success message
+      enqueueSnackbar("Profile updated successfully", { variant: "success" });
+    } catch (error: any) {
+      console.error("Error updating profile:", {
+        error,
+        formValues,
+        response: error.response?.data,
+      });
+
+      // Show error message with details if available
+      const errorMessage =
+        error.response?.data?.details?.date_of_birth?.[0] ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to update profile";
+      enqueueSnackbar(errorMessage, { variant: "error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -776,6 +842,37 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
       console.error("Error cropping image:", error);
     }
   };
+
+  const validateDateOfBirth = (date: string): boolean => {
+    if (!date) return true; // Optional field
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return false;
+
+    // Check if date is not in the future
+    if (d > new Date()) return false;
+
+    // Check if date is not too far in the past (e.g., 120 years ago)
+    const minDate = new Date();
+    minDate.setFullYear(minDate.getFullYear() - 120);
+    if (d < minDate) return false;
+
+    return true;
+  };
+
+  const handleDateChange =
+    (field: keyof UserProfile) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      if (!value || validateDateOfBirth(value)) {
+        handleChange(field)(value);
+        setFieldErrors((prev) => ({ ...prev, [field]: "" }));
+      } else {
+        setFieldErrors((prev) => ({
+          ...prev,
+          [field]: "Please enter a valid date",
+        }));
+      }
+    };
 
   return (
     <>
@@ -962,8 +1059,15 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                   type="date"
                   label="Date of Birth"
                   value={formValues.date_of_birth || ""}
-                  onChange={handleTextFieldChange("date_of_birth")}
-                  InputLabelProps={{ shrink: true }}
+                  onChange={handleDateChange("date_of_birth")}
+                  error={!!fieldErrors.date_of_birth}
+                  helperText={fieldErrors.date_of_birth}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  inputProps={{
+                    max: new Date().toISOString().split("T")[0], // Today
+                  }}
                   variant="outlined"
                 />
               </Grid>
