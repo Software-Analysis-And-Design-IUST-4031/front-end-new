@@ -8,7 +8,7 @@ import Mygif1 from './Animation/Animation';
 const MainPage: React.FC = () => {
   return (
     <div>
-      <div style={{ marginBottom: '150px' }}>
+      <div style={{ marginBottom: '130px' }}>
         <Title />
       </div>
 
@@ -16,7 +16,7 @@ const MainPage: React.FC = () => {
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
-        style={{ marginBottom: '150px', backgroundColor: '#ffffff', padding: '20px 0' }}
+        style={{ marginBottom: '130px', backgroundColor: '#ffffff', padding: '20px 0' }}
       >
         <Painter />
       </motion.div>
@@ -25,7 +25,7 @@ const MainPage: React.FC = () => {
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
-        style={{ marginBottom: '150px', backgroundColor: '#f5f5f5', padding: '300px 0' }}
+        style={{ marginBottom: '130px', backgroundColor: '#f5f5f5', padding: '200px 0' }}
       >
         <div style={{ maxWidth: '1500px', margin: '0 auto' }}>
           <Mygif1 />
