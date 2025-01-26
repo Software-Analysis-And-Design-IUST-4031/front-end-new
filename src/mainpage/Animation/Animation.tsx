@@ -13,16 +13,18 @@ const Mygif1: React.FC = () => {
         flexDirection: { xs: 'column', md: 'row' },
         alignItems: 'center',
         justifyContent: 'center',
-        py: 3,  
+        py: 8, // Increased padding to make the component taller
         px: 2,
         backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
         borderRadius: 2,
         boxShadow: 3,
         mt: 20,
         mb: 20,
-        maxHeight: 600,
+        maxWidth: 1500, // Limit the component's width
+        width: '90%', // Ensure it doesn't exceed 90% of the parent container
+        margin: '0 auto', // Center the component
         position: 'relative',
-        overflow: 'hidden',  // Hide overflow to keep a clean look
+        overflow: 'hidden',  
       }}
     >
       <Box
@@ -30,17 +32,19 @@ const Mygif1: React.FC = () => {
         src={mygif}
         alt="Art Shop Animation"
         sx={{
-          maxwidth: 400 ,
+          maxWidth: 300, // Fixed width for the image
+          width: '100%', // Ensure it scales proportionally
           borderRadius: 2,
           boxShadow: 1,
           mb: { xs: 4, md: 0 },
-          maxHeight: 400,
+          maxHeight: 400, // Fixed height for the image
         }}
       />
       <Box
         sx={{
           ml: { md: 4 },
           textAlign: { xs: 'center', md: 'left' },
+          maxWidth: 400, // Fixed width for the text container
         }}
       >
         <Typography
@@ -65,7 +69,6 @@ const Mygif1: React.FC = () => {
             fontWeight: 400,
           }}
         >
-          {/* Optional text here */}
         </Typography>
       </Box>
     </Box>

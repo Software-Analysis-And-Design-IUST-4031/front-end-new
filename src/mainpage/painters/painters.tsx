@@ -109,10 +109,10 @@ const Painter: React.FC = () => {
           backgroundColor: 'grey.50',
           borderRadius: 3,
           boxShadow: 3,
-          padding: 3.5,
+          padding: 2,
           mb: 2,
-          width: '95%',
-          maxWidth: '10000px',
+          width: '100%',
+          maxWidth: '1200px',
           maxHeight : '750px',
           margin: '0 auto',
         }}

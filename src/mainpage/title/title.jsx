@@ -6,15 +6,14 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
-// Images
 import bgImage from "./pic5.jpg";
 
 function Title() {
   return (
     <Box component="header" position="relative">
-      <Box component="nav" position="absolute" top="0" width="100%"> {/* Set top to 0 */}
-        <Container maxWidth={false} sx={{ padding: 0 }}> {/* Remove maxWidth and padding */}
-          <Grid container flexDirection="row" alignItems="center">
+      <Box component="nav" position="absolute" top="0" width="100%">
+        <Container maxWidth={false} sx={{ padding: 0 }}>
+          <Grid container flexDirection="row" alignItems="center" justifyContent="flex-end">
             <Box
               component="ul"
               display={{ xs: "none", lg: "flex" }}
@@ -37,9 +36,9 @@ function Title() {
                   variant="button"
                   p={1}
                   onClick={(e) => e.preventDefault()}
-                  sx={{ textDecoration: "none" }} // Remove underline from links
+                  sx={{ textDecoration: "none", color: "white", "&:hover": { opacity: 0.8 } }}
                 >
-                  <Box component="i" color="white" className="fab fa-twitter" />
+                  <Box component="i" className="fab fa-twitter" />
                 </Typography>
               </Box>
               <Box component="li">
@@ -49,9 +48,9 @@ function Title() {
                   variant="button"
                   p={1}
                   onClick={(e) => e.preventDefault()}
-                  sx={{ textDecoration: "none" }} // Remove underline from links
+                  sx={{ textDecoration: "none", color: "white", "&:hover": { opacity: 0.8 } }}
                 >
-                  <Box component="i" color="white" className="fab fa-facebook" />
+                  <Box component="i" className="fab fa-facebook" />
                 </Typography>
               </Box>
               <Box component="li">
@@ -61,9 +60,9 @@ function Title() {
                   variant="button"
                   p={1}
                   onClick={(e) => e.preventDefault()}
-                  sx={{ textDecoration: "none" }} // Remove underline from links
+                  sx={{ textDecoration: "none", color: "white", "&:hover": { opacity: 0.8 } }}
                 >
-                  <Box component="i" color="white" className="fab fa-instagram" />
+                  <Box component="i" className="fab fa-instagram" />
                 </Typography>
               </Box>
             </Box>
@@ -75,25 +74,25 @@ function Title() {
         alignItems="center"
         minHeight="100vh"
         sx={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${bgImage})`, // Gradient and image
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8)), url(${bgImage})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          width: "100%", // Set width to 150% of the parent container
-          position: "relative", // Ensure proper positioning
-          top: 0, // Ensure there's no space at the top
+          width: "100%",
+          position: "relative",
+          top: 0,
         }}
       >
-        <Container maxWidth={false} sx={{ padding: 0 }}> {/* Remove maxWidth and padding */}
+        <Container maxWidth={false} sx={{ padding: 0 }}>
           <Grid
             container
             item
-            xs={12} // Full width on all screen sizes
+            xs={12}
             flexDirection="column"
             justifyContent="center"
             sx={{
-              maxWidth: "100%", // Ensure the Grid takes full width
-              padding: { xs: 2, md: 4, lg: 6 }, // Add padding for better spacing
-              textAlign: "center", // Center text inside
+              maxWidth: "100%",
+              padding: { xs: 2, md: 4, lg: 6 },
+              textAlign: "left",
             }}
           >
             <Typography
@@ -101,24 +100,24 @@ function Title() {
               color="white"
               mb={3}
               sx={{
-                fontSize: { xs: "2rem", md: "3rem", lg: "4rem" }, // Responsive font sizes
+                fontSize: { xs: "2rem", md: "3rem", lg: "4rem" },
+                textShadow: "2px 2px 4px rgba(0, 0, 0, 0.5)",
               }}
             >
-              Art Shop
+              zaferuni
             </Typography>
             <Typography
               variant="body1"
               color="white"
               sx={{
-                opacity: 0.8,
-                fontSize: { xs: "1rem", md: "1.25rem", lg: "1.5rem" }, // Responsive font sizes
+                opacity: 1,
+                fontSize: { xs: "2rem", md: "1.5rem", lg: "1.5rem" },
+                textShadow: "2px 2px 2px rgba(0, 0, 0, 0.5)",
               }}
             >
-              Welcome to our Art Shop, where creativity meets passion. Explore a world of unique
-              artworks crafted by talented artists from around the globe.
+              Welcome to our Art Shop, where creativity meets passion. 
             </Typography>
-            <Stack direction="row" spacing={2} mt={4} justifyContent="center"> {/* Center buttons */}
-            
+            <Stack direction="row" spacing={2} mt={4} justifyContent="flex-end">
             </Stack>
           </Grid>
         </Container>
