@@ -312,7 +312,9 @@ const StyledAvatar = styled(Avatar)(({ theme }) => ({
   width: 160,
   height: 160,
   fontSize: "3.5rem",
+  fontWeight: 600,
   backgroundColor: theme.palette.mode === "dark" ? "#2C2C2C" : "#333333",
+  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#FFFFFF",
   border: `4px solid ${theme.palette.mode === "dark" ? "#1E1E1E" : "#FFFFFF"}`,
   boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
   transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
@@ -443,34 +445,82 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   customTheme,
   id,
 }) => {
-  const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [tempImageUrl, setTempImageUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>({
     unit: "%",
-    width: 90,
-    x: 5,
-    y: 5,
-    height: 90,
+    width: 50,
+    height: 50,
+    x: 25,
+    y: 25,
   });
-  const [tempImageUrl, setTempImageUrl] = useState<string | null>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
+  const [activeTab, setActiveTab] = useState(0);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // Initialize form values with userData
+  const [formValues, setFormValues] = useState<Partial<UserProfile>>({
+    firstname: userData.firstname || "",
+    lastname: userData.lastname || "",
+    nickname: userData.nickname || "",
+    email: userData.email || "",
+    phone_number: userData.phone_number || "",
+    country: userData.country || "",
+    city: userData.city || "",
+    biography: userData.biography || "",
+    description: userData.description || "",
+    is_gallery: userData.is_gallery || false,
+    gallery_name: userData.gallery_name || "",
+    profile_picture: userData.profile_picture || "",
+    Theme: userData.Theme || "",
+    Dark_light_theme: userData.Dark_light_theme || "",
+    favorite_painter: userData.favorite_painter || "",
+    favorite_painting: userData.favorite_painting || "",
+    favorite_painting_style: userData.favorite_painting_style || "",
+    favorite_painting_technique: userData.favorite_painting_technique || "",
+    favorite_painting_to_own: userData.favorite_painting_to_own || "",
+  });
+
+  // Update form values when userData changes
+  useEffect(() => {
+    setFormValues({
+      firstname: userData.firstname || "",
+      lastname: userData.lastname || "",
+      nickname: userData.nickname || "",
+      email: userData.email || "",
+      phone_number: userData.phone_number || "",
+      country: userData.country || "",
+      city: userData.city || "",
+      biography: userData.biography || "",
+      description: userData.description || "",
+      is_gallery: userData.is_gallery || false,
+      gallery_name: userData.gallery_name || "",
+      profile_picture: userData.profile_picture || "",
+      Theme: userData.Theme || "",
+      Dark_light_theme: userData.Dark_light_theme || "",
+      favorite_painter: userData.favorite_painter || "",
+      favorite_painting: userData.favorite_painting || "",
+      favorite_painting_style: userData.favorite_painting_style || "",
+      favorite_painting_technique: userData.favorite_painting_technique || "",
+      favorite_painting_to_own: userData.favorite_painting_to_own || "",
+    });
+
+    // Set preview URL if there's a profile picture
+    if (userData.profile_picture) {
+      const profilePicUrl = userData.profile_picture.startsWith("http")
+        ? userData.profile_picture
+        : `${MEDIA_URL}${userData.profile_picture}`;
+      setPreviewUrl(profilePicUrl);
+    }
+  }, [userData]);
+
   const [countries, setCountries] = useState<string[]>([]);
   const [availableCities, setAvailableCities] = useState<string[]>([]);
-
-  // Single source of truth for form state
-  const [formValues, setFormValues] = useState<UserProfile>({
-    ...userData,
-    profile_picture: userData.profile_picture || undefined,
-  });
-
-  // Remove duplicate states
-  const [previewUrl, setPreviewUrl] = useState<string | null>(
-    userData.profile_picture ? String(userData.profile_picture) : null
-  );
 
   const [paintingStyles] = useState([
     "Abstract",
@@ -583,8 +633,6 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     "The Card Players - Paul Cézanne",
     "The Hay Wain - John Constable",
   ]);
-
-  const [fieldErrors, setFieldErrors] = useState<Record<FormField, string>>({});
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -747,24 +795,30 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
   };
 
   const getAvatarSrc = () => {
+    // First check if there's a preview from a new upload
     if (previewUrl) {
       return previewUrl;
     }
-    if (
-      userData?.profile_picture &&
-      typeof userData.profile_picture === "string" &&
-      userData.profile_picture.trim() !== ""
-    ) {
+
+    // Then check if there's a current profile picture
+    if (userData?.profile_picture) {
+      // Handle both full URLs and relative paths
       const profilePicUrl = userData.profile_picture.startsWith("http")
         ? userData.profile_picture
-        : `${MEDIA_URL}/${userData.profile_picture.replace(/^\//, "")}`;
+        : `${MEDIA_URL}${userData.profile_picture}`;
+
+      // Store in localStorage for persistence
       localStorage.setItem("lastProfilePicture", profilePicUrl);
       return profilePicUrl;
     }
+
+    // Finally, try to get from localStorage if no current picture
     const cachedUrl = localStorage.getItem("lastProfilePicture");
     if (cachedUrl) {
       return cachedUrl;
     }
+
+    // Return empty string if no avatar is found
     return "";
   };
 
@@ -955,27 +1009,7 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
                     Click to upload a new profile picture
                   </Typography>
                   <AvatarUpload onClick={handleAvatarClick}>
-                    <StyledAvatar
-                      src={getAvatarSrc()}
-                      alt={userData.firstname}
-                      sx={{
-                        width: 160,
-                        height: 160,
-                        fontSize: "3.5rem",
-                        backgroundColor:
-                          theme.palette.mode === "dark" ? "#2C2C2C" : "#333333",
-                        border: `4px solid ${
-                          theme.palette.mode === "dark" ? "#1E1E1E" : "#FFFFFF"
-                        }`,
-                        boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-                        transition:
-                          "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                        "&:hover": {
-                          transform: "scale(1.05) rotate(2deg)",
-                          boxShadow: "0 12px 32px rgba(0,0,0,0.3)",
-                        },
-                      }}
-                    >
+                    <StyledAvatar src={getAvatarSrc()} alt={userData.firstname}>
                       {!getAvatarSrc() &&
                         getInitials(
                           userData.firstname || "",

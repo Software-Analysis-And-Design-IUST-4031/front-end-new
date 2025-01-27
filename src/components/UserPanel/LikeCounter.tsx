@@ -111,55 +111,42 @@ const LikeButton: React.FC<LikeButtonProps> = ({
     try {
       setIsLoading(true);
 
-      // Get current state before any action
-      const currentLikeStatus = await userService.checkUserLikedPainting(
-        parseInt(userId),
-        paintingId
-      );
+      // Optimistic update
+      const newLikeStatus = !isLiked;
+      setIsLiked(newLikeStatus);
+      setLikesCount((prev) => (newLikeStatus ? prev + 1 : prev - 1));
 
-      // Only proceed if the state is different from what we think it is
-      if (currentLikeStatus === isLiked) {
-        // Make API call based on current state
-        if (currentLikeStatus) {
-          // Currently liked, so unlike
-          await userService.unlikePainting(paintingId);
-        } else {
-          // Currently unliked, so like
-          await userService.likePainting(paintingId);
-        }
-
-        // Get the updated state
-        const [newLikeStatus, newLikeCount] = await Promise.all([
-          userService.checkUserLikedPainting(parseInt(userId), paintingId),
-          userService.GetlikePainting(paintingId),
-        ]);
-
-        // Show animation only when liking
-        if (newLikeStatus && !currentLikeStatus) {
-          setShowFloatingHeart(true);
-          setTimeout(() => setShowFloatingHeart(false), 500);
-        }
-
-        // Update state with verified data
-        setIsLiked(newLikeStatus);
-        setLikesCount(newLikeCount);
-
-        // Notify parent if needed
-        if (onClick) onClick(e);
+      if (newLikeStatus) {
+        setShowFloatingHeart(true);
+        setTimeout(() => setShowFloatingHeart(false), 500);
       }
-    } catch (error) {
-      console.error("Like action error:", error);
-      setError("Failed to update like status");
 
-      // Fetch current state on error
-      const [currentLikeStatus, currentLikeCount] = await Promise.all([
+      // Make API call
+      if (newLikeStatus) {
+        await userService.likePainting(paintingId);
+      } else {
+        await userService.unlikePainting(paintingId);
+      }
+
+      // Get the updated state to ensure sync
+      const [updatedLikeStatus, updatedLikeCount] = await Promise.all([
         userService.checkUserLikedPainting(parseInt(userId), paintingId),
         userService.GetlikePainting(paintingId),
       ]);
 
-      // Update with actual state from backend
-      setIsLiked(currentLikeStatus);
-      setLikesCount(currentLikeCount);
+      // Update state with verified data
+      setIsLiked(updatedLikeStatus);
+      setLikesCount(updatedLikeCount);
+
+      // Notify parent if needed
+      if (onClick) onClick(e);
+    } catch (error) {
+      console.error("Like action error:", error);
+      setError("Failed to update like status");
+
+      // Revert optimistic update
+      setIsLiked(!isLiked);
+      setLikesCount((prev) => (isLiked ? prev + 1 : prev - 1));
     } finally {
       setIsLoading(false);
     }
@@ -179,15 +166,17 @@ const LikeButton: React.FC<LikeButtonProps> = ({
         disabled={isLoading}
         size="small"
         sx={{
-          color: isLiked
-            ? "#FF3B30"
-            : theme.palette.mode === "dark"
-            ? "#fff"
-            : "#000",
+          color: isLiked ? "#FF3B30" : "#FFFFFF",
+          backgroundColor: "rgba(255, 255, 255, 0.1)",
           transition: "all 0.2s ease",
           "&:hover": {
+            backgroundColor: "rgba(255, 255, 255, 0.2)",
             transform: "scale(1.1)",
           },
+          "&:active": {
+            transform: "scale(0.95)",
+          },
+          ...sx,
         }}
       >
         {isLoading ? (
@@ -208,9 +197,11 @@ const LikeButton: React.FC<LikeButtonProps> = ({
       <Typography
         variant="body2"
         sx={{
-          ml: 0.5,
+          ml: 1,
           userSelect: "none",
-          color: theme.palette.mode === "dark" ? "#fff" : "inherit",
+          color: "#FFFFFF",
+          fontSize: "0.875rem",
+          fontWeight: 500,
         }}
       >
         {likesCount}

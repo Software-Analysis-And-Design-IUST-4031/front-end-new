@@ -41,6 +41,11 @@ import SideBar from "./SideBar";
 import EditProfileButton from "./EditProfileButton";
 import { useParams, useNavigate } from "react-router-dom";
 import SavedPaintings from "./SavedPaintings";
+import PaletteIcon from "@mui/icons-material/Palette";
+import CollectionsIcon from "@mui/icons-material/Collections";
+import BrushIcon from "@mui/icons-material/Brush";
+import ColorLensIcon from "@mui/icons-material/ColorLens";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 
 const MainContainer = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#0A0A0A" : "#FAFAFA",
@@ -520,6 +525,59 @@ const LocationBox = styled(Box)(({ theme }) => ({
   padding: theme.spacing(1, 2),
   borderRadius: 12,
   width: "fit-content",
+}));
+
+const FavoritesSection = styled(Box)(({ theme }) => ({
+  marginTop: theme.spacing(1),
+  padding: theme.spacing(1),
+  display: "flex",
+  flexWrap: "wrap",
+  gap: theme.spacing(0.75),
+  alignItems: "center",
+}));
+
+const FavoriteChip = styled(Chip)(({ theme }) => ({
+  height: "26px",
+  borderRadius: 13,
+  transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.04)"
+      : "rgba(0, 0, 0, 0.04)",
+  "& .MuiChip-label": {
+    color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+    fontSize: "0.8rem",
+    padding: "0 10px",
+    fontWeight: 400,
+    letterSpacing: "0.3px",
+  },
+  "& .MuiChip-icon": {
+    color:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.7)"
+        : "rgba(0, 0, 0, 0.7)",
+    marginLeft: "6px",
+    marginRight: "-4px",
+    fontSize: "0.9rem",
+  },
+  "&:hover": {
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(0, 0, 0, 0.08)",
+    transform: "translateY(-1px)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 4px 12px rgba(255, 255, 255, 0.1)"
+        : "0 4px 12px rgba(0, 0, 0, 0.08)",
+  },
+  "&:active": {
+    transform: "translateY(0)",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.15)"
+        : "rgba(0, 0, 0, 0.12)",
+  },
 }));
 
 interface AuthorDetails {
@@ -1218,13 +1276,63 @@ const ProfilePage: React.FC = () => {
                 </LocationBox>
               )}
 
-              {userProfile.favorite_painter && (
-                <Box sx={{ display: "flex", gap: 1.5, mt: 4 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Favorite Painter: {userProfile.favorite_painter}
-                  </Typography>
-                </Box>
-              )}
+              <FavoritesSection>
+                {userProfile.favorite_painter &&
+                  userProfile.favorite_painter
+                    .split(",")
+                    .map((painter, index) => (
+                      <FavoriteChip
+                        key={`painter-${index}`}
+                        label={painter.trim()}
+                        size="small"
+                        icon={<PaletteIcon sx={{ fontSize: "0.875rem" }} />}
+                      />
+                    ))}
+                {userProfile.favorite_painting &&
+                  userProfile.favorite_painting
+                    .split(",")
+                    .map((painting, index) => (
+                      <FavoriteChip
+                        key={`painting-${index}`}
+                        label={painting.trim()}
+                        size="small"
+                        icon={<CollectionsIcon sx={{ fontSize: "0.875rem" }} />}
+                      />
+                    ))}
+                {userProfile.favorite_painting_style &&
+                  userProfile.favorite_painting_style
+                    .split(",")
+                    .map((style, index) => (
+                      <FavoriteChip
+                        key={`style-${index}`}
+                        label={style.trim()}
+                        size="small"
+                        icon={<BrushIcon sx={{ fontSize: "0.875rem" }} />}
+                      />
+                    ))}
+                {userProfile.favorite_painting_technique &&
+                  userProfile.favorite_painting_technique
+                    .split(",")
+                    .map((technique, index) => (
+                      <FavoriteChip
+                        key={`technique-${index}`}
+                        label={technique.trim()}
+                        size="small"
+                        icon={<ColorLensIcon sx={{ fontSize: "0.875rem" }} />}
+                      />
+                    ))}
+                {userProfile.favorite_painting_to_own &&
+                  userProfile.favorite_painting_to_own
+                    .split(",")
+                    .map((painting, index) => (
+                      <FavoriteChip
+                        key={`dream-${index}`}
+                        label={painting.trim()}
+                        size="small"
+                        icon={<FavoriteIcon sx={{ fontSize: "0.875rem" }} />}
+                      />
+                    ))}
+              </FavoritesSection>
             </Box>
           </Box>
         </ProfileCard>

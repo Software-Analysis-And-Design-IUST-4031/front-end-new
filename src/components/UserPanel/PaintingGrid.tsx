@@ -747,10 +747,7 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
     if (!targetPainting) return;
 
     try {
-      // Call the API first
-      onAction("like", paintingId);
-
-      // Then update UI optimistically
+      // Update UI optimistically
       setLocalPaintings((prevPaintings) =>
         prevPaintings.map((painting) =>
           painting.id === paintingId
@@ -772,6 +769,9 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
           setLikedPaintingId(null);
         }, 800);
       }
+
+      // Call the API
+      onAction("like", paintingId);
     } catch (error) {
       console.error("Error toggling like:", error);
       // Revert optimistic update on error
@@ -967,27 +967,19 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                         >
                           <LikeButton
                             paintingId={parseInt(painting.id)}
-                            onClick={(e) =>
-                              handleActionClick(e, "like", painting.id)
-                            }
+                            onClick={(e) => handleLike(e, painting.id)}
+                            isLiked={painting.isLiked}
+                            likesCount={painting.likes}
                           />
                           <IconButton
                             onClick={(e) =>
                               handleActionClick(e, "save", painting.id)
                             }
                             sx={{
-                              color: painting.isSaved
-                                ? "primary.main"
-                                : "inherit",
-                              bgcolor:
-                                theme.palette.mode === "dark"
-                                  ? "rgba(255,255,255,0.1)"
-                                  : "rgba(0,0,0,0.05)",
+                              color: "#FFFFFF",
+                              backgroundColor: "rgba(255, 255, 255, 0.1)",
                               "&:hover": {
-                                bgcolor:
-                                  theme.palette.mode === "dark"
-                                    ? "rgba(255,255,255,0.2)"
-                                    : "rgba(0,0,0,0.1)",
+                                backgroundColor: "rgba(255, 255, 255, 0.2)",
                               },
                             }}
                           >
