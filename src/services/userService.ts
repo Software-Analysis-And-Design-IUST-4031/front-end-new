@@ -296,80 +296,6 @@ export const userService = {
     }
   },
 
-  likePainting: async (paintingId: number): Promise<LikeResponse> => {
-    try {
-      const token = localStorage.getItem('token');
-      const userId = localStorage.getItem('userId');
-      
-      if (!token || !userId) {
-        throw new Error('Please log in to like paintings');
-      }
-
-      // First check if already liked
-      const isLiked = await userService.checkUserLikedPainting(parseInt(userId), paintingId);
-      if (isLiked) {
-        const likesCount = await userService.GetlikePainting(paintingId);
-        return {
-          likes_count: likesCount,
-          message: "Already liked",
-          hasLiked: true
-        };
-      }
-
-      // Like the painting
-      await api.post(`/painting/paintings/${paintingId}/like/`, {});
-      
-      // Get updated like count
-      const likesCount = await userService.GetlikePainting(paintingId);
-
-      return {
-        likes_count: likesCount,
-        message: "Liked successfully",
-        hasLiked: true
-      };
-    } catch (error) {
-      console.error('Error liking painting:', error);
-      throw error;
-    }
-  },
-
-  unlikePainting: async (paintingId: number): Promise<LikeResponse> => {
-    try {
-      const token = localStorage.getItem('token');
-      const userId = localStorage.getItem('userId');
-      
-      if (!token || !userId) {
-        throw new Error('Please log in to unlike paintings');
-      }
-
-      // First check if already unliked
-      const isLiked = await userService.checkUserLikedPainting(parseInt(userId), paintingId);
-      if (!isLiked) {
-        const likesCount = await userService.GetlikePainting(paintingId);
-        return {
-          likes_count: likesCount,
-          message: "Already unliked",
-          hasLiked: false
-        };
-      }
-
-      // Unlike the painting
-      await api.post(`/painting/paintings/${paintingId}/Unlike/`, {});
-      
-      // Get updated like count
-      const likesCount = await userService.GetlikePainting(paintingId);
-
-      return {
-        likes_count: likesCount,
-        message: "Unliked successfully",
-        hasLiked: false
-      };
-    } catch (error) {
-      console.error('Error unliking painting:', error);
-      throw error;
-    }
-  },
-
   toggleLikePainting: async (paintingId: number): Promise<LikeResponse> => {
     try {
       const token = localStorage.getItem('token');
@@ -382,12 +308,21 @@ export const userService = {
       // Get current like status
       const isLiked = await userService.checkUserLikedPainting(parseInt(userId), paintingId);
       
-      // Call appropriate function based on current status
+      // Call appropriate endpoint based on current status
       if (isLiked) {
-        return await userService.unlikePainting(paintingId);
+        await api.post(`/painting/paintings/${paintingId}/Unlike/`);
       } else {
-        return await userService.likePainting(paintingId);
+        await api.post(`/painting/paintings/${paintingId}/like/`);
       }
+
+      // Get updated like count
+      const likesCount = await userService.GetlikePainting(paintingId);
+
+      return {
+        likes_count: likesCount,
+        message: isLiked ? "Unliked successfully" : "Liked successfully",
+        hasLiked: !isLiked
+      };
     } catch (error) {
       console.error('Error toggling like:', error);
       throw error;

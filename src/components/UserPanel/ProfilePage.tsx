@@ -1245,9 +1245,6 @@ const ProfilePage: React.FC = () => {
                 <Box sx={{ display: "flex", gap: 2 }}>
                   {!isOwnProfile && (
                     <>
-                      <ActionButton className="outlined" variant="outlined">
-                        Follow
-                      </ActionButton>
                       <ActionButton
                         className="outlined"
                         variant="outlined"

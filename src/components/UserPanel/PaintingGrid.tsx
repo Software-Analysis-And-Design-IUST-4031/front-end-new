@@ -34,7 +34,7 @@ import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import ShareIcon from "@mui/icons-material/Share";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CloseIcon from "@mui/icons-material/Close";
-import LikeButton from "./LikeCounter";
+import LikeButton from "../Painting/LikeButton";
 import { useSnackbar } from "notistack";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PaletteIcon from "@mui/icons-material/Palette";
@@ -275,18 +275,28 @@ const HeartAnimation = styled(Box)(({ theme }) => ({
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  zIndex: 1000,
-  pointerEvents: "none",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
+  animation: `${heartBeatAnimation} 0.8s ease-in-out`,
+  color: theme.palette.error.main,
+  zIndex: 10,
   "& svg": {
-    fontSize: "120px",
-    color: "#FF3B30",
-    filter: "drop-shadow(0 0 20px rgba(255,59,48,0.5))",
-    animation: `${heartBeatAnimation} 800ms ease-out forwards`,
+    fontSize: "64px",
   },
 }));
+
+const heartBeat = keyframes`
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+`;
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialog-paper": {
@@ -727,79 +737,22 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
   const [paintingToDelete, setPaintingToDelete] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [showHeart, setShowHeart] = useState(false);
-  const [likedPaintingId, setLikedPaintingId] = useState<string | null>(null);
   const [localPaintings, setLocalPaintings] = useState<Painting[]>(paintings);
   const theme = useTheme();
   const { enqueueSnackbar } = useSnackbar();
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [likedPaintingId, setLikedPaintingId] = useState<string | null>(null);
 
   // Update local paintings when props change
   useEffect(() => {
     setLocalPaintings(paintings);
   }, [paintings]);
 
-  const handleLike = async (e: React.MouseEvent, paintingId: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-
-    // Find the painting in local state
-    const targetPainting = localPaintings.find((p) => p.id === paintingId);
-    if (!targetPainting) return;
-
-    try {
-      // Update UI optimistically
-      setLocalPaintings((prevPaintings) =>
-        prevPaintings.map((painting) =>
-          painting.id === paintingId
-            ? {
-                ...painting,
-                isLiked: !painting.isLiked,
-                likes: painting.likes + (painting.isLiked ? -1 : 1),
-              }
-            : painting
-        )
-      );
-
-      // Show heart animation only when liking
-      if (!targetPainting.isLiked) {
-        setShowHeart(true);
-        setLikedPaintingId(paintingId);
-        setTimeout(() => {
-          setShowHeart(false);
-          setLikedPaintingId(null);
-        }, 800);
-      }
-
-      // Call the API
-      onAction("like", paintingId);
-    } catch (error) {
-      console.error("Error toggling like:", error);
-      // Revert optimistic update on error
-      setLocalPaintings((prevPaintings) =>
-        prevPaintings.map((painting) =>
-          painting.id === paintingId
-            ? {
-                ...painting,
-                isLiked: targetPainting.isLiked,
-                likes: targetPainting.likes,
-              }
-            : painting
-        )
-      );
-    }
-  };
-
   const handleDoubleClick = (e: React.MouseEvent, paintingId: string) => {
     e.stopPropagation();
     e.preventDefault();
-
-    // Find the painting in local state
-    const targetPainting = localPaintings.find((p) => p.id === paintingId);
-
-    // Only trigger like on double-click if the painting is not already liked
-    if (targetPainting && !targetPainting.isLiked) {
-      handleLike(e, paintingId);
-    }
+    setShowHeart(true);
+    setTimeout(() => setShowHeart(false), 800);
   };
 
   const handlePaintingClick = (painting: Painting) => {
@@ -928,6 +881,15 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
     }
   };
 
+  const handleLike = (paintingId: string) => {
+    setLikedPaintingId(paintingId);
+    setShowHeart(true);
+    setTimeout(() => {
+      setShowHeart(false);
+      setLikedPaintingId(null);
+    }, 800);
+  };
+
   return (
     <>
       <Grid container spacing={3}>
@@ -967,9 +929,7 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                         >
                           <LikeButton
                             paintingId={parseInt(painting.id)}
-                            onClick={(e) => handleLike(e, painting.id)}
-                            isLiked={painting.isLiked}
-                            likesCount={painting.likes}
+                            onLike={() => handleLike(painting.id)}
                           />
                           <IconButton
                             onClick={(e) =>
@@ -990,15 +950,19 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                             )}
                           </IconButton>
                         </Box>
-                        <ActionButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPaintingToDelete(painting.id);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <DeleteOutlineIcon />
-                        </ActionButton>
+                        {currentUserId &&
+                          painting.author?.id &&
+                          currentUserId === parseInt(painting.author.id) && (
+                            <ActionButton
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPaintingToDelete(painting.id);
+                                setDeleteDialogOpen(true);
+                              }}
+                            >
+                              <DeleteOutlineIcon />
+                            </ActionButton>
+                          )}
                       </ActionButtonsContainer>
                     </Box>
                   </Overlay>
@@ -1033,9 +997,6 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                     height: "100%",
                     overflow: "auto",
                   }}
-                  onDoubleClick={(e) =>
-                    handleDoubleClick(e, selectedPainting.id)
-                  }
                 >
                   <img
                     src={selectedPainting.imageUrl}
@@ -1268,9 +1229,7 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                     </ZoomControls>
                     <LikeButtonStyled
                       paintingId={parseInt(selectedPainting.id)}
-                      onClick={(e) => handleLike(e, selectedPainting.id)}
-                      isLiked={selectedPainting.isLiked}
-                      likesCount={selectedPainting.likes}
+                      onLike={() => handleLike(selectedPainting.id)}
                       sx={{
                         "& .MuiIconButton-root": {
                           backgroundColor: (theme: Theme) =>

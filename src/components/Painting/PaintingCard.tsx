@@ -10,13 +10,12 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import { useAuth } from "../../context/AuthContext";
 import paintingService from "../../services/paintingService";
 import PaintingDialog from "./PaintingDialog";
+import LikeButton from "./LikeButton";
 
 interface PaintingCardProps {
   painting: any;
@@ -24,7 +23,6 @@ interface PaintingCardProps {
 }
 
 const PaintingCard: React.FC<PaintingCardProps> = ({ painting, onAction }) => {
-  const [liked, setLiked] = useState(painting.is_liked || false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -72,14 +70,6 @@ const PaintingCard: React.FC<PaintingCardProps> = ({ painting, onAction }) => {
       setError("Failed to save/unsave painting");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleLike = (event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent dialog from opening
-    if (onAction) {
-      onAction("like", painting.id);
-      setLiked(!liked);
     }
   };
 
@@ -148,23 +138,22 @@ const PaintingCard: React.FC<PaintingCardProps> = ({ painting, onAction }) => {
           >
             {saved ? <BookmarkIcon /> : <BookmarkBorderIcon />}
           </IconButton>
-          <IconButton
-            onClick={handleLike}
+          <Box
+            onClick={(e) => e.stopPropagation()}
             sx={{
               bgcolor:
                 theme.palette.mode === "dark"
                   ? "rgba(0,0,0,0.6)"
                   : "rgba(255,255,255,0.9)",
-              "&:hover": {
-                bgcolor:
-                  theme.palette.mode === "dark"
-                    ? "rgba(0,0,0,0.8)"
-                    : "rgba(255,255,255,1)",
-              },
+              borderRadius: "50%",
+              padding: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            {liked ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon />}
-          </IconButton>
+            <LikeButton paintingId={painting.id} />
+          </Box>
         </Box>
         <CardContent>
           <Typography variant="h6" gutterBottom>

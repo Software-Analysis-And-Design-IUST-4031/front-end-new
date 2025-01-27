@@ -9,13 +9,13 @@ import {
   Typography,
   Avatar,
 } from "@mui/material";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import CloseIcon from "@mui/icons-material/Close";
 import { useAuth } from "../../context/AuthContext";
 import paintingService from "../../services/paintingService";
+import { useSnackbar } from "notistack";
+import LikeButton from "./LikeButton";
 
 interface PaintingDialogProps {
   painting: any;
@@ -30,9 +30,9 @@ const PaintingDialog: React.FC<PaintingDialogProps> = ({
 }) => {
   const theme = useTheme();
   const { user } = useAuth();
-  const [liked, setLiked] = useState(painting?.is_liked || false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -64,24 +64,6 @@ const PaintingDialog: React.FC<PaintingDialogProps> = ({
       }
     } catch (error) {
       console.error("Error toggling save:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLike = async () => {
-    if (!user || loading) return;
-
-    try {
-      setLoading(true);
-      if (liked) {
-        await paintingService.unlikePainting(painting.id);
-      } else {
-        await paintingService.likePainting(painting.id);
-      }
-      setLiked(!liked);
-    } catch (error) {
-      console.error("Error toggling like:", error);
     } finally {
       setLoading(false);
     }
@@ -162,24 +144,21 @@ const PaintingDialog: React.FC<PaintingDialogProps> = ({
             >
               {saved ? <BookmarkIcon /> : <BookmarkBorderIcon />}
             </IconButton>
-            <IconButton
-              onClick={handleLike}
-              disabled={loading}
+            <Box
               sx={{
                 bgcolor:
                   theme.palette.mode === "dark"
                     ? "rgba(0,0,0,0.6)"
                     : "rgba(255,255,255,0.9)",
-                "&:hover": {
-                  bgcolor:
-                    theme.palette.mode === "dark"
-                      ? "rgba(0,0,0,0.8)"
-                      : "rgba(255,255,255,1)",
-                },
+                borderRadius: "50%",
+                padding: "8px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              {liked ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon />}
-            </IconButton>
+              <LikeButton paintingId={painting.id} />
+            </Box>
           </Box>
         </Box>
         <Box sx={{ p: 2 }}>

@@ -8,10 +8,13 @@ import {
   CircularProgress,
   Pagination,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
+import { userService } from "../../services/userService";
+import { UserProfile } from "../../types";
+import ProfilePage from "../UserPanel/ProfilePage";
 // import '../Themes.css';
 
 const Gallery = lazy(() => import("./gallery"));
@@ -46,7 +49,7 @@ const LoadingFallback = () => (
   </Box>
 );
 
-const GalleriesPage: any = () => {
+const GalleriesPage: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -55,6 +58,7 @@ const GalleriesPage: any = () => {
   const [data, setData] = useState<GalleryInterface[]>([]);
   const [currentData, setCurrentData] = useState<GalleryInterface[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const { userId: viewedUserId } = useParams();
 
   const itemsPerPage = 3;
   const totalPages = Math.ceil(data.length / itemsPerPage);
@@ -90,20 +94,17 @@ const GalleriesPage: any = () => {
           {
             headers: {
               "Content-Type": "application/json",
-              // Remove Authorization header since endpoint is AllowAny
             },
           }
         );
 
         const baseURL = "https://zaferuni.liara.run/";
 
-        // Check if response.data exists and is an array
         if (!response.data || !Array.isArray(response.data)) {
           console.error("Invalid response format:", response);
           throw new Error("Invalid response format from server");
         }
 
-        // Add null check for cover_image
         const processedData = response.data.map(
           (gallery: GalleryInterface) => ({
             ...gallery,
@@ -120,7 +121,7 @@ const GalleriesPage: any = () => {
       } catch (err: any) {
         console.error("Error fetching galleries:", err);
         setError(true);
-        setData([]); // Reset data on error
+        setData([]);
       } finally {
         setLoading(false);
       }
@@ -135,6 +136,11 @@ const GalleriesPage: any = () => {
     const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
     setCurrentData(paginatedData);
   }, [data, currentPage, itemsPerPage]);
+
+  // If viewing a specific user's gallery, show their profile page
+  if (viewedUserId) {
+    return <ProfilePage />;
+  }
 
   // Render loading state
   if (loading) {
