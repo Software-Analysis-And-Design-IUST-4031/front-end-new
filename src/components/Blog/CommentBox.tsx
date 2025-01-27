@@ -1,203 +1,145 @@
-import React, { useState, useEffect, SyntheticEvent } from 'react';
-import { Box, TextField, Button, List, ListItem, Avatar, Typography, Collapse, Snackbar, Alert } from '@mui/material';
-import SendSharpIcon  from '@mui/icons-material/SendSharp';
+import React, { useState } from 'react';
+import {
+  Box,
+  TextField,
+  Button,
+  Avatar,
+  Paper,
+  Typography,
+  Stack,
+  Alert
+} from '@mui/material';
+import { Send as SendIcon } from '@mui/icons-material';
+import { Comment, CommentCreateData } from '../../services/blogService';
+import { useAuth } from '../../context/AuthContext';
 
-interface Comment {
-  id: number;
-  text: string;
-  user: string;
-  date: string;
-  replies?: Comment[];
+interface CommentBoxProps {
+  blogId: number;
+  comments: Comment[];
+  onCommentSubmit: (commentData: CommentCreateData) => Promise<void>;
 }
 
-const CommentBox: React.FC = () => {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [comment, setComment] = useState<string>('');
-  const [replyText, setReplyText] = useState<string>('');
-  const [showReplies, setShowReplies] = useState<{ [key: number]: boolean }>({});
-  const [showReplyInput, setShowReplyInput] = useState<{ [key: number]: boolean }>({});
+const CommentBox: React.FC<CommentBoxProps> = ({ blogId, comments, onCommentSubmit }) => {
+  const [newComment, setNewComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { username } = useAuth();
 
-  const [open, setOpen] = useState(false);
-  const [severity, setSeverity] = useState<'success' | 'error' | 'warning'>('success');
-  const [message, setMessage] = useState('');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
 
-  useEffect(() => {
-    const fetchComments = async () => {
-      try {
-        const response = await fetch('https://example.com/comments');
-        const data: Comment[] = await response.json();
-        setComments(data);
-      } catch (error) {
-        const errorMessage = 'Error fetching comments!';
-        setSeverity('error');
-        setMessage(errorMessage);
-        setOpen(true);
-      }
-    };
-    fetchComments();
-  }, []);
-
-  const handleAlertClose = (event: SyntheticEvent | Event, reason?: string) => {
-    if (reason === 'cliclaway') {
-      return;
-    }
-    setOpen(false);
-  };
-
-  const handleAddComment = async () => {
-    if (comment.trim()) {
-      const newComment: Comment = {
-        id: Date.now(),
-        text: comment,
-        user: 'Amin_Janani',
-        date: new Date().toLocaleString(),
-        replies: [],
-      };
-
-      setComments([...comments, newComment]);
-      setComment('');
-
-      try {
-        await fetch('https://example.com/comments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newComment),
-        });
-      } catch (error) {
-        const errorMessage = 'Error adding comment!';
-        setSeverity('error');
-        setMessage(errorMessage);
-        setOpen(true);
-      }
+    try {
+      setIsSubmitting(true);
+      setError(null);
+      await onCommentSubmit({ content: newComment });
+      setNewComment('');
+    } catch (err) {
+      setError('Failed to post comment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleAddReply = async (index: number) => {
-    if (replyText.trim()) {
-      const newReply: Comment = {
-        id: Date.now(),
-        text: replyText,
-        user: 'Amin_Janani',
-        date: new Date().toLocaleString(),
-      };
-
-      const updatedComments = [...comments];
-      updatedComments[index].replies?.push(newReply);
-      setComments(updatedComments);
-      setReplyText('');
-      setShowReplyInput((prev) => ({ ...prev, [index]: false }));
-
-      try {
-        await fetch('https://example.com/replies', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newReply),
-        });  
-      } catch (error) {
-        const errorMessage = 'Error adding reply!';
-        setSeverity('error');
-        setMessage(errorMessage);
-        setOpen(true);
-      }
-    }
-  };
-
-  const toggleReplies = (index: number) => {
-    setShowReplies((prev) => ({ ...prev, [index]: !prev[index] }));
-  };
-
-  const toggleReplyInput = (index: number) => {
-    setShowReplyInput((prev) => ({ ...prev, [index]: !prev[index] }));
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
   };
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 600, margin: 'auto' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, marginBottom: 2 }}>
-        <Avatar alt="User Avatar" src="/path-to-avatar.jpg" />
-        <TextField
-          label="Leave a comment ..."
-          variant="outlined"
-          fullWidth
-          multiline
-          rows={3}
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-        />
-        <Button variant="contained" sx={{backgroundColor: 'black'}} onClick={handleAddComment}>Send</Button>
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Comments ({comments.length})
+      </Typography>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {username ? (
+        <Box component="form" onSubmit={handleSubmit} sx={{ mb: 4 }}>
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            placeholder="Write a comment..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={!newComment.trim() || isSubmitting}
+            endIcon={<SendIcon />}
+          >
+            Post Comment
+          </Button>
+        </Box>
+      ) : (
+        <Alert severity="info" sx={{ mb: 4 }}>
+          Please log in to add comments
+        </Alert>
+      )}
+
+      <Box
+        sx={{
+          maxHeight: '400px',
+          overflowY: 'auto',
+          px: 1,
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: '#f1f1f1',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: '#888',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: '#555',
+          },
+        }}
+      >
+        <Stack spacing={2}>
+          {comments.map((comment) => (
+            <Paper 
+              key={comment.id} 
+              sx={{ 
+                p: 2,
+                '&:hover': {
+                  boxShadow: 2,
+                },
+                transition: 'box-shadow 0.2s',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
+                  {comment.author_name[0].toUpperCase()}
+                </Avatar>
+                <Box>
+                  <Typography variant="subtitle2" fontWeight="bold">
+                    {comment.author_name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {formatDate(comment.created_at)}
+                  </Typography>
+                </Box>
+              </Box>
+              <Typography variant="body2" sx={{ pl: 7 }}>
+                {comment.content}
+              </Typography>
+            </Paper>
+          ))}
+        </Stack>
       </Box>
-
-      <List>
-        {comments.map((c, index) => (
-          <Box key={c.id}>
-            <ListItem alignItems="flex-start" sx={{ gap: 2 }}>
-              <Avatar alt="User Avatar" src="/path-to-avatar.jpg" />
-              <Box>
-                <Typography variant="subtitle2" fontWeight="bold">
-                  {c.user} - <Typography component="span" variant="caption" color="textSecondary">{c.date}</Typography>
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ whiteSpace: 'pre-line', marginBottom: 1 }}
-                >
-                  {c.text}
-                </Typography>
-                <Button size="small" onClick={() => toggleReplyInput(index)}>
-                  {showReplyInput[index] ? 'Cancel' : 'Reply'}
-                </Button>
-                {c.replies && c.replies.length > 0 && (
-                  <Button size="small" onClick={() => toggleReplies(index)}>
-                    {showReplies[index] ? 'Hide replies' : `Replies (${c.replies.length})`}
-                  </Button>
-                )}
-              </Box>
-            </ListItem>
-
-            <Collapse in={showReplyInput[index]} timeout="auto" unmountOnExit>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 8, marginBottom: 2 }}>
-                <Avatar alt="User Avatar" src="/path-to-avatar.jpg" />
-                <TextField
-                  label="Reply a comment ..."
-                  variant="outlined"
-                  fullWidth
-                  multiline
-                  rows={2}
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                />
-                <Button variant="contained" sx={{backgroundColor: 'black'}} onClick={() => handleAddReply(index)}>Send</Button>
-              </Box>
-            </Collapse>
-
-            <Collapse in={showReplies[index]} timeout="auto" unmountOnExit>
-              {c.replies && c.replies.length > 0 && (
-                <List sx={{ pl: 4 }}>
-                  {c.replies.map((reply) => (
-                    <ListItem key={reply.id} alignItems="flex-start" sx={{ gap: 2 }}>
-                      <Avatar alt="User Avatar" src="/path-to-avatar.jpg" />
-                      <Box>
-                        <Typography variant="subtitle2" fontWeight="bold">
-                          {reply.user} - <Typography component="span" variant="caption" color="textSecondary">{reply.date}</Typography>
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          sx={{ whiteSpace: 'pre-line' }}
-                        >
-                          {reply.text}
-                        </Typography>
-                      </Box>
-                    </ListItem>
-                  ))}
-                </List>
-              )}
-            </Collapse>
-          </Box>
-        ))}
-      </List>
-      <Snackbar open={open} autoHideDuration={5000} onClose={handleAlertClose} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
-          <Alert onClose={handleAlertClose} severity={severity} sx={{width: '235px', height: '90px', textAlign: 'center'}}>
-            {message}
-          </Alert>
-      </Snackbar>
     </Box>
   );
 };

@@ -30,8 +30,9 @@ import {
   Send as SendIcon
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
-import blogService, { Blog, Comment } from '../../services/blogService';
+import blogService, { Blog, Comment, CommentCreateData } from '../../services/blogService';
 import { useAuth } from '../../context/AuthContext';
+import CommentBox from './CommentBox';
 
 const BlogPostDetail: React.FC = () => {
   const theme = useTheme();
@@ -51,10 +52,8 @@ const BlogPostDetail: React.FC = () => {
       
       try {
         setIsLoading(true);
-        const [blogData, commentsData] = await Promise.all([
-          blogService.getBlog(Number(id)),
-          blogService.getComments(Number(id))
-        ]);
+        const blogData = await blogService.getBlog(Number(id));
+        const commentsData = await blogService.getComments(Number(id));
         setBlog(blogData);
         setComments(commentsData);
       } catch (err) {
@@ -68,16 +67,13 @@ const BlogPostDetail: React.FC = () => {
     loadBlogAndComments();
   }, [id]);
 
-  const handleCommentSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!newComment.trim() || !id) return;
+  const handleCommentSubmit = async (commentData: CommentCreateData) => {
+    if (!id || !commentData.content.trim()) return;
 
     try {
-      await blogService.addComment(Number(id), { content: newComment });
-      setNewComment('');
-      // Refresh comments
-      const updatedComments = await blogService.getComments(Number(id));
-      setComments(updatedComments);
+      const newComment = await blogService.addComment(Number(id), commentData);
+      // Add the new comment to the existing comments
+      setComments(prevComments => [...prevComments, newComment]);
     } catch (error) {
       console.error('Error adding comment:', error);
       setError('Failed to add comment. Please try again.');
@@ -135,11 +131,11 @@ const BlogPostDetail: React.FC = () => {
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
           <Avatar sx={{ mr: 2 }}>
-            {blog.author.username[0].toUpperCase()}
+            {blog.author_name[0].toUpperCase()}
           </Avatar>
           <Box>
             <Typography variant="subtitle1">
-              {blog.author.username}
+              {blog.author_name}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {formatDate(blog.created_at)}
@@ -171,44 +167,24 @@ const BlogPostDetail: React.FC = () => {
           Comments ({comments.length})
         </Typography>
 
-        {username ? (
-          <Box sx={{ mb: 4 }}>
-            <form onSubmit={handleCommentSubmit}>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                placeholder="Add a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                sx={{ mb: 2 }}
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                endIcon={<SendIcon />}
-                disabled={!newComment.trim()}
-              >
-                Post Comment
-              </Button>
-            </form>
-          </Box>
-        ) : (
-          <Alert severity="info" sx={{ mb: 4 }}>
-            Please log in to add comments
-          </Alert>
-        )}
+        <Box sx={{ mt: 4 }}>
+          <CommentBox
+            blogId={Number(id)}
+            comments={comments}
+            onCommentSubmit={handleCommentSubmit}
+          />
+        </Box>
 
         <Stack spacing={2}>
           {comments.map((comment) => (
             <Paper key={comment.id} sx={{ p: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <Avatar sx={{ mr: 2 }}>
-                  {comment.author.username[0].toUpperCase()}
+                  {comment.author_name[0].toUpperCase()}
                 </Avatar>
                 <Box>
                   <Typography variant="subtitle2">
-                    {comment.author.username}
+                    {comment.author_name}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {formatDate(comment.created_at)}

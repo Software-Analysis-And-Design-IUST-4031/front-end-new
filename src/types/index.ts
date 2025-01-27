@@ -33,23 +33,20 @@ export interface Painting {
   imageUrl: string;
   title: string;
   description: string;
-  price: number | string;
+  price: string;
+  style: string;
+  material: string;
+  horizontalDepth: string;
+  verticalDepth: string;
   likes: number;
   isLiked: boolean;
   isSaved: boolean;
   createdAt: string;
-  style?: string;
-  material?: string;
-  horizontalDepth?: string;
-  verticalDepth?: string;
-  year?: string;
-  author?: {
+  author: {
     id: string;
     username: string;
     name: string;
-    avatarUrl?: string;
-    bio?: string;
-    email?: string;
+    avatarUrl: string;
   };
 }
 

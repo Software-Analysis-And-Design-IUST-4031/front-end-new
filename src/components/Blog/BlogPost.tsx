@@ -31,7 +31,8 @@ import {
 import blogService, { Blog, Comment } from "../../services/blogService";
 import { useAuth } from "../../context/AuthContext";
 import Navbar from "../Navbar";
-import styled from "@emotion/styled";
+import { styled } from "@mui/material/styles";
+import { Theme } from "@mui/material/styles";
 
 const BlogPost: React.FC = () => {
   const theme = useTheme();

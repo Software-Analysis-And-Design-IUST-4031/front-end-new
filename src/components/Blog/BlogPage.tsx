@@ -43,7 +43,8 @@ import blogService, { Blog } from "../../services/blogService";
 import Navbar from "../Navbar";
 import SideBar from "../UserPanel/SideBar";
 import { useAuth } from "../../context/AuthContext";
-import styled from "@emotion/styled";
+import { styled } from "@mui/material/styles";
+import { Theme } from "@mui/material";
 
 const HeroSection = styled(Box)(({ theme }) => ({
   background:
@@ -540,7 +541,7 @@ const BlogPage: React.FC = () => {
                 <BlogContent>
                   <BlogText>
                     <BlogTitle className="blog-title">{blog.title}</BlogTitle>
-                    <BlogExcerpt component="div">
+                    <BlogExcerpt>
                       {truncateText(
                         blog.content.replace(/<\/?[^>]+(>|$)/g, " "),
                         200
@@ -594,7 +595,7 @@ const BlogPage: React.FC = () => {
                     </BlogMeta>
                     {blog.tags && blog.tags.length > 0 && (
                       <BlogTags>
-                        {blog.tags.map((tag, index) => (
+                        {blog.tags.map((tag: string, index: number) => (
                           <BlogTag key={index} label={tag} size="small" />
                         ))}
                       </BlogTags>

@@ -91,6 +91,7 @@ const SignUpPage: React.FC = () => {
 
     setLoading(true);
     try {
+      // First, try to register
       const response = await axiosInstance.post("/user/register/", {
         firstname,
         lastname,
@@ -102,15 +103,24 @@ const SignUpPage: React.FC = () => {
 
       console.log("Signup Response:", response.data);
 
-      // Login automatically after successful registration
-      const loginResponse = await userService.login(username, password);
-      console.log("Login Response:", loginResponse);
+      // Add a small delay before attempting login
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      if (loginResponse.access && loginResponse.user_id) {
-        login(loginResponse.access, username, loginResponse.user_id);
-        navigate("/home");
-      } else {
-        console.error("Missing user_id in login response");
+      try {
+        // Then attempt to login
+        const loginResponse = await userService.login(username, password);
+        console.log("Login Response:", loginResponse);
+
+        if (loginResponse.access && loginResponse.user_id) {
+          login(loginResponse.access, username, loginResponse.user_id);
+          navigate("/home");
+        } else {
+          console.error("Missing user_id in login response");
+          navigate("/login");
+        }
+      } catch (loginErr) {
+        console.error("Auto-login failed:", loginErr);
+        setError("Registration successful! Please log in manually.");
         navigate("/login");
       }
     } catch (err: any) {
@@ -205,7 +215,7 @@ const SignUpPage: React.FC = () => {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        minHeight: "60vh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -245,7 +255,7 @@ const SignUpPage: React.FC = () => {
             borderRadius: 4,
             p: 3,
             boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-            maxWidth: "400px",
+            maxWidth: "480px",
             width: "100%",
             margin: "0 auto",
           }}
@@ -274,7 +284,7 @@ const SignUpPage: React.FC = () => {
             />
           </Box>
 
-          <Typography component="h1" variant="h5" sx={{ mb: 0.5 }}>
+          <Typography component="h1" variant="h5" sx={{ mb: 2 }}>
             Sign Up
           </Typography>
 
@@ -284,7 +294,7 @@ const SignUpPage: React.FC = () => {
             </Typography>
           )}
 
-          <Stack direction="row" spacing={1} sx={{ mb: 0.5 }}>
+          <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
             <TextField
               label="First Name"
               variant="outlined"
@@ -294,6 +304,8 @@ const SignUpPage: React.FC = () => {
               value={form.firstname}
               onChange={(e) => setForm({ ...form, firstname: e.target.value })}
               disabled={loading}
+              error={error.includes("First Name")}
+              helperText={error.includes("First Name") ? error : ""}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   bgcolor: "#f8f8f8",
@@ -313,6 +325,8 @@ const SignUpPage: React.FC = () => {
               value={form.lastname}
               onChange={(e) => setForm({ ...form, lastname: e.target.value })}
               disabled={loading}
+              error={error.includes("Last Name")}
+              helperText={error.includes("Last Name") ? error : ""}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   bgcolor: "#f8f8f8",
@@ -325,56 +339,60 @@ const SignUpPage: React.FC = () => {
             />
           </Stack>
 
-          <TextField
-            fullWidth
-            label="Username"
-            variant="outlined"
-            margin="dense"
-            required
-            value={form.username}
-            onChange={(e) => setForm({ ...form, username: e.target.value })}
-            disabled={loading}
-            sx={{
-              mb: 0.5,
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: "rgba(0, 0, 0, 0.23)",
+          <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+            <TextField
+              fullWidth
+              label="Username"
+              variant="outlined"
+              margin="dense"
+              required
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              disabled={loading}
+              error={error.includes("Username")}
+              helperText={error.includes("Username") ? error : ""}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "rgba(0, 0, 0, 0.23)",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "primary.main",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "primary.main",
+                  },
                 },
-                "&:hover fieldset": {
-                  borderColor: "primary.main",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "primary.main",
-                },
-              },
-            }}
-          />
+              }}
+            />
 
-          <TextField
-            fullWidth
-            label="Email"
-            variant="outlined"
-            margin="dense"
-            required
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            disabled={loading}
-            sx={{
-              mb: 0.5,
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: "rgba(0, 0, 0, 0.23)",
+            <TextField
+              fullWidth
+              label="Email"
+              variant="outlined"
+              margin="dense"
+              required
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              disabled={loading}
+              error={error.includes("Email")}
+              helperText={error.includes("Email") ? error : ""}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "rgba(0, 0, 0, 0.23)",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "primary.main",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "primary.main",
+                  },
                 },
-                "&:hover fieldset": {
-                  borderColor: "primary.main",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "primary.main",
-                },
-              },
-            }}
-          />
+              }}
+            />
+          </Stack>
 
           <TextField
             fullWidth
@@ -485,6 +503,8 @@ const SignUpPage: React.FC = () => {
 
           <Grid container justifyContent="center">
             <Grid item>
+            <Typography variant="body2" sx={{ mt: 1, textAlign: "center" }}>
+              Already have an account?{" "}
               <Link
                 component="button"
                 variant="body2"
@@ -497,8 +517,9 @@ const SignUpPage: React.FC = () => {
                   },
                 }}
               >
-                {"Already have an account? Sign In"}
+                {"Sign In"}
               </Link>
+              </Typography>
             </Grid>
           </Grid>
         </Box>
