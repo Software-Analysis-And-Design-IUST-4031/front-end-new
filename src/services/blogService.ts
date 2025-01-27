@@ -33,7 +33,7 @@ const blogService = {
   },
 
   getBlog: async (id: number): Promise<Blog> => {
-    const response = await api.get<Blog>(`/blogs/blogs/${id}/`);
+    const response = await api.get<Blog>(`/api/blogs/blogs/${id}/`);
     const blog = response.data;
     
     if (!blog) {
@@ -71,23 +71,37 @@ const blogService = {
   },
 
   getComments: async (blogId: number): Promise<Comment[]> => {
-    const blog = await blogService.getBlog(blogId);
-    return blog.comments || [];
+    try {
+      const response = await api.get<Blog>(`/api/blogs/blogs/${blogId}/`);
+      return response.data.comments || [];
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      return [];
+    }
   },
 
   addComment: async (blogId: number, commentData: CommentCreateData): Promise<Comment> => {
     try {
-      const response = await api.post<Comment>(`/blogs/blogs/${blogId}/comments/`, {
+      // Log the request data for debugging
+      console.log('Sending comment data:', {
         content: commentData.content,
-        parent: commentData.parent || null,
-        blog: blogId
+        blog: blogId,
+        parent: commentData.parent || null
+      });
+
+      const response = await api.post<Comment>(`/api/blogs/blogs/${blogId}/comments/`, {
+        content: commentData.content,
+        blog: blogId,
+        parent: commentData.parent || null
       });
       
-      // Ensure we have all the required fields
-      if (!response.data.author_name || !response.data.created_at) {
-        throw new Error('Invalid comment data structure');
+      if (!response.data) {
+        throw new Error('No response data received');
       }
-      
+
+      console.log('Server response:', response.data);
+
+      // Return the comment data exactly as received from the server
       return response.data;
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -96,7 +110,12 @@ const blogService = {
   },
 
   deleteComment: async (blogId: number, commentId: number): Promise<void> => {
-    await api.delete(`/blogs/blogs/${blogId}/comments/${commentId}/delete/`);
+    try {
+      await api.delete(`/blogs/${blogId}/comments/${commentId}/`);
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      throw error;
+    }
   }
 };
 

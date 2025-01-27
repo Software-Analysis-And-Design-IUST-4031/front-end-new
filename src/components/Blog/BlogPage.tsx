@@ -41,6 +41,7 @@ import {
 } from "@mui/icons-material";
 import blogService, { Blog } from "../../services/blogService";
 import Navbar from "../Navbar";
+import SideBar from "../UserPanel/SideBar";
 import { useAuth } from "../../context/AuthContext";
 import styled from "@emotion/styled";
 
@@ -224,13 +225,14 @@ const BlogTag = styled(Chip)(({ theme }) => ({
 const BlogPage: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { username } = useAuth();
+  const { username, userProfile } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [filter, setFilter] = useState("all");
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -268,6 +270,10 @@ const BlogPage: React.FC = () => {
 
   const handleViewBlog = (blogId: number) => {
     navigate(`/blog/${blogId}`);
+  };
+
+  const handleSidebarToggle = () => {
+    setSidebarOpen((prev) => !prev);
   };
 
   const filteredAndSortedBlogs = blogs
@@ -311,7 +317,15 @@ const BlogPage: React.FC = () => {
 
   return (
     <>
-      <Navbar />
+      <Navbar onSidebarToggle={handleSidebarToggle} />
+      {userProfile && (
+        <SideBar
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          userData={userProfile}
+          onProfileUpdate={() => {}}
+        />
+      )}
       <HeroSection>
         <Container maxWidth="md">
           <Typography

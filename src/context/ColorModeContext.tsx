@@ -88,8 +88,10 @@ export const ColorModeProvider: React.FC<{ children: React.ReactNode }> = ({
           setMode(newMode);
           const userId = localStorage.getItem("userId");
           if (userId) {
+            const formData = new FormData();
+            formData.append("Dark_light_theme", newMode);
             userService
-              .updateUserProfile(Number(userId), { Dark_light_theme: newMode })
+              .updateUserProfile(Number(userId), formData)
               .catch((error) => console.error("Error updating theme:", error));
           }
         }

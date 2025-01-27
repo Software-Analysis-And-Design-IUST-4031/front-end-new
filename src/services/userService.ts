@@ -210,9 +210,26 @@ export const userService = {
     }
   },
 
-  updateUserFavorites: async (userId: number, data: Partial<UserProfile>) => {
-    const response = await api.put(`/user/${userId}/updateFavorites/`, data);
-    return response.data;
+  updateUserFavorites: async (userId: number, data: {
+    favorite_painter?: string;
+    favorite_painting?: string;
+    favorite_painting_style?: string;
+    favorite_painting_technique?: string;
+    favorite_painting_to_own?: string;
+  }): Promise<void> => {
+    try {
+      console.log('Updating favorites with data:', data);
+      const response = await api.put(`/user/${userId}/updateFavorites/`, data);
+      console.log('Favorites update response:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating favorites:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      throw error.response?.data?.error || error.message || 'Failed to update favorites';
+    }
   },
 
   getUserPaintings: async (userId: string | number = '1'): Promise<{ paintings: BackendPainting[] }> => {
@@ -522,6 +539,81 @@ export const userService = {
     } catch (error) {
       console.error('Error creating chat:', error);
       throw error;
+    }
+  },
+
+  depositDollars: async (amount: number): Promise<void> => {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+    
+    console.log('Starting deposit process:', {
+      amount,
+      hasToken: !!token,
+      hasUserId: !!userId,
+      tokenType: typeof token,
+      tokenLength: token?.length
+    });
+
+    if (!token) {
+      throw new Error('Please log in to deposit dollars');
+    }
+
+    try {
+      // Convert amount to number and validate
+      const numericAmount = Number(amount);
+      if (isNaN(numericAmount) || numericAmount <= 0) {
+        throw new Error('Invalid amount. Please enter a positive number.');
+      }
+
+      console.log('Making deposit request:', {
+        url: '/painting/paintings/deposit/',
+        amount: numericAmount,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token.substring(0, 10)}...` // Log first 10 chars for security
+        }
+      });
+
+      const response = await api.post(`/painting/paintings/deposit/`, {
+        amount: numericAmount
+      });
+
+      console.log('Deposit response:', {
+        status: response.status,
+        statusText: response.statusText,
+        data: response.data
+      });
+
+      if (response.status !== 201) {
+        throw new Error('Failed to deposit dollars');
+      }
+
+      return response.data;
+    } catch (error: any) {
+      console.error('Error depositing dollars:', {
+        name: error.name,
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        responseData: error.response?.data,
+        requestConfig: {
+          url: error.config?.url,
+          method: error.config?.method,
+          headers: {
+            ...error.config?.headers,
+            Authorization: error.config?.headers?.Authorization ? 'Bearer [REDACTED]' : undefined
+          }
+        }
+      });
+      
+      // Try to extract a meaningful error message
+      const errorMessage = 
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to deposit dollars';
+
+      throw new Error(errorMessage);
     }
   },
 };

@@ -54,6 +54,8 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import { userService } from "../../services/userService";
 import { css } from "@emotion/react";
+import { useAuth } from "../../context/AuthContext";
+import paintingService from "../../services/paintingService";
 
 interface Painting {
   id: string;
@@ -149,18 +151,18 @@ const Overlay = styled(Box)(({ theme }) => ({
 }));
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
-  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  color: "#FFFFFF",
   backgroundColor: "transparent",
   transition: "all 0.3s ease",
   padding: theme.spacing(1),
   "&:hover": {
-    backgroundColor:
-      theme.palette.mode === "dark"
-        ? "rgba(255,255,255,0.1)"
-        : "rgba(0,0,0,0.1)",
+    backgroundColor: "rgba(255,255,255,0.1)",
   },
   "&.saved": {
     color: "#FF3B30",
+  },
+  "& .MuiSvgIcon-root": {
+    color: "#FFFFFF",
   },
 }));
 
@@ -238,7 +240,8 @@ const PaintingPrice = styled(Typography)(({ theme }) => ({
 
 const ActionButtonsContainer = styled(Box)(({ theme }) => ({
   display: "flex",
-  gap: theme.spacing(1.5),
+  gap: 0,
+  alignItems: "center",
   transform: "translateY(20px)",
   opacity: 0,
   transition: "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
@@ -246,6 +249,18 @@ const ActionButtonsContainer = styled(Box)(({ theme }) => ({
   ".overlay:hover &": {
     transform: "translateY(0)",
     opacity: 1,
+  },
+  "& > *": {
+    marginLeft: "-16px",
+  },
+  "& > :first-of-type": {
+    marginLeft: 0,
+  },
+  "& .MuiIconButton-root": {
+    marginLeft: "-12px",
+  },
+  "& .MuiIconButton-root:first-of-type": {
+    marginLeft: 0,
   },
 }));
 
@@ -618,22 +633,37 @@ const AuthorSection = styled(Box)(({ theme }) => ({
       theme.palette.mode === "dark"
         ? "rgba(255,255,255,0.05)"
         : "rgba(0,0,0,0.03)",
+    transform: "translateY(-2px)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 8px 16px rgba(0,0,0,0.4)"
+        : "0 8px 16px rgba(0,0,0,0.1)",
+  },
+  "& .MuiIconButton-root": {
+    color: theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.05)"
+        : "rgba(0,0,0,0.05)",
+    "&:hover": {
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255,255,255,0.1)"
+          : "rgba(0,0,0,0.1)",
+      transform: "scale(1.1)",
+    },
   },
 }));
 
 const ZoomControls = styled(Box)(({ theme }) => ({
-  position: "absolute",
-  bottom: theme.spacing(3),
-  right: theme.spacing(3),
   display: "flex",
   gap: theme.spacing(1),
-  opacity: 0,
-  transition: "opacity 0.3s ease",
+  opacity: 1,
   backgroundColor:
     theme.palette.mode === "dark"
       ? "rgba(0,0,0,0.85)"
       : "rgba(255,255,255,0.95)",
-  padding: theme.spacing(1),
+  padding: theme.spacing(1.5),
   borderRadius: theme.shape.borderRadius * 3,
   backdropFilter: "blur(10px)",
   border: `1px solid ${
@@ -643,16 +673,36 @@ const ZoomControls = styled(Box)(({ theme }) => ({
     theme.palette.mode === "dark"
       ? "0 8px 32px rgba(0,0,0,0.5)"
       : "0 8px 32px rgba(0,0,0,0.1)",
+  "& .MuiIconButton-root": {
+    color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.1)"
+        : "rgba(0,0,0,0.05)",
+    "&:hover": {
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255,255,255,0.2)"
+          : "rgba(0,0,0,0.1)",
+      transform: "scale(1.1)",
+    },
+    transition: "all 0.2s ease",
+  },
 }));
 
 const LikeButtonStyled = styled(LikeButton)(({ theme }) => ({
+  marginRight: "-12px",
   "& .MuiIconButton-root": {
     color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+    transform: "scale(1.4)",
+    padding: "20px",
     "&:hover": {
       backgroundColor:
         theme.palette.mode === "dark"
           ? "rgba(255,255,255,0.1)"
           : "rgba(0,0,0,0.1)",
+      transform: "scale(1.5)",
+      zIndex: 1,
     },
     "&.liked": {
       color: "#FF3B30",
@@ -660,10 +710,16 @@ const LikeButtonStyled = styled(LikeButton)(({ theme }) => ({
   },
   "& .MuiTypography-root": {
     color: theme.palette.mode === "dark" ? "#FFFFFF !important" : "inherit",
+    fontSize: "1.3rem",
+    fontWeight: 600,
+  },
+  "& svg": {
+    fontSize: "28px",
   },
 }));
 
 const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
+  const { userId: currentUserId } = useAuth();
   const [selectedPainting, setSelectedPainting] = useState<Painting | null>(
     null
   );
@@ -773,7 +829,7 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
     setZoomLevel(1);
   };
 
-  const handleShare = async (e: React.MouseEvent, painting: Painting) => {
+  const handleShare = (e: React.MouseEvent, painting: Painting) => {
     e.stopPropagation();
     setShareDialogOpen(true);
   };
@@ -804,7 +860,6 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
 
     if (platform === "copy") {
       navigator.clipboard.writeText(shareUrl);
-      enqueueSnackbar("Link copied to clipboard!", { variant: "success" });
     } else if (platform === "instagram") {
       // Try to open Instagram app first
       window.location.href = shareLinks.instagram;
@@ -846,6 +901,33 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
     },
   };
 
+  const handleActionClick = async (
+    e: React.MouseEvent,
+    actionType: string,
+    paintingId: string
+  ) => {
+    e.stopPropagation();
+    if (!currentUserId) return;
+
+    try {
+      if (actionType === "save") {
+        const painting = localPaintings.find((p) => p.id === paintingId);
+        if (!painting) return;
+
+        if (painting.isSaved) {
+          await paintingService.unsavePainting(parseInt(paintingId));
+        } else {
+          await paintingService.savePainting(parseInt(paintingId));
+        }
+      }
+
+      // Notify parent component
+      onAction(actionType, paintingId);
+    } catch (error) {
+      console.error(`Error handling ${actionType} action:`, error);
+    }
+  };
+
   return (
     <>
       <Grid container spacing={3}>
@@ -880,33 +962,42 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                         {painting.price}
                       </PaintingPrice>
                       <ActionButtonsContainer>
-                        <LikeButtonStyled
-                          paintingId={parseInt(painting.id)}
-                          onClick={(e) => handleLike(e, painting.id)}
-                          isLiked={painting.isLiked}
-                          likesCount={painting.likes}
-                          sx={{
-                            "& .MuiIconButton-root": {
-                              backgroundColor: (theme: Theme) =>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <LikeButton
+                            paintingId={parseInt(painting.id)}
+                            onClick={(e) =>
+                              handleActionClick(e, "like", painting.id)
+                            }
+                          />
+                          <IconButton
+                            onClick={(e) =>
+                              handleActionClick(e, "save", painting.id)
+                            }
+                            sx={{
+                              color: painting.isSaved
+                                ? "primary.main"
+                                : "inherit",
+                              bgcolor:
                                 theme.palette.mode === "dark"
                                   ? "rgba(255,255,255,0.1)"
-                                  : "rgba(0,0,0,0.1)",
-                            },
-                          }}
-                        />
-                        <ActionButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onAction("save", painting.id);
-                          }}
-                          className={painting.isSaved ? "saved" : ""}
-                        >
-                          {painting.isSaved ? (
-                            <BookmarkIcon />
-                          ) : (
-                            <BookmarkBorderIcon />
-                          )}
-                        </ActionButton>
+                                  : "rgba(0,0,0,0.05)",
+                              "&:hover": {
+                                bgcolor:
+                                  theme.palette.mode === "dark"
+                                    ? "rgba(255,255,255,0.2)"
+                                    : "rgba(0,0,0,0.1)",
+                              },
+                            }}
+                          >
+                            {painting.isSaved ? (
+                              <BookmarkIcon />
+                            ) : (
+                              <BookmarkBorderIcon />
+                            )}
+                          </IconButton>
+                        </Box>
                         <ActionButton
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1027,11 +1118,14 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                           <PersonAddIcon />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Message Artist">
-                        <IconButton>
-                          <ChatIcon />
-                        </IconButton>
-                      </Tooltip>
+                      {String(selectedPainting.author.id) !==
+                        String(currentUserId) && (
+                        <Tooltip title="Message Artist">
+                          <IconButton>
+                            <ChatIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </Box>
                   </AuthorSection>
                 )}
@@ -1128,16 +1222,18 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                 <Box
                   sx={{
                     display: "flex",
-                    gap: 2,
                     marginTop: "auto",
                     paddingTop: 3,
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                    width: "100%",
                     "& .MuiButton-root": {
                       borderRadius: (theme: Theme) =>
                         theme.shape.borderRadius * 2,
                       padding: "12px 24px",
                       textTransform: "none",
                       fontWeight: 600,
-                      transition: "all 0.3s ease",
+                      fontSize: "1rem",
                       color: (theme: Theme) =>
                         theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
                       "&:hover": {
@@ -1150,42 +1246,70 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 1,
-                      flex: 1,
+                      gap: 3,
                     }}
                   >
+                    <ZoomControls>
+                      <Tooltip title="Zoom Out">
+                        <IconButton
+                          size="small"
+                          onClick={handleZoomOut}
+                          disabled={zoomLevel <= 0.5}
+                        >
+                          <ZoomOutIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Reset Zoom">
+                        <IconButton size="small" onClick={handleResetZoom}>
+                          <ZoomOutMapIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Zoom In">
+                        <IconButton
+                          size="small"
+                          onClick={handleZoomIn}
+                          disabled={zoomLevel >= 3}
+                        >
+                          <ZoomInIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </ZoomControls>
                     <LikeButtonStyled
                       paintingId={parseInt(selectedPainting.id)}
                       onClick={(e) => handleLike(e, selectedPainting.id)}
                       isLiked={selectedPainting.isLiked}
                       likesCount={selectedPainting.likes}
                       sx={{
-                        transform: "scale(1.2)",
                         "& .MuiIconButton-root": {
                           backgroundColor: (theme: Theme) =>
                             theme.palette.mode === "dark"
                               ? "rgba(255,255,255,0.1)"
                               : "rgba(0,0,0,0.1)",
-                          padding: "16px",
+                          padding: "32px",
+                          transform: "scale(2)",
                           "& svg": {
-                            fontSize: "28px",
+                            fontSize: "48px",
                           },
                         },
                         "& .MuiTypography-root": {
-                          fontSize: "1.2rem",
-                          fontWeight: 600,
+                          fontSize: "1.8rem",
+                          fontWeight: 700,
+                          marginLeft: "16px",
                         },
                       }}
                     />
+                    <Button
+                      variant="outlined"
+                      startIcon={<ShareIcon sx={{ fontSize: "24px" }} />}
+                      onClick={(e) => handleShare(e, selectedPainting)}
+                      sx={{
+                        minWidth: "120px",
+                        height: "48px",
+                      }}
+                    >
+                      Share
+                    </Button>
                   </Box>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<ShareIcon />}
-                    onClick={(e) => handleShare(e, selectedPainting)}
-                  >
-                    Share
-                  </Button>
                 </Box>
               </InfoSection>
             </MainContent>

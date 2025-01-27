@@ -51,8 +51,7 @@ const BlogPost: React.FC = () => {
         setLoading(true);
         const blogData = await blogService.getBlog(Number(id));
         setBlog(blogData);
-        const commentsData = await blogService.getComments(Number(id));
-        setComments(commentsData);
+        setComments(blogData.comments || []);
         setError(null);
       } catch (err) {
         console.error("Error fetching blog:", err);
@@ -96,18 +95,29 @@ const BlogPost: React.FC = () => {
 
     try {
       setLoading(true);
-      await blogService.addComment(blog.id, {
+      const commentData = {
         content: newComment,
-      });
+        blog: blog.id,
+      };
 
-      const updatedComments = await blogService.getComments(blog.id);
-      setComments(updatedComments);
-      
+      // Add the comment
+      const newCommentData = await blogService.addComment(blog.id, commentData);
+      console.log("New comment added:", newCommentData);
+
+      // Clear the input and error state
       setNewComment("");
       setError(null);
-    } catch (error) {
+
+      // Fetch the updated blog data to get the latest comments
+      const updatedBlog = await blogService.getBlog(blog.id);
+      setBlog(updatedBlog);
+      setComments(updatedBlog.comments || []);
+    } catch (error: any) {
       console.error("Error adding comment:", error);
-      setError("Failed to add comment. Please try again.");
+      setError(
+        error.response?.data?.message ||
+          "Failed to add comment. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -126,6 +136,7 @@ const BlogPost: React.FC = () => {
 
   const CommentSection = styled(Box)(({ theme }) => ({
     marginTop: theme.spacing(4),
+    color: theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
   }));
 
   const CommentCard = styled(Paper)(({ theme }) => ({
@@ -134,6 +145,9 @@ const BlogPost: React.FC = () => {
     borderRadius: theme.shape.borderRadius,
     background: theme.palette.background.paper,
     border: `1px solid ${theme.palette.divider}`,
+    "& a": {
+      color: theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
+    },
   }));
 
   const CommentHeader = styled(Box)(({ theme }) => ({
@@ -144,13 +158,17 @@ const BlogPost: React.FC = () => {
   }));
 
   const CommentContent = styled(Typography)(({ theme }) => ({
-    color: theme.palette.text.primary,
+    color:
+      theme.palette.mode === "dark" ? "#FFFFFF" : theme.palette.text.primary,
     fontSize: "1rem",
     lineHeight: 1.6,
   }));
 
   const CommentMeta = styled(Typography)(({ theme }) => ({
-    color: theme.palette.text.secondary,
+    color:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.7)"
+        : theme.palette.text.secondary,
     fontSize: "0.875rem",
   }));
 
@@ -221,6 +239,7 @@ const BlogPost: React.FC = () => {
                   theme.palette.mode === "dark"
                     ? alpha(theme.palette.common.white, 0.05)
                     : alpha(theme.palette.common.black, 0.02),
+                color: theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
               }}
             >
               <ArrowBackIcon />
@@ -238,6 +257,12 @@ const BlogPost: React.FC = () => {
                       theme.palette.mode === "dark" ? "#ffffff" : "#000000",
                     color:
                       theme.palette.mode === "dark" ? "#000000" : "#ffffff",
+                    "&:hover": {
+                      bgcolor:
+                        theme.palette.mode === "dark"
+                          ? alpha("#ffffff", 0.9)
+                          : alpha("#000000", 0.8),
+                    },
                   }}
                 >
                   Edit Post
@@ -264,11 +289,19 @@ const BlogPost: React.FC = () => {
             borderRadius: 2,
             bgcolor: "background.paper",
             border: `1px solid ${theme.palette.divider}`,
+            color: theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
           }}
         >
           {/* Blog Content */}
           <Box>
-            <Typography variant="h3" gutterBottom fontWeight={800}>
+            <Typography
+              variant="h3"
+              gutterBottom
+              fontWeight={800}
+              sx={{
+                color: theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
+              }}
+            >
               {blog.title}
             </Typography>
             <Box
@@ -277,7 +310,10 @@ const BlogPost: React.FC = () => {
                 alignItems: "center",
                 gap: 3,
                 mb: 4,
-                color: theme.palette.text.secondary,
+                color:
+                  theme.palette.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.7)"
+                    : theme.palette.text.secondary,
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -325,7 +361,14 @@ const BlogPost: React.FC = () => {
 
           {/* Comments Section */}
           <Box sx={{ mt: 6 }}>
-            <Typography variant="h5" gutterBottom fontWeight={600}>
+            <Typography
+              variant="h5"
+              gutterBottom
+              fontWeight={600}
+              sx={{
+                color: theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
+              }}
+            >
               Comments ({comments.length})
             </Typography>
 
@@ -346,14 +389,40 @@ const BlogPost: React.FC = () => {
                   mb: 2,
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
+                    color:
+                      theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor:
+                      theme.palette.mode === "dark"
+                        ? "rgba(255, 255, 255, 0.23)"
+                        : "rgba(0, 0, 0, 0.23)",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor:
+                      theme.palette.mode === "dark"
+                        ? "rgba(255, 255, 255, 0.4)"
+                        : "rgba(0, 0, 0, 0.4)",
+                  },
+                  "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor:
+                      theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+                  },
+                }}
+                InputProps={{
+                  sx: {
+                    color:
+                      theme.palette.mode === "dark" ? "#FFFFFF" : "inherit",
                   },
                 }}
               />
               <Button
                 type="submit"
                 variant="contained"
-                disabled={!newComment.trim()}
-                startIcon={<SendIcon />}
+                disabled={!newComment.trim() || loading}
+                startIcon={
+                  loading ? <CircularProgress size={20} /> : <SendIcon />
+                }
                 sx={{
                   borderRadius: 28,
                   px: 3,
@@ -369,7 +438,7 @@ const BlogPost: React.FC = () => {
                   },
                 }}
               >
-                Post Comment
+                {loading ? "Posting..." : "Post Comment"}
               </Button>
             </Box>
 
@@ -379,12 +448,30 @@ const BlogPost: React.FC = () => {
                 comments.map((comment) => (
                   <CommentCard key={comment.id} elevation={0}>
                     <CommentHeader>
-                      <Avatar sx={{ width: 40, height: 40 }}>
-                        {comment.author_name[0].toUpperCase()}
+                      <Avatar
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          bgcolor:
+                            theme.palette.mode === "dark"
+                              ? "primary.dark"
+                              : "primary.main",
+                        }}
+                      >
+                        {comment.author_name?.[0]?.toUpperCase() || "?"}
                       </Avatar>
                       <Box>
-                        <Typography variant="subtitle1" fontWeight={600}>
-                          {comment.author_name}
+                        <Typography
+                          variant="subtitle1"
+                          fontWeight={600}
+                          sx={{
+                            color:
+                              theme.palette.mode === "dark"
+                                ? "#FFFFFF"
+                                : "inherit",
+                          }}
+                        >
+                          {comment.author_name || "Anonymous"}
                         </Typography>
                         <CommentMeta>
                           {formatDate(comment.created_at)}
@@ -396,7 +483,14 @@ const BlogPost: React.FC = () => {
                 ))
               ) : (
                 <Box textAlign="center" py={4}>
-                  <Typography color="text.secondary">
+                  <Typography
+                    sx={{
+                      color:
+                        theme.palette.mode === "dark"
+                          ? "rgba(255, 255, 255, 0.7)"
+                          : theme.palette.text.secondary,
+                    }}
+                  >
                     No comments yet. Be the first to comment!
                   </Typography>
                 </Box>

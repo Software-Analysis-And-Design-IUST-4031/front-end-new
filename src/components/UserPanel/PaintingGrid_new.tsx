@@ -17,6 +17,7 @@ import {
   CircularProgress,
   alpha,
   Slider,
+  Avatar,
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -44,6 +45,14 @@ interface Painting {
   isLiked: boolean;
   isSaved: boolean;
   createdAt: string;
+  author?: {
+    id: string;
+    username: string;
+    name: string;
+    avatarUrl?: string;
+    bio?: string;
+    email?: string;
+  };
 }
 
 interface PaintingGridProps {
@@ -377,6 +386,34 @@ const WarningIcon = styled("div")(({ theme }) => ({
   },
 }));
 
+const AuthorSection = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(2),
+  padding: theme.spacing(3),
+  borderRadius: theme.shape.borderRadius * 2,
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "rgba(255,255,255,0.03)"
+      : "rgba(0,0,0,0.02)",
+  border: `1px solid ${
+    theme.palette.mode === "dark"
+      ? "rgba(255,255,255,0.05)"
+      : "rgba(0,0,0,0.03)"
+  }`,
+  marginBottom: theme.spacing(3),
+  transition: "all 0.3s ease",
+  "& .MuiTypography-root": {
+    color: theme.palette.mode === "dark" ? "#FFFFFF !important" : "inherit",
+  },
+  "&:hover": {
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.05)"
+        : "rgba(0,0,0,0.03)",
+  },
+}));
+
 const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
   const theme = useTheme();
   const [selectedPainting, setSelectedPainting] = useState<Painting | null>(
@@ -693,6 +730,25 @@ const PaintingGrid: React.FC<PaintingGridProps> = ({ paintings, onAction }) => {
                     color: "#fff",
                   }}
                 >
+                  {selectedPainting.author && (
+                    <AuthorSection>
+                      <Avatar
+                        src={selectedPainting.author.avatarUrl}
+                        alt={selectedPainting.author.name}
+                        sx={{ width: 56, height: 56 }}
+                      >
+                        {selectedPainting.author.name.charAt(0)}
+                      </Avatar>
+                      <Box>
+                        <Typography variant="h6" fontWeight={600}>
+                          {selectedPainting.author.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          @{selectedPainting.author.username}
+                        </Typography>
+                      </Box>
+                    </AuthorSection>
+                  )}
                   <Typography
                     variant="h6"
                     gutterBottom

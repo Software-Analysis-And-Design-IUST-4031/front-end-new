@@ -18,6 +18,7 @@ import {
   CloudUpload as CloudUploadIcon,
   MonetizationOn as MonetizationOnIcon,
 } from "@mui/icons-material";
+import { useSnackbar } from "notistack";
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialog-paper": {
@@ -297,6 +298,7 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = useTheme();
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -324,21 +326,62 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!selectedFile) return;
+    // Validate required fields
+    if (!selectedFile) {
+      enqueueSnackbar("Please select an image to upload", { variant: "error" });
+      return;
+    }
+    if (!title.trim()) {
+      enqueueSnackbar("Title is required", { variant: "error" });
+      return;
+    }
+    if (!description.trim()) {
+      enqueueSnackbar("Description is required", { variant: "error" });
+      return;
+    }
 
     const formData = new FormData();
-    formData.append("title", title);
-    formData.append("description", description);
-    formData.append("price", price);
-    formData.append("year", year);
-    formData.append("style", style);
-    formData.append("material", material);
-    formData.append("horizontal_depth", horizontalDepth);
-    formData.append("vertical_depth", verticalDepth);
+    formData.append("title", title.trim());
+    formData.append("description", description.trim());
+    formData.append("price", price ? parseFloat(price).toFixed(2) : "0.00");
+    formData.append("year", year || "");
+    formData.append("style", style || "");
+    formData.append("material", material || "");
+    formData.append(
+      "horizontal_depth",
+      horizontalDepth ? parseFloat(horizontalDepth).toFixed(2) : "0.00"
+    );
+    formData.append(
+      "vertical_depth",
+      verticalDepth ? parseFloat(verticalDepth).toFixed(2) : "0.00"
+    );
     formData.append("image", selectedFile);
 
-    await onUpload(formData);
-    handleClose();
+    // Log FormData contents for debugging
+    console.log("Uploading painting with data:", {
+      title: title.trim(),
+      description: description.trim(),
+      price: price ? parseFloat(price).toFixed(2) : "0.00",
+      year: year || "",
+      style: style || "",
+      material: material || "",
+      horizontal_depth: horizontalDepth
+        ? parseFloat(horizontalDepth).toFixed(2)
+        : "0.00",
+      vertical_depth: verticalDepth
+        ? parseFloat(verticalDepth).toFixed(2)
+        : "0.00",
+      image: selectedFile.name,
+    });
+
+    try {
+      await onUpload(formData);
+      handleClose();
+    } catch (error: any) {
+      console.error("Error uploading painting:", error);
+      // Keep the dialog open on error
+      // The error will be shown by the ProfilePage component
+    }
   };
 
   const handleClose = () => {
@@ -358,9 +401,11 @@ const UploadPaintingDialog: React.FC<UploadPaintingDialogProps> = ({
   return (
     <StyledDialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogHeader>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Upload Your Painting
-        </Typography>
+        <Box component="div">
+          <Typography component="div" variant="h5" sx={{ fontWeight: 700 }}>
+            Upload Your Painting
+          </Typography>
+        </Box>
         <CloseButton onClick={handleClose} size="small">
           <CloseIcon />
         </CloseButton>

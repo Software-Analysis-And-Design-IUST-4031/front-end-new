@@ -7,10 +7,13 @@ import {
   Avatar,
   Typography,
   Backdrop,
+  Button,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import { MEDIA_URL } from "../../services/api";
+import FavoritesDialog from "../UserPanel/FavoritesDialog";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 
 const UserAvatar = styled(Avatar)(({ theme }) => ({
   width: 120,
@@ -43,6 +46,54 @@ const UserAvatar = styled(Avatar)(({ theme }) => ({
   },
 }));
 
+const SideBarContainer = styled(Box)(({ theme }) => ({
+  position: "fixed",
+  top: 0,
+  right: 0,
+  height: "100vh",
+  width: 300,
+  backgroundColor: theme.palette.mode === "dark" ? "#1A1A1A" : "#FFFFFF",
+  borderLeft: `1px solid ${
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"
+  }`,
+  zIndex: 1200,
+  transition: "transform 0.3s ease-in-out",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  padding: theme.spacing(3),
+  gap: theme.spacing(2),
+  overflowY: "auto",
+}));
+
+const ActionButton = styled(Button)(({ theme }) => ({
+  borderRadius: 12,
+  padding: theme.spacing(1.5, 3),
+  textTransform: "none",
+  fontWeight: 600,
+  width: "100%",
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "rgba(255,255,255,0.1)"
+      : "rgba(0,0,0,0.05)",
+  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+  border: `1px solid ${
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)"
+  }`,
+  "&:hover": {
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.15)"
+        : "rgba(0,0,0,0.08)",
+    transform: "translateY(-2px)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 4px 12px rgba(255,255,255,0.1)"
+        : "0 4px 12px rgba(0,0,0,0.1)",
+  },
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+}));
+
 interface SideBarProps {
   open: boolean;
   onClose: () => void;
@@ -57,6 +108,7 @@ const SideBar: React.FC<SideBarProps> = ({
   onProfileUpdate,
 }) => {
   const [avatarKey, setAvatarKey] = useState(0);
+  const [favoritesOpen, setFavoritesOpen] = useState(false);
   const navigate = useNavigate();
   const [minimized, setMinimized] = useState(false);
   const theme = useTheme();
@@ -115,11 +167,31 @@ const SideBar: React.FC<SideBarProps> = ({
         isMinimized={minimized}
         sx={{
           boxShadow: open ? theme.shadows[8] : "none",
+          transform: open ? "translateX(0)" : "translateX(100%)",
         }}
       >
-        {/* ... rest of the component ... */}
         {renderUserAvatar(userData)}
-        {/* ... rest of the component ... */}
+        <Typography variant="h6" sx={{ fontWeight: 600, mt: 2 }}>
+          {userData.firstname} {userData.lastname}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {userData.email}
+        </Typography>
+
+        <Box sx={{ width: "100%", mt: 3 }}>
+          <ActionButton
+            startIcon={<FavoriteIcon />}
+            onClick={() => setFavoritesOpen(true)}
+          >
+            My Favorites
+          </ActionButton>
+        </Box>
+
+        <FavoritesDialog
+          open={favoritesOpen}
+          onClose={() => setFavoritesOpen(false)}
+          userProfile={userData}
+        />
       </SideBarContainer>
     </>
   );

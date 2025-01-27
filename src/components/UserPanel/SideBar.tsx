@@ -44,17 +44,13 @@ const SideBarContainer = styled(Box, {
   left: 0,
   top: 0,
   bottom: 0,
-  width: isMinimized ? 60 : isOpen ? 280 : 0,
-  backgroundColor:
-    theme.palette.mode === "dark"
-      ? "rgba(16,20,24,0.97)"
-      : "rgba(255,255,255,0.97)",
+  width: isMinimized ? 80 : isOpen ? 280 : 0,
+  height: "100vh",
+  backgroundColor: theme.palette.mode === "dark" ? "#111111" : "#FFFFFF",
   borderRight: `1px solid ${
-    theme.palette.mode === "dark"
-      ? "rgba(33,150,243,0.15)"
-      : "rgba(33,150,243,0.1)"
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"
   }`,
-  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   overflowX: "hidden",
   overflowY: "auto",
   zIndex: 1200,
@@ -63,11 +59,10 @@ const SideBarContainer = styled(Box, {
   padding: theme.spacing(2),
   transform: isOpen ? "translateX(0)" : "translateX(-100%)",
   visibility: isOpen ? "visible" : "hidden",
-  backdropFilter: "blur(24px)",
   boxShadow: isOpen
     ? theme.palette.mode === "dark"
-      ? "0 0 40px rgba(0,0,0,0.5), 4px 0 24px rgba(33,150,243,0.2)"
-      : "0 0 40px rgba(0,0,0,0.1), 4px 0 24px rgba(33,150,243,0.1)"
+      ? "0 0 20px rgba(0,0,0,0.5)"
+      : "0 0 20px rgba(0,0,0,0.1)"
     : "none",
   "&::-webkit-scrollbar": {
     width: "4px",
@@ -75,22 +70,9 @@ const SideBarContainer = styled(Box, {
   "&::-webkit-scrollbar-thumb": {
     backgroundColor:
       theme.palette.mode === "dark"
-        ? "rgba(33,150,243,0.4)"
-        : "rgba(33,150,243,0.3)",
+        ? "rgba(255,255,255,0.2)"
+        : "rgba(0,0,0,0.2)",
     borderRadius: "4px",
-  },
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: "200px",
-    background:
-      theme.palette.mode === "dark"
-        ? "linear-gradient(180deg, rgba(33,150,243,0.1) 0%, rgba(16,20,24,0) 100%)"
-        : "linear-gradient(180deg, rgba(33,150,243,0.05) 0%, rgba(255,255,255,0) 100%)",
-    pointerEvents: "none",
   },
 }));
 
@@ -98,63 +80,50 @@ const UserSection = styled(Box)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  padding: theme.spacing(3),
-  gap: theme.spacing(2),
+  padding: theme.spacing(3, 2),
+  gap: theme.spacing(1),
   borderBottom: `1px solid ${
-    theme.palette.mode === "dark"
-      ? "rgba(33,150,243,0.15)"
-      : "rgba(33,150,243,0.1)"
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"
   }`,
   marginBottom: theme.spacing(2),
-  animation: "fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
-  background:
+  borderRadius: 16,
+  backgroundColor:
     theme.palette.mode === "dark"
-      ? "linear-gradient(145deg, rgba(16,20,24,0.7) 0%, rgba(23,28,33,0.7) 100%)"
-      : "linear-gradient(145deg, rgba(255,255,255,0.7) 0%, rgba(250,252,254,0.7) 100%)",
-  borderRadius: 24,
-  backdropFilter: "blur(12px)",
-  boxShadow:
-    theme.palette.mode === "dark"
-      ? "0 4px 24px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(33,150,243,0.1)"
-      : "0 4px 24px rgba(0,0,0,0.06), inset 0 0 0 1px rgba(33,150,243,0.05)",
-  "@keyframes fadeIn": {
-    from: {
-      opacity: 0,
-      transform: "translateY(-10px) scale(0.98)",
-    },
-    to: {
-      opacity: 1,
-      transform: "translateY(0) scale(1)",
-    },
-  },
+      ? "rgba(255,255,255,0.05)"
+      : "rgba(0,0,0,0.02)",
+  width: "100%",
 }));
 
 const UserAvatar = styled(Avatar)(({ theme }) => ({
   width: 120,
   height: 120,
   fontSize: "2.5rem",
-  backgroundColor: theme.palette.mode === "dark" ? "#1976D2" : "#2196F3",
+  backgroundColor: theme.palette.mode === "dark" ? "#333333" : "#f5f5f5",
   border: `3px solid ${theme.palette.background.paper}`,
   boxShadow: `
-    0 4px 14px rgba(33,150,243,0.3),
+    0 4px 14px ${
+      theme.palette.mode === "dark" ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.2)"
+    },
     0 0 0 2px ${theme.palette.background.paper},
     0 0 0 4px ${
       theme.palette.mode === "dark"
-        ? "rgba(33,150,243,0.3)"
-        : "rgba(33,150,243,0.2)"
+        ? "rgba(255,255,255,0.1)"
+        : "rgba(0,0,0,0.1)"
     }
   `,
-  transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+  transition: "all 0.3s ease",
   cursor: "pointer",
   "&:hover": {
-    transform: "scale(1.08) rotate(5deg)",
+    transform: "scale(1.05)",
     boxShadow: `
-      0 6px 20px rgba(33,150,243,0.4),
-      0 0 0 4px ${theme.palette.background.paper},
-      0 0 0 8px ${
+      0 6px 20px ${
+        theme.palette.mode === "dark" ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.3)"
+      },
+      0 0 0 2px ${theme.palette.background.paper},
+      0 0 0 4px ${
         theme.palette.mode === "dark"
-          ? "rgba(33,150,243,0.4)"
-          : "rgba(33,150,243,0.3)"
+          ? "rgba(255,255,255,0.2)"
+          : "rgba(0,0,0,0.2)"
       }
     `,
   },
@@ -162,12 +131,20 @@ const UserAvatar = styled(Avatar)(({ theme }) => ({
 
 const UserName = styled(Typography)(({ theme }) => ({
   fontWeight: 600,
-  color: theme.palette.text.primary,
+  color: theme.palette.mode === "dark" ? "#FFFFFF" : theme.palette.text.primary,
+  textAlign: "center",
+  marginTop: theme.spacing(2),
 }));
 
 const UserEmail = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
   fontSize: "0.875rem",
+  textAlign: "center",
+  maxWidth: "100%",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  padding: "0 8px",
 }));
 
 const NavSection = styled(Box)(({ theme }) => ({
@@ -192,61 +169,34 @@ const NavButton = styled(IconButton)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   gap: theme.spacing(2),
-  padding: theme.spacing(1.5, 2),
-  borderRadius: 16,
+  padding: theme.spacing(1.5),
+  borderRadius: 12,
   width: "100%",
   justifyContent: "flex-start",
   color: theme.palette.text.primary,
   backgroundColor: "transparent",
-  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  position: "relative",
-  overflow: "hidden",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background:
-      theme.palette.mode === "dark"
-        ? "linear-gradient(45deg, rgba(33,150,243,0.15), rgba(33,150,243,0))"
-        : "linear-gradient(45deg, rgba(33,150,243,0.1), rgba(33,150,243,0))",
-    opacity: 0,
-    transition: "opacity 0.3s ease",
-  },
+  transition: "all 0.2s ease",
   "&:hover": {
     backgroundColor:
       theme.palette.mode === "dark"
-        ? "rgba(33,150,243,0.15)"
-        : "rgba(33,150,243,0.1)",
+        ? "rgba(255,255,255,0.1)"
+        : "rgba(0,0,0,0.05)",
     transform: "translateX(4px)",
-    "&::before": {
-      opacity: 1,
-    },
   },
   "& .MuiSvgIcon-root": {
-    transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
-    color: theme.palette.mode === "dark" ? "#90CAF9" : "#1976D2",
-    filter: "drop-shadow(0 2px 4px rgba(33,150,243,0.2))",
+    color: theme.palette.mode === "dark" ? "#FFFFFF" : "#000000",
+    transition: "transform 0.2s ease",
   },
   "&:hover .MuiSvgIcon-root": {
-    transform: "scale(1.2) rotate(8deg)",
-    color: "#2196F3",
-    filter: "drop-shadow(0 4px 8px rgba(33,150,243,0.3))",
+    transform: "scale(1.1)",
   },
   "&.active": {
     backgroundColor:
       theme.palette.mode === "dark"
-        ? "rgba(33,150,243,0.2)"
-        : "rgba(33,150,243,0.15)",
-    "&::before": {
-      opacity: 1,
-    },
+        ? "rgba(255,255,255,0.15)"
+        : "rgba(0,0,0,0.08)",
     "& .MuiTypography-root": {
       fontWeight: 600,
-      color: theme.palette.mode === "dark" ? "#90CAF9" : "#1976D2",
-      textShadow: "0 2px 4px rgba(33,150,243,0.2)",
     },
   },
 }));
@@ -360,16 +310,12 @@ const SideBar: React.FC<SideBarProps> = ({
 
         {!minimized && (
           <UserSection>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              {renderUserAvatar(userData)}
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  {userData.firstname} {userData.lastname}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {userData.email}
-                </Typography>
-              </Box>
+            {renderUserAvatar(userData)}
+            <Box sx={{ width: "100%" }}>
+              <UserName>
+                {userData.firstname} {userData.lastname}
+              </UserName>
+              <UserEmail>{userData.email}</UserEmail>
             </Box>
             <Box sx={{ mt: 2 }}>
               <EditProfileButton

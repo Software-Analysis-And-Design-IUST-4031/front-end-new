@@ -9,10 +9,11 @@ import {
   Pagination,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import { useAuth } from "../context/AuthContext";
+import Navbar from "../Navbar";
+import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
-import { userService } from "../services/userService";
+import { userService } from "../../services/userService";
+import SideBar from "../UserPanel/SideBar";
 // import '../Themes.css';
 
 const Gallery = lazy(() => import("./gallery"));
@@ -47,7 +48,7 @@ const LoadingFallback = () => (
   </Box>
 );
 
-const GalleriesPage: any = () => {
+const GalleriesPage: React.FC = () => {
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -58,7 +59,8 @@ const GalleriesPage: any = () => {
   const itemsPerPage = 3;
   const totalPages = Math.ceil(data.length / itemsPerPage);
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userProfile } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Handle page change
   const handlePageChange = (
@@ -121,6 +123,10 @@ const GalleriesPage: any = () => {
     setCurrentData(paginatedData);
   }, [currentPage, data]);
 
+  const handleSidebarToggle = () => {
+    setSidebarOpen((prev) => !prev);
+  };
+
   return (
     <Box
       sx={{
@@ -130,7 +136,15 @@ const GalleriesPage: any = () => {
         bgcolor: "background.default",
       }}
     >
-      <Navbar />
+      <Navbar onSidebarToggle={handleSidebarToggle} />
+      {userProfile && (
+        <SideBar
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          userData={userProfile}
+          onProfileUpdate={() => {}}
+        />
+      )}
 
       <Container maxWidth="xl" sx={{ pt: 8, pb: 8 }}>
         <Box sx={{ textAlign: "center", mb: 6, p: 4 }}>

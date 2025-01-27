@@ -675,40 +675,9 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Create FormData
+      // Create FormData for basic info
       const formData = new FormData();
-
-      // Log form values before processing
-      console.log("Form values before processing:", formValues);
-
-      // Handle each field
-      Object.entries(formValues).forEach(([key, value]) => {
-        // Skip undefined/null values
-        if (value === undefined || value === null) return;
-
-        // Handle different field types
-        if (key === "date_of_birth" && value) {
-          // Ensure date is in YYYY-MM-DD format
-          const date = new Date(value);
-          if (!isNaN(date.getTime())) {
-            formData.append(key, date.toISOString().split("T")[0]);
-          }
-        } else if (key === "profile_picture") {
-          if (value instanceof File) {
-            formData.append(key, value);
-          }
-          // Don't append if it's a string URL - the backend already has it
-        } else if (key === "is_gallery") {
-          // Ensure boolean is sent as string "true" or "false"
-          formData.append(key, String(Boolean(value)));
-        } else if (value !== "") {
-          // Convert all other values to string
-          formData.append(key, String(value));
-        }
-      });
-
-      // Explicitly append required fields
-      const requiredFields = [
+      const basicFields = [
         "firstname",
         "lastname",
         "nickname",
@@ -718,39 +687,60 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
         "city",
         "biography",
         "description",
+        "is_gallery",
+        "gallery_name",
+        "profile_picture",
+        "Theme",
+        "Dark_light_theme",
       ];
 
-      requiredFields.forEach((field) => {
-        if (formValues[field] && !formData.has(field)) {
-          formData.append(field, String(formValues[field]));
+      // Handle basic info fields
+      basicFields.forEach((key) => {
+        const value = formValues[key];
+        if (value === undefined || value === null) return;
+
+        if (key === "date_of_birth" && value) {
+          const date = new Date(value);
+          if (!isNaN(date.getTime())) {
+            formData.append(key, date.toISOString().split("T")[0]);
+          }
+        } else if (key === "profile_picture") {
+          if (value instanceof File) {
+            formData.append(key, value);
+          }
+        } else if (key === "is_gallery") {
+          formData.append(key, String(Boolean(value)));
+        } else if (value !== "") {
+          formData.append(key, String(value));
         }
       });
 
-      // Log FormData entries before sending
-      console.log("FormData entries being sent:");
-      for (let pair of formData.entries()) {
-        console.log(pair[0] + ": " + pair[1]);
+      // Update basic info
+      await onProfileUpdate(formData);
+
+      // Handle favorites separately
+      const userId = localStorage.getItem("userId");
+      if (userId) {
+        const favoritesData = {
+          favorite_painter: formValues.favorite_painter || "",
+          favorite_painting: formValues.favorite_painting || "",
+          favorite_painting_style: formValues.favorite_painting_style || "",
+          favorite_painting_technique:
+            formValues.favorite_painting_technique || "",
+          favorite_painting_to_own: formValues.favorite_painting_to_own || "",
+        };
+
+        // Update favorites using the specific endpoint
+        await userService.updateUserFavorites(Number(userId), favoritesData);
       }
 
-      await onProfileUpdate(formData);
       handleClose();
-
-      // Show success message
-      enqueueSnackbar("Profile updated successfully", { variant: "success" });
     } catch (error: any) {
       console.error("Error updating profile:", {
         error,
         formValues,
         response: error.response?.data,
       });
-
-      // Show error message with details if available
-      const errorMessage =
-        error.response?.data?.details?.date_of_birth?.[0] ||
-        error.response?.data?.error ||
-        error.message ||
-        "Failed to update profile";
-      enqueueSnackbar(errorMessage, { variant: "error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -1154,76 +1144,140 @@ const EditProfileButton: React.FC<EditProfileButtonProps> = ({
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Autocomplete
-                  value={formValues.favorite_painter || null}
+                  multiple
+                  limitTags={7}
+                  value={
+                    formValues.favorite_painter
+                      ? formValues.favorite_painter
+                          .split(",")
+                          .filter(Boolean)
+                          .slice(0, 7)
+                      : []
+                  }
                   onChange={(_, newValue) =>
-                    handleChange("favorite_painter")(newValue)
+                    handleChange("favorite_painter")(
+                      newValue.slice(0, 7).join(",")
+                    )
                   }
                   options={famousPainters}
                   renderInput={(params) => (
-                    <TextField {...params} label="Favorite Painter" fullWidth />
+                    <TextField
+                      {...params}
+                      label="Favorite Painters (max 7)"
+                      fullWidth
+                      sx={{ "& .MuiAutocomplete-tag": { maxWidth: "none" } }}
+                    />
                   )}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <Autocomplete
-                  value={formValues.favorite_painting || null}
+                  multiple
+                  limitTags={7}
+                  value={
+                    formValues.favorite_painting
+                      ? formValues.favorite_painting
+                          .split(",")
+                          .filter(Boolean)
+                          .slice(0, 7)
+                      : []
+                  }
                   onChange={(_, newValue) =>
-                    handleChange("favorite_painting")(newValue)
+                    handleChange("favorite_painting")(
+                      newValue.slice(0, 7).join(",")
+                    )
                   }
                   options={famousPaintings}
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="Favorite Painting"
+                      label="Favorite Paintings (max 7)"
                       fullWidth
+                      sx={{ "& .MuiAutocomplete-tag": { maxWidth: "none" } }}
                     />
                   )}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <Autocomplete
-                  value={formValues.favorite_painting_style || null}
+                  multiple
+                  limitTags={7}
+                  value={
+                    formValues.favorite_painting_style
+                      ? formValues.favorite_painting_style
+                          .split(",")
+                          .filter(Boolean)
+                          .slice(0, 7)
+                      : []
+                  }
                   onChange={(_, newValue) =>
-                    handleChange("favorite_painting_style")(newValue)
+                    handleChange("favorite_painting_style")(
+                      newValue.slice(0, 7).join(",")
+                    )
                   }
                   options={paintingStyles}
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="Favorite Painting Style"
+                      label="Favorite Painting Styles (max 7)"
                       fullWidth
+                      sx={{ "& .MuiAutocomplete-tag": { maxWidth: "none" } }}
                     />
                   )}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <Autocomplete
-                  value={formValues.favorite_painting_technique || null}
+                  multiple
+                  limitTags={7}
+                  value={
+                    formValues.favorite_painting_technique
+                      ? formValues.favorite_painting_technique
+                          .split(",")
+                          .filter(Boolean)
+                          .slice(0, 7)
+                      : []
+                  }
                   onChange={(_, newValue) =>
-                    handleChange("favorite_painting_technique")(newValue)
+                    handleChange("favorite_painting_technique")(
+                      newValue.slice(0, 7).join(",")
+                    )
                   }
                   options={paintingTechniques}
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="Favorite Painting Technique"
+                      label="Favorite Painting Techniques (max 7)"
                       fullWidth
+                      sx={{ "& .MuiAutocomplete-tag": { maxWidth: "none" } }}
                     />
                   )}
                 />
               </Grid>
               <Grid item xs={12}>
                 <Autocomplete
-                  value={formValues.favorite_painting_to_own || null}
+                  multiple
+                  limitTags={7}
+                  value={
+                    formValues.favorite_painting_to_own
+                      ? formValues.favorite_painting_to_own
+                          .split(",")
+                          .filter(Boolean)
+                          .slice(0, 7)
+                      : []
+                  }
                   onChange={(_, newValue) =>
-                    handleChange("favorite_painting_to_own")(newValue)
+                    handleChange("favorite_painting_to_own")(
+                      newValue.slice(0, 7).join(",")
+                    )
                   }
                   options={famousPaintings}
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="Your Dream Painting to Own"
+                      label="Your Dream Paintings to Own (max 7)"
                       fullWidth
+                      sx={{ "& .MuiAutocomplete-tag": { maxWidth: "none" } }}
                     />
                   )}
                   freeSolo
